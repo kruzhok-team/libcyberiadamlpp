@@ -91,6 +91,31 @@ Element* Element::find_root()
 	}
 }
 
+#include <iostream>
+
+CyberiadaNode* Element::to_node() const
+{
+	CyberiadaNode* node = cyberiada_new_node(get_id().c_str());
+	switch (type) {
+	case elementSM:             node->type = cybNodeSM; break;
+	case elementSimpleState:    node->type = cybNodeSimpleState; break;
+	case elementCompositeState: node->type = cybNodeCompositeState; break;
+	case elementComment:        node->type = cybNodeComment; break;
+	case elementFormalComment:  node->type = cybNodeFormalComment; break;
+	case elementInitial:        node->type = cybNodeInitial; break;
+	case elementFinal:          node->type = cybNodeFinal; break;
+	case elementChoice:         node->type = cybNodeChoice; break;
+	default:
+		std::cerr << id << " " << type << std::endl;
+		CYB_ASSERT(false);
+	}	
+	if (has_name()) {
+		cyberiada_copy_string(&(node->title), &(node->title_len),
+							  get_name().c_str());
+	}
+	return node;
+}
+
 std::ostream& Element::dump(std::ostream& os) const
 {
 	String type_str;
@@ -136,6 +161,18 @@ Point::Point(CyberiadaPoint* p)
 	}
 }
 
+CyberiadaPoint* Point::c_point() const
+{
+	if (valid) {
+		CyberiadaPoint* p = cyberiada_new_point();
+		p->x = x;
+		p->y = y;
+		return p;
+	} else {
+		return NULL;
+	}
+}
+
 Rect::Rect(CyberiadaRect* r)
 {
 	if (r) {
@@ -147,6 +184,39 @@ Rect::Rect(CyberiadaRect* r)
 	} else {
 		valid = false;
 	}
+}
+
+CyberiadaRect* Rect::c_rect() const
+{
+	if (valid) {
+		CyberiadaRect* r = cyberiada_new_rect();
+		r->x = x;
+		r->y = y;
+		r->width = width;
+		r->height = height;
+		return r;
+	} else {
+		return NULL;
+	}
+}
+
+CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
+{
+	CyberiadaPolyline* result = NULL;
+	for (Polyline::const_iterator i = polyline.begin(); i != polyline.end(); i++) {
+		const Point& point = *i;
+		CyberiadaPolyline* pl = cyberiada_new_polyline();
+		pl->point.x = point.x;
+		pl->point.y = point.y;
+		if (result) {
+			CyberiadaPolyline* last_pl = result;
+			while (last_pl->next) last_pl = last_pl->next;
+			last_pl->next = pl;
+		} else {
+			result = pl;
+		}
+	}
+	return result;
 }
 
 // -----------------------------------------------------------------------------
@@ -165,17 +235,24 @@ Action::Action(const Event& _trigger, const Guard& _guard, const Behavior& _beha
 
 std::ostream& Action::dump(std::ostream& os) const
 {
-	if (!trigger.empty()) {
+	if (type != actionTransition) {
+		if (type == actionEntry) {
+			os << "entry";
+		} else {
+			CYB_ASSERT(type == actionExit);
+			os << "exit";
+		}
+	} else if (!trigger.empty()) {
 		os << "trigger: '" << trigger << "'";
 	}
 	if (!guard.empty()) {
-		if (!trigger.empty()) {
+		if (type != actionTransition || !trigger.empty()) {
 			os << ", ";
 		}
 		os << "guard: '" << guard << "'";
 	}
 	if (!behavior.empty()) {
-		if (!trigger.empty() || !guard.empty()) {
+		if (type != actionTransition || !trigger.empty() || !guard.empty()) {
 			os << ", ";
 		}
 		os << "behavior: '" << behavior << "'";
@@ -224,20 +301,22 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const Polyline& pl)
 // Comment
 // -----------------------------------------------------------------------------
 
-CommentSubject::CommentSubject(Element* _element,
+CommentSubject::CommentSubject(const ID& _id, Element* _element,
 							   const Point& source, const Point& target, const Polyline& pl):
-	type(commentSubjectElement), element(_element), has_frag(false), source_point(source), target_point(target), polyline(pl)
+	type(commentSubjectElement), id(_id), element(_element), has_frag(false), source_point(source), target_point(target), polyline(pl)
 {
 }
 
-CommentSubject::CommentSubject(Element* _element, CommentSubjectType _type, const String& _fragment,
+CommentSubject::CommentSubject(const ID& _id, Element* _element, CommentSubjectType _type, const String& _fragment,
 							   const Point& source, const Point& target, const Polyline& pl):
-	type(_type), element(_element), has_frag(true), fragment(_fragment), source_point(source), target_point(target), polyline(pl)
+	type(_type), id(_id), element(_element), has_frag(true), fragment(_fragment), source_point(source), target_point(target), polyline(pl)
 {
 }
 
 CommentSubject& CommentSubject::operator=(const CommentSubject& cs)
 {
+	type = cs.type;
+	id = cs.id;
 	element = cs.element;
 	has_frag = cs.has_frag;
 	fragment = cs.fragment;
@@ -255,19 +334,19 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const CommentSubject& cs)
 
 std::ostream& CommentSubject::dump(std::ostream& os) const
 {
-	os << "{";
+	String type_str;
+	if (type == commentSubjectElement) {
+		type_str = "element";
+	} else if (type == commentSubjectName) {
+		type_str = "name";
+	} else {
+		CYB_ASSERT(type == commentSubjectData);
+		type_str = "data";
+	}
+	os << "{ id: '" << id << "'";
+	os << ", type: " << type_str;
 	if (element) {
-		String type_str;
-		if (type == commentSubjectElement) {
-			type_str = "element";
-		} else if (type == commentSubjectName) {
-			type_str = "name";
-		} else {
-			CYB_ASSERT(type == commentSubjectData);
-			type_str = "data";
-		}
-		os << "to: '" << element->get_id();
-		os << "', type: " << type_str;
+		os << ", to: '" << element->get_id() << "'";
 		if (has_frag) {
 			os << ", fragment: '" << fragment << "'";
 		}
@@ -328,6 +407,67 @@ void Comment::update_comment_type()
 	}
 }
 
+CyberiadaNode* Comment::to_node() const
+{
+	CyberiadaNode* node = Element::to_node();
+	CyberiadaCommentData* data = cyberiada_new_comment_data();
+	if (!body.empty()) {
+		cyberiada_copy_string(&(data->body), &(data->body_len), body.c_str());
+	}
+	if (!markup.empty()) {
+		cyberiada_copy_string(&(data->markup), &(data->markup_len), markup.c_str());
+	}
+	node->comment_data = data;
+	if (has_geometry()) {
+		node->geometry_rect = geometry_rect.c_rect();
+		if (has_color()) {
+			cyberiada_copy_string(&(node->color), &(node->color_len), color.c_str());
+		}
+	}
+	return node;
+}
+
+CyberiadaEdge* Comment::subjects_to_edge() const
+{
+	CyberiadaEdge* result = NULL;
+	if (has_subjects()) {
+		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
+			CyberiadaEdge *edge = cyberiada_new_edge(i->get_id().c_str(),
+													 get_id().c_str(),
+													 i->get_element()->get_id().c_str());
+			edge->type = cybEdgeComment;
+			CyberiadaCommentSubjectType t;
+			if (i->get_type() == commentSubjectElement) {
+				t = cybCommentSubjectNode;
+			} else if (i->get_type() == commentSubjectName) {
+				t = cybCommentSubjectNameFragment;
+			} else {
+				CYB_ASSERT(i->get_type() == commentSubjectData);
+				t = cybCommentSubjectDataFragment;
+			}
+			CyberiadaCommentSubject* cs = cyberiada_new_comment_subject(t);
+			
+			if (i->has_fragment()) {
+				cyberiada_copy_string(&(cs->fragment), &(cs->fragment_len), i->get_fragment().c_str());			
+			}
+			edge->comment_subject = cs;
+
+			if (i->has_geometry()) {
+				if (i->get_geometry_source_point().valid) {
+					edge->geometry_source_point = i->get_geometry_source_point().c_point();
+				}
+				if (i->get_geometry_target_point().valid) {
+					edge->geometry_target_point = i->get_geometry_target_point().c_point();
+				}
+				if (i->has_polyline()) {
+					edge->geometry_polyline = c_polyline(i->get_geometry_polyline());
+				}
+			}
+		}
+	}
+	return result;
+}
+
 std::ostream& Comment::dump(std::ostream& os) const
 {
 	os << "Comment { " << (human_readable ? "informal" : "formal") << ", ";
@@ -370,6 +510,15 @@ std::ostream& Vertex::dump(std::ostream& os) const
 		os << ", geometry: " << geometry_point;
 	}
 	return os;
+}
+
+CyberiadaNode* Vertex::to_node() const
+{
+	CyberiadaNode* node = Element::to_node();
+	if (has_geometry()) {
+		node->geometry_point = geometry_point.c_point();
+	}
+	return node;
 }
 
 // -----------------------------------------------------------------------------
@@ -576,6 +725,34 @@ std::list<Vertex*> ElementCollection::get_vertexes()
 	return result;
 }
 
+CyberiadaNode* ElementCollection::to_node() const
+{
+	CyberiadaNode* node = Element::to_node();
+	if (has_geometry()) {
+		node->geometry_rect = geometry_rect.c_rect();
+	}
+	if (has_color()) {
+		cyberiada_copy_string(&(node->color), &(node->color_len), color.c_str());
+	}
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		const Element* e = *i;
+		CYB_ASSERT(e);
+		if (e->get_type() == elementTransition) {
+			continue;
+		}
+		CyberiadaNode* child = e->to_node();
+		CYB_ASSERT(child);
+		if (node->children) {
+			CyberiadaNode* n = node->children;
+			while (n->next) n = n->next;
+			n->next = child;
+		} else {
+			node->children = child;
+		}
+	}
+	return node;
+}
+
 std::ostream& ElementCollection::dump(std::ostream& os) const
 {
 	if (has_geometry()) {
@@ -648,6 +825,18 @@ ChoicePseudostate::ChoicePseudostate(Element* _parent, const ID& _id, const Rect
 ChoicePseudostate::ChoicePseudostate(Element* _parent, const ID& _id, const Name& _name, const Rect& r, const Color& _color):
 	Pseudostate(_parent, elementChoice, _id, _name), geometry_rect(r), color(_color)
 {
+}
+
+CyberiadaNode* ChoicePseudostate::to_node() const
+{
+	CyberiadaNode* node = Element::to_node();
+	if (has_geometry()) {
+		node->geometry_rect = geometry_rect.c_rect();
+		if (has_color()) {
+			cyberiada_copy_string(&(node->color), &(node->color_len), color.c_str());
+		}
+	}
+	return node;
 }
 
 std::ostream& ChoicePseudostate::dump(std::ostream& os) const
@@ -752,6 +941,37 @@ void State::update_state_type()
 	}
 }
 
+CyberiadaNode* State::to_node() const
+{
+	CyberiadaNode* node = ElementCollection::to_node();
+	if (has_actions()) {
+		for (std::list<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
+			const Action& a = *i;
+			CyberiadaActionType at;
+			if (a.get_type() == actionEntry) {
+				at = cybActionEntry;
+			} else if (a.get_type() == actionExit) {
+				at = cybActionExit;
+			} else {
+				CYB_ASSERT(a.get_type() == actionTransition);
+				at = cybActionTransition;
+			}
+			CyberiadaAction* action = cyberiada_new_action(at,
+														   a.get_trigger().c_str(),
+														   a.get_guard().c_str(),
+														   a.get_behavior().c_str());
+			if (node->actions) {
+				CyberiadaAction* last_a = node->actions;
+				while (last_a->next) last_a = last_a->next;
+				last_a->next = action;
+			} else {
+				node->actions = action;
+			}
+		}
+	}
+	return node;
+}
+
 std::ostream& State::dump(std::ostream& os) const
 {
 	if (is_simple_state()) {
@@ -763,7 +983,7 @@ std::ostream& State::dump(std::ostream& os) const
 	if (has_actions()) {
 		os << ", actions: {";
 		for (std::list<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
-			os << *i;
+			os << "a {" << *i << "}";
 			if (std::next(i) != actions.end()) {
 				os << ", ";
 			}
@@ -785,6 +1005,40 @@ Transition::Transition(Element* _parent, const ID& _id, Element* _source, Elemen
 	Element(_parent, elementTransition, _id), source(_source), target(_target), action(_action),
 	source_point(sp), target_point(tp), label_point(label), polyline(pl), color(c)
 {
+}
+
+CyberiadaEdge* Transition::to_edge() const
+{
+	CYB_ASSERT(source);
+	CYB_ASSERT(target);
+	CyberiadaEdge* edge = cyberiada_new_edge(get_id().c_str(),
+											 source->get_id().c_str(),
+											 target->get_id().c_str());
+	edge->type = cybEdgeTransition;
+	if (has_action()) {
+		edge->action = cyberiada_new_action(cybActionTransition,
+											action.get_trigger().c_str(),
+											action.get_guard().c_str(),
+											action.get_behavior().c_str());
+	}
+	if (has_geometry()) {
+		if (source_point.valid) {
+			edge->geometry_source_point = source_point.c_point();
+		}
+		if (target_point.valid) {
+			edge->geometry_target_point = target_point.c_point();
+		}
+		if (label_point.valid) {
+			edge->geometry_label_point = label_point.c_point();
+		}
+		if (has_polyline()) {
+			edge->geometry_polyline = c_polyline(polyline);
+		}
+		if (has_color()) {
+			cyberiada_copy_string(&(edge->color), &(edge->color_len), color.c_str());
+		}		
+	}
+	return edge;
 }
 
 std::ostream& Transition::dump(std::ostream& os) const
@@ -912,7 +1166,7 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 	return sm;
 }
 
-void Document::check_cyberiada_error(int res, const String& msg)
+void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {
 	case CYBERIADA_XML_ERROR: throw XMLException(msg);
@@ -1104,7 +1358,7 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 			comment = static_cast<Comment*>(source_element);
 			
 			if (e->comment_subject->type == cybCommentSubjectNode) {
-				comment->add_subject(CommentSubject(target_element, source_point, target_point, polyline));
+				comment->add_subject(CommentSubject(e->id, target_element, source_point, target_point, polyline));
 			} else {
 				CommentSubjectType cst;
 				if (e->comment_subject->type == cybCommentSubjectNameFragment) {
@@ -1115,7 +1369,7 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 					throw CybMLException("Unsupported comment subject type " + std::to_string(e->comment_subject->type));
 				}
 				CYB_ASSERT(e->comment_subject->fragment);
-				comment->add_subject(CommentSubject(target_element, cst, e->comment_subject->fragment,
+				comment->add_subject(CommentSubject(e->id, target_element, cst, e->comment_subject->fragment,
 													source_point, target_point, polyline));
 			}			
 			break;
@@ -1128,14 +1382,14 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 	}	
 }
 
-void Document::load(const String& path)
+void Document::load(const String& path, DocumentFormat f)
 {
 	reset();
 	CyberiadaDocument doc;
 	int res = cyberiada_init_sm_document(&doc);
 	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
 
-	res = cyberiada_read_sm_document(&doc, path.c_str(), cybxmlUnknown);
+	res = cyberiada_read_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
 	if (res != CYBERIADA_NO_ERROR) {
 		cyberiada_cleanup_sm_document(&doc);
 		CYB_CHECK_RESULT(res);
@@ -1179,8 +1433,11 @@ void Document::load(const String& path)
 		if (doc.meta_info->date) {
 			metainfo.date = doc.meta_info->date;
 		}
-		metainfo.transition_order_flag = bool(doc.meta_info->transition_order_flag);
-		metainfo.event_propagation_flag = bool(doc.meta_info->event_propagation_flag);
+		if (doc.meta_info->markup_language) {
+			metainfo.markup_language = doc.meta_info->markup_language;
+		}
+		metainfo.transition_order_flag = doc.meta_info->transition_order_flag == 2;
+		metainfo.event_propagation_flag = doc.meta_info->event_propagation_flag == 2;
 		
 		for (CyberiadaSM* sm = doc.state_machines; sm; sm = sm->next) {
 			CyberiadaNode* root = sm->nodes;
@@ -1209,13 +1466,154 @@ void Document::load(const String& path)
 		cyberiada_cleanup_sm_document(&doc);
 		throw AssertException("Internal load error: " + e.str());
 	}
-
+	
 	cyberiada_cleanup_sm_document(&doc);
 }
 
-void Document::save(const String& path) const
+void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 {
-	// TODO
+	CyberiadaEdge* edge;
+	std::list<const Transition*> transitions = sm->get_transitions();
+	for (std::list<const Transition*>::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
+		const Transition* t = *i;
+		edge = t->to_edge();
+		if (*edges) {
+			CyberiadaEdge* e = *edges;
+			while (e->next) e = e->next;
+			e->next = edge;
+		} else {
+			*edges = edge;
+		}
+	}
+	std::list<const Comment*> comments = sm->get_comments();
+	for (std::list<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
+		const Comment* c = *j;
+		edge = c->subjects_to_edge();
+		if (*edges) {
+			CyberiadaEdge* e = *edges;
+			while (e->next) e = e->next;
+			e->next = edge;
+		} else {
+			*edges = edge;
+		}
+	}
+}
+
+void Document::save(const String& path, DocumentFormat f) const
+{
+	CyberiadaDocument doc;
+	int res;
+	
+	if (f == formatDetect) {
+		throw ParametersException("Bad save format " + std::to_string(f));
+	} else if (f == formatLegacyYED) {
+		if (children_count() != 1) {
+			throw ParametersException("Legacy Berloga-YED format supports single-SM documents only");
+		}
+	}
+
+	std::list<const StateMachine*> state_machines = get_state_machines();
+	if (state_machines.empty()) {
+		throw ParametersException("At least one state machine required");
+	}
+	
+	res = cyberiada_init_sm_document(&doc);
+	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
+	
+	try {
+		if (f == formatCyberiada10) {
+			cyberiada_copy_string(&(doc.format), &(doc.format_len),
+								  DEFAULT_GRAPHML_FORMAT.c_str());
+		}
+		
+		doc.meta_info = cyberiada_new_meta();
+		CYB_ASSERT(metainfo.standard_version == String(doc.meta_info->standard_version));
+		
+		if (!metainfo.platform_name.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->platform_name),
+								  &(doc.meta_info->platform_name_len),
+								  metainfo.platform_name.c_str());
+		}
+		if (!metainfo.platform_version.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->platform_version),
+								  &(doc.meta_info->platform_version_len),
+								  metainfo.platform_version.c_str());
+		}
+		if (!metainfo.platform_language.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->platform_language),
+								  &(doc.meta_info->platform_language_len),
+								  metainfo.platform_language.c_str());
+		}
+		if (!metainfo.target_system.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->target_system),
+								  &(doc.meta_info->target_system_len),
+								  metainfo.target_system.c_str());
+		}
+		if (!metainfo.name.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->name),
+								  &(doc.meta_info->name_len),
+								  metainfo.name.c_str());
+		}
+		if (!metainfo.author.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->author),
+								  &(doc.meta_info->author_len),
+								  metainfo.author.c_str());
+		}
+		if (!metainfo.contact.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->contact),
+								  &(doc.meta_info->contact_len),
+								  metainfo.contact.c_str());
+		}
+		if (!metainfo.description.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->description),
+								  &(doc.meta_info->description_len),
+								  metainfo.description.c_str());
+		}
+		if (!metainfo.version.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->version),
+								  &(doc.meta_info->version_len),
+								  metainfo.version.c_str());
+		}
+		if (!metainfo.date.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->date),
+								  &(doc.meta_info->date_len),
+								  metainfo.date.c_str());
+		}
+		if (!metainfo.markup_language.empty()) {
+			cyberiada_copy_string(&(doc.meta_info->markup_language),
+								  &(doc.meta_info->markup_language_len),
+								  metainfo.markup_language.c_str());
+		}
+
+		doc.meta_info->transition_order_flag = metainfo.transition_order_flag ? 2: 1;
+		doc.meta_info->event_propagation_flag = metainfo.event_propagation_flag ? 2: 1;
+
+		for (std::list<const StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
+			const StateMachine* orig_sm = *i;
+			CYB_ASSERT(orig_sm);
+			CyberiadaSM* new_sm = cyberiada_new_sm();
+			new_sm->nodes = orig_sm->to_node();
+			export_edges(&(new_sm->edges), orig_sm);
+			if (doc.state_machines) {
+				CyberiadaSM* sm = doc.state_machines;
+				while(sm->next) sm = sm->next;
+				sm->next = new_sm;
+			} else {
+				doc.state_machines = new_sm;
+			}
+		}	
+	} catch (const Exception& e) {
+		cyberiada_cleanup_sm_document(&doc);
+		throw AssertException("Internal save error: " + e.str());
+	}
+	
+	res = cyberiada_write_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
+	if (res != CYBERIADA_NO_ERROR) {
+		cyberiada_cleanup_sm_document(&doc);
+		CYB_CHECK_RESULT(res);
+	}
+
+	cyberiada_cleanup_sm_document(&doc);
 }
 
 std::list<const StateMachine*> Document::get_state_machines() const
@@ -1276,6 +1674,9 @@ std::ostream& Document::dump(std::ostream& os) const
 	}
 	if (!metainfo.date.empty()) {
 		params.push_back("date: '" + metainfo.date + "'");
+	}
+	if (!metainfo.markup_language.empty()) {
+		params.push_back("markup language: '" + metainfo.markup_language + "'");
 	}
 	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "transition first": "exit first"));
 	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "block events": "propagate events"));

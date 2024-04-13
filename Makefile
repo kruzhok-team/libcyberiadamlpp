@@ -9,7 +9,7 @@ endif
 
 TEST_TARGET := cyberiadapp_test
 LIB_SOURCES := cyberiadamlpp.cpp
-TEST_SOURCES := test.cpp
+TEST_SOURCES := main.cpp
 LIB_OBJECTS := $(patsubst %.cpp, %.o, $(LIB_SOURCES))
 TEST_OBJECTS := $(patsubst %.cpp, %.o, $(TEST_SOURCES))
 
@@ -41,8 +41,8 @@ $(TEST_TARGET): $(TEST_OBJECTS) $(LIB_TARGET) $(LIB_ORJECTS)
 clean:
 	rm -f *~ *.o $(TARGET) $(TEST_TARGET) $(LIB_TARGET_STATIC) $(LIB_TARGET_DYNAMIC)
 
-test: $(TEST_TARGET)
+main: $(TEST_TARGET)
 
 all: $(LIB_TARGET) $(TEST_TARGET)
 
-.PHONY: all clean test
+.PHONY: all clean main
