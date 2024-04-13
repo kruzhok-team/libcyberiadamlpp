@@ -17,8 +17,12 @@ the GNU Free Documentation License (version 1.3).
 
 Run `make` to build the library binaries.
 
-Run `make test` to build the test program.
+Run `make main` to build the console printer/converter program.
 
 Use variables:
 * `DEBUG=1` debug version of the library
 * `DYNAMIC=1` build shared version of the library
+
+## Testing
+
+Run `run-tests.sh` to build and process the tests.
