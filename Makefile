@@ -7,11 +7,15 @@ else
     LIB_TARGET := $(LIB_TARGET_STATIC)
 endif
 
-TEST_TARGET := cyberiadapp_test
+TESTS_DIR := tests
+MAIN_TARGET := cyberiadapp
 LIB_SOURCES := cyberiadamlpp.cpp
-TEST_SOURCES := main.cpp
+MAIN_SOURCES := main.cpp
 LIB_OBJECTS := $(patsubst %.cpp, %.o, $(LIB_SOURCES))
+MAIN_OBJECTS := $(patsubst %.cpp, %.o, $(MAIN_SOURCES))
+TEST_SOURCES := $(wildcard $(addsuffix /*.cpp, $(TESTS_DIR)))
 TEST_OBJECTS := $(patsubst %.cpp, %.o, $(TEST_SOURCES))
+TEST_TARGETS := $(patsubst %.cpp, %.test, $(TEST_SOURCES))
 
 ifeq ($(DEBUG), 1)
     CFLAGS := -Wall -Wshadow -Wconversion -fPIC -g3 -D__DEBUG__
@@ -23,7 +27,7 @@ endif
 
 INCLUDE := -I. -I/usr/include/libxml2 -I./cyberiadaml
 LIBS := -L/usr/lib -lxml2 -L./cyberiadaml -lcyberiadaml
-TEST_LIBS := -L. -lcyberiadamlpp
+MAIN_LIBS := -L. -lcyberiadamlpp
 
 $(LIB_TARGET): $(LIB_OBJECTS)
 ifeq ($(DYNAMIC), 1)
@@ -32,17 +36,24 @@ else
 	ar rcs $@ $(LIB_OBJECTS)
 endif
 
-$(TEST_TARGET): $(TEST_OBJECTS) $(LIB_TARGET) $(LIB_ORJECTS)
-	g++ $(TEST_OBJECTS) -Wl,-\( $(LIBS) $(TEST_LIBS) -Wl,-\) -o $@
+$(MAIN_TARGET): $(MAIN_OBJECTS) $(LIB_TARGET) $(LIB_ORJECTS)
+	g++ $(MAIN_OBJECTS) -Wl,-\( $(LIBS) $(MAIN_LIBS) -Wl,-\) -o $@
+
+%.test: %.o
+	g++ $< -Wl,-\( $(LIBS) $(MAIN_LIBS) -Wl,-\) -o $@
 
 %.o: %.cpp
 	g++ -c $< $(CFLAGS) $(INCLUDE) -o $@
 
 clean:
-	rm -f *~ *.o $(TARGET) $(TEST_TARGET) $(LIB_TARGET_STATIC) $(LIB_TARGET_DYNAMIC)
+	rm -f *~ *.o $(TARGET) $(MAIN_TARGET) $(LIB_TARGET_STATIC) $(LIB_TARGET_DYNAMIC)
+	rm -f $(TESTS_DIR)/*~ $(TESTS_DIR)/*.o $(TESTS_DIR)/*.test.graphml $(TESTS_DIR)/*.test.txt $(TEST_TARGETS) 
 
-main: $(TEST_TARGET)
+main: $(MAIN_TARGET)
 
-all: $(LIB_TARGET) $(TEST_TARGET)
+tests: $(TEST_TARGETS)
+	@echo >/dev/null
 
-.PHONY: all clean main
+all: $(LIB_TARGET) $(MAIN_TARGET) $(TEST_TARGETS)
+
+.PHONY: all clean main tests
