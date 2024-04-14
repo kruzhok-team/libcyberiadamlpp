@@ -1382,6 +1382,12 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 	}	
 }
 
+void Document::set_name(const Name& _name)
+{
+	Element::set_name(_name);
+	metainfo.name = _name;
+}
+
 void Document::load(const String& path, DocumentFormat f)
 {
 	reset();
@@ -1416,7 +1422,7 @@ void Document::load(const String& path, DocumentFormat f)
 			metainfo.target_system = doc.meta_info->target_system;
 		}
 		if (doc.meta_info->name) {
-			metainfo.name = doc.meta_info->name;
+			set_name(doc.meta_info->name);
 		}
 		if (doc.meta_info->author) {
 			metainfo.author = doc.meta_info->author;

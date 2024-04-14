@@ -75,7 +75,7 @@ namespace Cyberiada {
 
 		bool                   has_name() const { return name_is_set; }
 		const Name&            get_name() const { return name; }
-		void                   set_name(const Name& name);
+		virtual void           set_name(const Name& name);
 		bool                   has_qualified_name() const;
 		QualifiedName          qualified_name() const;
 
@@ -533,9 +533,11 @@ namespace Cyberiada {
 		void                           reset();
 		StateMachine*                  new_state_machine(const String& sm_nam, const Rect& r = Rect());
 		StateMachine*                  new_state_machine(const ID& id, const String& sm_name, const Rect& r = Rect());
+
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
 
+		virtual void                   set_name(const Name& name);
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
 
