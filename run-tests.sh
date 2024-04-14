@@ -15,7 +15,7 @@ echo
 for t in $(ls tests/*.test); do
     num=$(echo $t | grep -Poe '\d+')
     echo -n "$num $t... "
-    if [ -f "tests/$num-input.graphml" ]
+    if [ -f "$t-input.graphml" ]
     then
 	$t > "$t.txt"
     else
@@ -28,7 +28,7 @@ for t in $(ls tests/*.test); do
     fi
     if [ -f "tests/$num-output.graphml" ]
     then
-	diff "$t.graphml" "tests/$num-output.graphml" >/dev/null
+	diff "$t.graphml" "tests/$num-output.graphml"
 	if [ $? != 0 ]
 	then
 	    echo "test failed: graphml file didn't match the pattern!"
@@ -37,7 +37,7 @@ for t in $(ls tests/*.test); do
     fi
     if [ -f "tests/$num-output.txt" ]
     then
-	diff "$t.txt" "tests/$num-output.txt" >/dev/null
+	diff "$t.txt" "tests/$num-output.txt"
 	if [ $? != 0 ]
 	then
 	    echo "test failed: output didn't match the pattern!"
