@@ -1678,8 +1678,8 @@ std::ostream& Document::dump(std::ostream& os) const
 	if (!metainfo.markup_language.empty()) {
 		params.push_back("markup language: '" + metainfo.markup_language + "'");
 	}
-	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "transition first": "exit first"));
-	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "block events": "propagate events"));
+	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "exit first": "transition first"));
+	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "propagate events": "block events"));
 	for (std::list<String>::const_iterator i = params.begin(); i != params.end(); i++) {
 		os << *i;
 		if (std::next(i) != params.end()) {
