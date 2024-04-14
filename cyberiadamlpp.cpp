@@ -34,6 +34,8 @@ namespace Cyberiada {
 
 	static const String STANDARD_VERSION = "1.0";	
 	static const String DEFAULT_GRAPHML_FORMAT = "Cyberiada-GraphML-1.0";
+	static const String META_NODE_NAME = "CGML_META";
+	static const String META_NODE_ID = "nMeta";
 	const String VERTEX_ID_PREFIX = "n";
 	const String SM_ID_PREFIX = "G";
 	const String TRANTISION_ID_SEP = "-";
@@ -372,8 +374,8 @@ Comment::Comment(Element* _parent, const ID& _id, const String& _body, bool _hum
 	update_comment_type();
 }
 
-Comment::Comment(Element* _parent, const ID& _id, const String& _body, bool _human_readable,
-				 const Name& _name, const String& _markup, const Rect& rect, const Color& _color):
+Comment::Comment(Element* _parent, const ID& _id, const String& _body, const Name& _name, bool _human_readable,
+				 const String& _markup, const Rect& rect, const Color& _color):
 	Element(_parent, elementComment, _id, _name), body(_body), markup(_markup),
 	human_readable(_human_readable), geometry_rect(rect), color(_color)
 {
@@ -674,6 +676,13 @@ void ElementCollection::add_element(Element* e)
 	children.push_back(e);
 }
 
+void ElementCollection::add_first_element(Element* e)
+{
+	CYB_ASSERT(e);
+	CYB_ASSERT(e->get_parent() == this);
+	children.push_front(e);
+}
+
 void ElementCollection::remove_element(const ID& _id)
 {
 	for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
@@ -723,6 +732,26 @@ std::list<Vertex*> ElementCollection::get_vertexes()
 		result.push_back(static_cast<Vertex*>(*i));
 	}
 	return result;
+}
+
+const Element* ElementCollection::first_element() const
+{
+	if (has_children()) {
+		const Element* element = *(children.begin());
+		return element;
+	} else {
+		return NULL;
+	}
+}
+
+Element* ElementCollection::first_element()
+{
+	if (has_children()) {
+		Element* element = *(children.begin());
+		return element;
+	} else {
+		return NULL;
+	}
 }
 
 CyberiadaNode* ElementCollection::to_node() const
@@ -1137,7 +1166,8 @@ std::ostream& StateMachine::dump(std::ostream& os) const
 // -----------------------------------------------------------------------------
 Document::Document():
 	ElementCollection(NULL, elementRoot, "", ""),
-	format(DEFAULT_GRAPHML_FORMAT)
+	format(DEFAULT_GRAPHML_FORMAT),
+	metainfo_element(NULL)
 {
 	reset();
 }
@@ -1149,6 +1179,7 @@ void Document::reset()
 	metainfo.transition_order_flag = false;     
 	metainfo.event_propagation_flag = false;
 	format = DEFAULT_GRAPHML_FORMAT;
+	metainfo_element = NULL;
 	clear();
 }
 
@@ -1156,6 +1187,7 @@ StateMachine* Document::new_state_machine(const String& sm_name, const Rect& r)
 {
 	StateMachine* sm = new StateMachine(this, generate_sm_id(), sm_name, r);
 	add_element(sm);
+	update_metainfo_element();
 	return sm;
 }
 
@@ -1163,6 +1195,7 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 {
 	StateMachine* sm = new StateMachine(this, _id, sm_name, r); 
 	add_element(sm);
+	update_metainfo_element();
 	return sm;
 }
 
@@ -1249,8 +1282,13 @@ void Document::import_nodes_recursively(ElementCollection* collection, Cyberiada
 			}
 
 			if (n->title) {
-				element = new Comment(collection, n->id, comment_body, n->type == cybNodeComment,
-									  n->title, comment_markup, rect, _color);
+				Comment* comment = new Comment(collection, n->id, comment_body, n->title,
+											   n->type == cybNodeComment, comment_markup, rect, _color);
+				element = comment;
+				if (n->type == cybNodeFormalComment && String(n->title) == META_NODE_NAME) {
+					CYB_ASSERT(!metainfo_element);
+					metainfo_element = comment;
+				}
 			} else {
 				element = new Comment(collection, n->id, comment_body, n->type == cybNodeComment,
 									  comment_markup, rect, _color);
@@ -1386,6 +1424,7 @@ void Document::set_name(const Name& _name)
 {
 	Element::set_name(_name);
 	metainfo.name = _name;
+	update_metainfo_element();
 }
 
 void Document::load(const String& path, DocumentFormat f)
@@ -1476,6 +1515,44 @@ void Document::load(const String& path, DocumentFormat f)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
+void Document::update_metainfo_element()
+{
+	std::list<StateMachine*> sms = get_state_machines();
+	if (sms.size() == 0) {
+		return ;
+	}
+
+	String new_meta_comment;
+	CyberiadaMetainformation* meta = export_meta();
+	char* buffer = NULL;
+	cyberiada_encode_meta(meta, &buffer, NULL);	
+	if (buffer) {
+		new_meta_comment = buffer;
+		free(buffer);
+	}
+	cyberiada_destroy_meta(meta);
+	if (metainfo_element) {
+		metainfo_element->set_body(new_meta_comment);
+	} else {
+		StateMachine* sm = *(sms.begin()); // first SM
+		if (sm->has_children()) {
+			Element* first = sm->first_element();
+			if (first->get_type() == elementFormalComment &&
+				first->has_name() &&
+				first->get_name() == META_NODE_NAME) {
+				
+				metainfo_element = static_cast<Comment*>(first);
+				CYB_ASSERT(metainfo_element);
+				metainfo_element->set_body(new_meta_comment);
+				return ;
+			}
+		}	
+//		Comment* comment = new Comment(sm, META_NODE_ID, new_meta_comment, META_NODE_NAME, false);
+//		sm->add_first_element(comment);
+//		metainfo_element = comment;
+	}
+}
+
 void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 {
 	CyberiadaEdge* edge;
@@ -1505,6 +1582,72 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 	}
 }
 
+CyberiadaMetainformation* Document::export_meta() const
+{
+	CyberiadaMetainformation* meta_info = cyberiada_new_meta();
+	CYB_ASSERT(metainfo.standard_version == String(meta_info->standard_version));
+	if (!metainfo.platform_name.empty()) {
+		cyberiada_copy_string(&(meta_info->platform_name),
+							  &(meta_info->platform_name_len),
+							  metainfo.platform_name.c_str());
+	}
+	if (!metainfo.platform_version.empty()) {
+		cyberiada_copy_string(&(meta_info->platform_version),
+							  &(meta_info->platform_version_len),
+							  metainfo.platform_version.c_str());
+	}
+	if (!metainfo.platform_language.empty()) {
+		cyberiada_copy_string(&(meta_info->platform_language),
+							  &(meta_info->platform_language_len),
+							  metainfo.platform_language.c_str());
+	}
+	if (!metainfo.target_system.empty()) {
+		cyberiada_copy_string(&(meta_info->target_system),
+							  &(meta_info->target_system_len),
+							  metainfo.target_system.c_str());
+	}
+	if (!metainfo.name.empty()) {
+		cyberiada_copy_string(&(meta_info->name),
+							  &(meta_info->name_len),
+								  metainfo.name.c_str());
+	}
+	if (!metainfo.author.empty()) {
+		cyberiada_copy_string(&(meta_info->author),
+							  &(meta_info->author_len),
+							  metainfo.author.c_str());
+	}
+	if (!metainfo.contact.empty()) {
+		cyberiada_copy_string(&(meta_info->contact),
+							  &(meta_info->contact_len),
+							  metainfo.contact.c_str());
+	}
+	if (!metainfo.description.empty()) {
+		cyberiada_copy_string(&(meta_info->description),
+							  &(meta_info->description_len),
+							  metainfo.description.c_str());
+	}
+	if (!metainfo.version.empty()) {
+		cyberiada_copy_string(&(meta_info->version),
+							  &(meta_info->version_len),
+							  metainfo.version.c_str());
+	}
+	if (!metainfo.date.empty()) {
+		cyberiada_copy_string(&(meta_info->date),
+							  &(meta_info->date_len),
+							  metainfo.date.c_str());
+	}
+	if (!metainfo.markup_language.empty()) {
+		cyberiada_copy_string(&(meta_info->markup_language),
+							  &(meta_info->markup_language_len),
+							  metainfo.markup_language.c_str());
+	}
+	
+	meta_info->transition_order_flag = metainfo.transition_order_flag ? 2: 1;
+	meta_info->event_propagation_flag = metainfo.event_propagation_flag ? 2: 1;
+
+	return meta_info;
+}
+
 void Document::save(const String& path, DocumentFormat f) const
 {
 	CyberiadaDocument doc;
@@ -1532,67 +1675,7 @@ void Document::save(const String& path, DocumentFormat f) const
 								  DEFAULT_GRAPHML_FORMAT.c_str());
 		}
 		
-		doc.meta_info = cyberiada_new_meta();
-		CYB_ASSERT(metainfo.standard_version == String(doc.meta_info->standard_version));
-		
-		if (!metainfo.platform_name.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->platform_name),
-								  &(doc.meta_info->platform_name_len),
-								  metainfo.platform_name.c_str());
-		}
-		if (!metainfo.platform_version.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->platform_version),
-								  &(doc.meta_info->platform_version_len),
-								  metainfo.platform_version.c_str());
-		}
-		if (!metainfo.platform_language.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->platform_language),
-								  &(doc.meta_info->platform_language_len),
-								  metainfo.platform_language.c_str());
-		}
-		if (!metainfo.target_system.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->target_system),
-								  &(doc.meta_info->target_system_len),
-								  metainfo.target_system.c_str());
-		}
-		if (!metainfo.name.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->name),
-								  &(doc.meta_info->name_len),
-								  metainfo.name.c_str());
-		}
-		if (!metainfo.author.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->author),
-								  &(doc.meta_info->author_len),
-								  metainfo.author.c_str());
-		}
-		if (!metainfo.contact.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->contact),
-								  &(doc.meta_info->contact_len),
-								  metainfo.contact.c_str());
-		}
-		if (!metainfo.description.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->description),
-								  &(doc.meta_info->description_len),
-								  metainfo.description.c_str());
-		}
-		if (!metainfo.version.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->version),
-								  &(doc.meta_info->version_len),
-								  metainfo.version.c_str());
-		}
-		if (!metainfo.date.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->date),
-								  &(doc.meta_info->date_len),
-								  metainfo.date.c_str());
-		}
-		if (!metainfo.markup_language.empty()) {
-			cyberiada_copy_string(&(doc.meta_info->markup_language),
-								  &(doc.meta_info->markup_language_len),
-								  metainfo.markup_language.c_str());
-		}
-
-		doc.meta_info->transition_order_flag = metainfo.transition_order_flag ? 2: 1;
-		doc.meta_info->event_propagation_flag = metainfo.event_propagation_flag ? 2: 1;
+		doc.meta_info = export_meta();
 
 		for (std::list<const StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
 			const StateMachine* orig_sm = *i;

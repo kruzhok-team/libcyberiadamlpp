@@ -193,12 +193,15 @@ namespace Cyberiada {
 	public:
 		Comment(Element* parent, const ID& id, const String& body, bool human_readable = true,
 				const String& markup = String(), const Rect& rect = Rect(), const Color& color = Color());
-		Comment(Element* parent, const ID& id, const String& body, bool human_readable, const Name& name,
+		Comment(Element* parent, const ID& id, const String& body, const Name& name, bool human_readable,
 				const String& markup = String(), const Rect& rect = Rect(), const Color& color = Color());
 
 		bool                             is_human_readable() const { return human_readable; }
 		bool                             is_machine_readable() const { return !human_readable; }
 
+		bool                             has_body() const { return !body.empty(); }
+		void                             set_body(const String& b) { body = b; }
+		
 		bool                             has_subjects() const { return !subjects.empty(); }
 		const std::list<CommentSubject>& get_subjects() const { return subjects; }
 		void                             add_subject(const CommentSubject& s);
@@ -274,6 +277,8 @@ namespace Cyberiada {
 		virtual bool             has_children() const { return !children.empty(); }
 		virtual size_t           children_count() const { return children.size(); }
 		virtual size_t           elements_count() const;
+		const Element*           first_element() const;
+		Element*                 first_element();
 		const Element*           find_element_by_id(const ID& id) const;
 		Element*                 find_element_by_id(const ID& id);
 		ConstElementList         find_elements_by_type(ElementType type) const;
@@ -282,6 +287,7 @@ namespace Cyberiada {
 		ElementList              find_elements_by_types(const ElementTypes& types);
 
 		virtual void             add_element(Element* e);
+		virtual void             add_first_element(Element* e);
 		virtual void             remove_element(const ID& id);
 		void                     clear();
 
@@ -549,15 +555,18 @@ namespace Cyberiada {
 		
 	private:
 		void                           check_cyberiada_error(int res, const String& msg = "") const;
+		void                           update_metainfo_element();
 		ID                             generate_sm_id() const;
 		ID                             generate_vertex_id(const Element* element) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
 		void                           import_nodes_recursively(ElementCollection* collection, CyberiadaNode* nodes);
 		void                           import_edges(ElementCollection* collection, CyberiadaEdge* edges);
 		void                           export_edges(CyberiadaEdge** edges, const StateMachine* sm) const;
+		CyberiadaMetainformation*      export_meta() const;
 
 		String                         format;
 		DocumentMetainformation        metainfo;
+		Comment*                       metainfo_element;
 	};
 	
 // -----------------------------------------------------------------------------
