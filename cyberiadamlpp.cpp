@@ -122,20 +122,20 @@ std::ostream& Element::dump(std::ostream& os) const
 {
 	String type_str;
 	switch (type) {
-	case elementRoot:           type_str = "doc"; break;
-	case elementSM:             type_str = "stm"; break;
-	case elementSimpleState:    type_str = "sst"; break;
-	case elementCompositeState: type_str = "cst"; break;
-	case elementComment:        type_str = "ico"; break;
-	case elementFormalComment:  type_str = "fco"; break;
-	case elementInitial:        type_str = "ini"; break;
-	case elementFinal:          type_str = "fin"; break;
-	case elementChoice:         type_str = "cho"; break;
-	case elementTransition:     type_str = "tra"; break;
+	case elementRoot:           type_str = "Document"; break;
+	case elementSM:             type_str = "State Machine"; break;
+	case elementSimpleState:    type_str = "Simple State"; break;
+	case elementCompositeState: type_str = "Composite State"; break;
+	case elementComment:        type_str = "Comment"; break;
+	case elementFormalComment:  type_str = "Formal Comment"; break;
+	case elementInitial:        type_str = "Initial"; break;
+	case elementFinal:          type_str = "Final"; break;
+	case elementChoice:         type_str = "Choice"; break;
+	case elementTransition:     type_str = "Transition"; break;
 	default:
 		CYB_ASSERT(false);
 	}
-	os << "Element type: " << type_str << ", id: '" << id << "'";
+	os << type_str << ": {id: '" << id << "'";
 	if (name_is_set) {
 		os << ", name: '" << name << "'";
 	}
@@ -472,7 +472,6 @@ CyberiadaEdge* Comment::subjects_to_edge() const
 
 std::ostream& Comment::dump(std::ostream& os) const
 {
-	os << "Comment { " << (human_readable ? "informal" : "formal") << ", ";
 	Element::dump(os);
 	os << ", body: '" << body << "'";
 	if (has_geometry()) {
@@ -835,7 +834,6 @@ InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Na
 
 std::ostream& InitialPseudostate::dump(std::ostream& os) const
 {
-	os << "Initial {";
 	Element::dump(os);
 	Vertex::dump(os);
 	os << "}";
@@ -870,7 +868,6 @@ CyberiadaNode* ChoicePseudostate::to_node() const
 
 std::ostream& ChoicePseudostate::dump(std::ostream& os) const
 {
-	os << "Choice {";
 	Element::dump(os);
 	if (has_geometry()) {
 		os << ", geometry: " << geometry_rect;
@@ -898,7 +895,6 @@ FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const
 
 std::ostream& FinalState::dump(std::ostream& os) const
 {
-	os << "Final {";
 	Element::dump(os);
 	Vertex::dump(os);
 	os << "}";
@@ -1003,11 +999,6 @@ CyberiadaNode* State::to_node() const
 
 std::ostream& State::dump(std::ostream& os) const
 {
-	if (is_simple_state()) {
-		os << "State {";
-	} else {
-		os << "Composite state {";
-	}
 	Element::dump(os);
 	if (has_actions()) {
 		os << ", actions: {";
@@ -1072,7 +1063,6 @@ CyberiadaEdge* Transition::to_edge() const
 
 std::ostream& Transition::dump(std::ostream& os) const
 {
-	os << "Transition {";
 	Element::dump(os);
 	if (has_action()) {
 		os << ", action: {";
@@ -1154,7 +1144,6 @@ std::list<Transition*> StateMachine::get_transitions()
 
 std::ostream& StateMachine::dump(std::ostream& os) const
 {
-	os << "State Machine {";
 	Element::dump(os);
 	ElementCollection::dump(os);
 	os << "}";
@@ -1727,9 +1716,8 @@ std::list<StateMachine*> Document::get_state_machines()
 
 std::ostream& Document::dump(std::ostream& os) const
 {
-	os << "Document [" << format << "] {";
 	Element::dump(os);
-	os << ", meta: {";
+	os << ", format: '" << format << "', meta: {";
 	std::list<String> params;
 	if (!metainfo.standard_version.empty()) {
 		params.push_back("standard version: '" + metainfo.standard_version + "'");
