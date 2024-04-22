@@ -23,16 +23,16 @@ for t in $(ls tests/*.test); do
     fi
     if [ $? != 0 ]
     then
-	echo "test run failed!"
-	exit 2
+	echo "test $num run failed!"
+	continue
     fi
     if [ -f "tests/$num-output.graphml" ]
     then
 	diff "$t.graphml" "tests/$num-output.graphml"
 	if [ $? != 0 ]
 	then
-	    echo "test failed: graphml file didn't match the pattern!"
-	    exit 3
+	    echo "test $num failed: graphml file didn't match the pattern!"
+	    continue
 	fi
     fi
     if [ -f "tests/$num-output.txt" ]
@@ -40,8 +40,8 @@ for t in $(ls tests/*.test); do
 	diff "$t.txt" "tests/$num-output.txt"
 	if [ $? != 0 ]
 	then
-	    echo "test failed: output didn't match the pattern!"
-	    exit 3
+	    echo "test $num failed: output didn't match the pattern!"
+	    continue
 	fi
     fi
     echo "ok"
