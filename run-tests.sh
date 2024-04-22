@@ -15,7 +15,7 @@ echo
 for t in $(ls tests/*.test); do
     num=$(echo $t | grep -Poe '\d+')
     echo -n "$num $t... "
-    if [ -f "$t-input.graphml" ]
+    if [ -f "$t-input.graphml" -o -f "tests/$num-output.txt" ]
     then
 	$t > "$t.txt"
     else
