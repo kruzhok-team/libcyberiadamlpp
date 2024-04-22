@@ -19,25 +19,11 @@
  * along with this program. If not, see https://www.gnu.org/licenses/
  * ----------------------------------------------------------------------------- */
 
-#include <iostream>
-#include "cyberiadamlpp.h"
-#include "testutils.h"
+#ifndef CYBERIADA_TEST_UTILS
+#define CYBERIADA_TEST_UTILS
 
-using namespace Cyberiada;
-using namespace std;
+#define CYB_ASSERT(q)   if (!(q)) {                                      \
+					        throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
+	                    }
 
-int main(int argc, char** argv)
-{
-	Document d;
-	try {
-		d.load(string(argv[0]) + "-input.graphml", formatCyberiada10);
-		CYB_ASSERT(d.meta().name == "Test document");
-		d.set_name("Test document 2");
-		CYB_ASSERT(d.meta().name == "Test document 2");
-		cout << d << endl;
-	} catch (const Cyberiada::Exception& e) {
-		cerr << e.str() << endl;
-		return 1;
-	}
-	return 0;
-}
+#endif
