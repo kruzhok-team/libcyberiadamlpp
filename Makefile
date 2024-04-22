@@ -39,7 +39,7 @@ endif
 $(MAIN_TARGET): $(MAIN_OBJECTS) $(LIB_TARGET) $(LIB_ORJECTS)
 	g++ $(MAIN_OBJECTS) -Wl,-\( $(LIBS) $(MAIN_LIBS) -Wl,-\) -o $@
 
-%.test: %.o
+%.test: %.o $(LIB_TARGET)
 	g++ $< -Wl,-\( $(LIBS) $(MAIN_LIBS) -Wl,-\) -o $@
 
 %.o: %.cpp
