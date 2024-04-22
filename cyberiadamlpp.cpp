@@ -1809,7 +1809,7 @@ ID Document::generate_vertex_id(const Element* p) const
 		if (base_name.empty()) {
 			s << VERTEX_ID_PREFIX << id_num;
 		} else {
-			s << base_name << QUALIFIED_NAME_SEPARATOR << id_num;
+			s << base_name << QUALIFIED_NAME_SEPARATOR << VERTEX_ID_PREFIX << id_num;
 		}
 		result = ID(s.str());
 		id_num++;
