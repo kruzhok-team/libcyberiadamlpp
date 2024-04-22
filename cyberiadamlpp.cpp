@@ -1188,6 +1188,20 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 	return sm;
 }
 
+State* Document::new_state(ElementCollection* _parent, const String& state_name, const Rect& r, const Color& _color)
+{
+	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, _color);
+	_parent->add_element(state);
+	return state;
+}
+
+State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Rect& r, const Color& _color)
+{
+	State* state = new State(_parent, state_id, state_name, r, _color);
+	_parent->add_element(state);
+	return state;
+}
+
 void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {

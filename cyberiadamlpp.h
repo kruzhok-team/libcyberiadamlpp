@@ -537,9 +537,13 @@ namespace Cyberiada {
 		Document();
 
 		void                           reset();
-		StateMachine*                  new_state_machine(const String& sm_nam, const Rect& r = Rect());
+		StateMachine*                  new_state_machine(const String& sm_name, const Rect& r = Rect());
 		StateMachine*                  new_state_machine(const ID& id, const String& sm_name, const Rect& r = Rect());
-
+		State*                         new_state(ElementCollection* parent, const String& state_name, 
+												 const Rect& r = Rect(), const Color& color = Color());
+		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
+												 const Rect& r = Rect(), const Color& color = Color());
+		
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
 
@@ -557,7 +561,7 @@ namespace Cyberiada {
 		void                           check_cyberiada_error(int res, const String& msg = "") const;
 		void                           update_metainfo_element();
 		ID                             generate_sm_id() const;
-		ID                             generate_vertex_id(const Element* element) const;
+		ID                             generate_vertex_id(const Element* parent) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
 		void                           import_nodes_recursively(ElementCollection* collection, CyberiadaNode* nodes);
 		void                           import_edges(ElementCollection* collection, CyberiadaEdge* edges);
