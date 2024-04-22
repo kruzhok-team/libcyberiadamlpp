@@ -1,0 +1,1 @@
+Document [Cyberiada-GraphML-1.0] {Element type: doc, id: '', name: '', meta: {standard version: '1.0', transition order: transition first, event propagation: block events}, elements: {State Machine {Element type: stm, id: 'G0', name: 'SM1'}, State Machine {Element type: stm, id: 'G1', name: 'SM2'}}
