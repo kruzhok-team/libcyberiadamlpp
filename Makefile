@@ -18,7 +18,7 @@ TEST_OBJECTS := $(patsubst %.cpp, %.o, $(TEST_SOURCES))
 TEST_TARGETS := $(patsubst %.cpp, %.test, $(TEST_SOURCES))
 
 ifeq ($(DEBUG), 1)
-    CFLAGS := -Wall -Wshadow -Wconversion -fPIC -g3 -D__DEBUG__
+    CFLAGS := -Werror -Wall -Wshadow -Wconversion -fPIC -g3 -D__DEBUG__
     LFLAGS := 
 else
     CFLAGS := -fPIC
