@@ -28,6 +28,7 @@ for t in $(ls tests/*.test); do
     fi
     if [ -f "tests/$num-output.graphml" ]
     then
+	# TODO: think about xmldiff here
 	diff "$t.graphml" "tests/$num-output.graphml"
 	if [ $? != 0 ]
 	then
