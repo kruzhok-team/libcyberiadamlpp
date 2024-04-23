@@ -29,6 +29,11 @@ int main(int argc, char** argv)
 {
 	Document d;
 	d.new_state_machine("SM1");
+	try {
+		// check id uniqueness
+		d.new_state_machine("G0", "SM2");
+	} catch (const Cyberiada::ParametersException&){
+	}
 	d.new_state_machine("SM2");
 	try {
 		cout << d << endl;

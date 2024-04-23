@@ -285,6 +285,7 @@ namespace Cyberiada {
 		ConstElementList         find_elements_by_types(const ElementTypes& types) const;
 		ElementList              find_elements_by_type(ElementType type);
 		ElementList              find_elements_by_types(const ElementTypes& types);
+		bool                     has_initial() const;
 
 		virtual void             add_element(Element* e);
 		virtual void             add_first_element(Element* e);
@@ -543,7 +544,13 @@ namespace Cyberiada {
 												 const Rect& r = Rect(), const Color& color = Color());
 		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
 												 const Rect& r = Rect(), const Color& color = Color());
-		
+		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& initial_name, const Point& p = Point());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& initial_name, const Point& p = Point());
+		FinalState*                    new_final(ElementCollection* parent, const Point& point = Point());
+		FinalState*                    new_final(ElementCollection* parent, const Name& name, const Point& point = Point());
+		FinalState*                    new_final(ElementCollection* parent, const ID& id, const Name& name, const Point& point = Point());
+
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
 
@@ -558,7 +565,6 @@ namespace Cyberiada {
 		virtual std::ostream&          dump(std::ostream& os) const;
 		
 	private:
-		void                           check_cyberiada_error(int res, const String& msg = "") const;
 		void                           update_metainfo_element();
 		ID                             generate_sm_id() const;
 		ID                             generate_vertex_id(const Element* parent) const;
@@ -568,6 +574,11 @@ namespace Cyberiada {
 		void                           export_edges(CyberiadaEdge** edges, const StateMachine* sm) const;
 		CyberiadaMetainformation*      export_meta() const;
 
+		void                           check_cyberiada_error(int res, const String& msg = "") const;
+		void                           check_parent_element(const ElementCollection* parent) const;
+		void                           check_id_uniqueness(const ID& id) const;
+		void                           check_single_initial(const ElementCollection* parent) const;
+		
 		String                         format;
 		DocumentMetainformation        metainfo;
 		Comment*                       metainfo_element;

@@ -32,31 +32,21 @@ int main(int argc, char** argv)
 
 	StateMachine* sm = d.new_state_machine("SM");
 
-	State* parent1 = d.new_state(sm, "Parent 0");
-
+	d.new_initial(sm);
 	try {
 		// check id uniqueness
-		d.new_state(sm, "n0", "test");
+		d.new_initial(sm, "n0");
 	} catch (const Cyberiada::ParametersException&){
 	}
 	
-	CYB_ASSERT(parent1->is_simple_state());
-	d.new_state(parent1, "State 0-0");
-	CYB_ASSERT(parent1->is_composite_state());
-
-	State* subparent = d.new_state(parent1, "Subparent 0-1");
-	d.new_state(subparent, "State 0-1-0");
-	d.new_state(subparent, "State 0-1-1");
-	
-	State* parent2 = d.new_state(sm, "Parent 1");
-	d.new_state(parent2, "State 1-0");
-	d.new_state(parent2, "State 1-1");
+	State* parent = d.new_state(sm, "State");
+	d.new_initial(parent, "Local init");
 	try {
-		// check id uniqueness on the deep level
-		d.new_state(parent2, "n1::n1", "test");
+		// check double initial
+		d.new_initial(parent);
 	} catch (const Cyberiada::ParametersException&){
 	}
-
+	
 	try {
 		cout << d << endl;
 		d.save(string(argv[0]) + ".graphml", formatCyberiada10);

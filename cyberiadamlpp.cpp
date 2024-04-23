@@ -668,6 +668,16 @@ size_t  ElementCollection::elements_count() const
 	return count;
 }
 
+bool ElementCollection::has_initial() const
+{
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		if ((*i)->get_type() == elementInitial) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void ElementCollection::add_element(Element* e)
 {
 	CYB_ASSERT(e);
@@ -1182,6 +1192,8 @@ StateMachine* Document::new_state_machine(const String& sm_name, const Rect& r)
 
 StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, const Rect& r)
 {
+	check_id_uniqueness(_id);
+	
 	StateMachine* sm = new StateMachine(this, _id, sm_name, r); 
 	add_element(sm);
 	update_metainfo_element();
@@ -1190,6 +1202,8 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 
 State* Document::new_state(ElementCollection* _parent, const String& state_name, const Rect& r, const Color& _color)
 {
+	check_parent_element(_parent);
+	
 	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, _color);
 	_parent->add_element(state);
 	return state;
@@ -1197,9 +1211,71 @@ State* Document::new_state(ElementCollection* _parent, const String& state_name,
 
 State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Rect& r, const Color& _color)
 {
+	check_parent_element(_parent);
+	check_id_uniqueness(state_id);
+
 	State* state = new State(_parent, state_id, state_name, r, _color);
 	_parent->add_element(state);
 	return state;
+}
+
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Point& p)
+{
+	check_parent_element(_parent);
+	check_single_initial(_parent);
+
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p);
+	_parent->add_element(initial);
+	return initial;
+}
+
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p)
+{
+	check_parent_element(_parent);
+	check_single_initial(_parent);
+	
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p);
+	_parent->add_element(initial);
+	return initial;
+}
+
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p)
+{
+	check_parent_element(_parent);
+	check_single_initial(_parent);
+	check_id_uniqueness(_id);
+	
+	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p);
+	_parent->add_element(initial);
+	return initial;
+}
+
+FinalState* Document::new_final(ElementCollection* _parent, const Point& point)
+{
+	check_parent_element(_parent);
+
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), point);
+	_parent->add_element(fin);
+	return fin;
+}
+
+FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point)
+{
+	check_parent_element(_parent);
+
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point);
+	_parent->add_element(fin);
+	return fin;
+}
+
+FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point)
+{
+	check_parent_element(_parent);
+	check_id_uniqueness(_id);
+
+	FinalState* fin = new FinalState(_parent, _id, _name, point);
+	_parent->add_element(fin);
+	return fin;	
 }
 
 void Document::check_cyberiada_error(int res, const String& msg) const
@@ -1214,6 +1290,27 @@ void Document::check_cyberiada_error(int res, const String& msg) const
     case CYBERIADA_ASSERT: throw AssertException(msg);
 	default:
 		break;
+	}
+}
+
+void Document::check_parent_element(const ElementCollection* _parent) const
+{
+	if (!_parent) {
+		throw ParametersException("No parent element");
+	}
+}
+
+void Document::check_id_uniqueness(const ID& _id) const
+{
+	if (find_element_by_id(_id)) {
+		throw ParametersException(String("New element id ") + _id + " is not unique");
+	}
+}
+
+void Document::check_single_initial(const ElementCollection* _parent) const
+{
+	if (_parent->has_initial()) {
+		throw ParametersException("Parent already has initial element");
 	}
 }
 

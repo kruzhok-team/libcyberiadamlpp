@@ -1,0 +1,1 @@
+Document: {id: '', name: '', format: 'Cyberiada-GraphML-1.0', meta: {standard version: '1.0', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'G0', name: 'SM', elements: {Final: {id: 'n0'}, Composite State: {id: 'n1', name: 'State', elements: {Final: {id: 'n1::n0', name: 'Local exit'}}}}}}
