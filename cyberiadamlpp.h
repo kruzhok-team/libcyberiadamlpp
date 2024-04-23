@@ -550,6 +550,12 @@ namespace Cyberiada {
 		FinalState*                    new_final(ElementCollection* parent, const Point& point = Point());
 		FinalState*                    new_final(ElementCollection* parent, const Name& name, const Point& point = Point());
 		FinalState*                    new_final(ElementCollection* parent, const ID& id, const Name& name, const Point& point = Point());
+		ChoicePseudostate*             new_choice(ElementCollection* parent,
+												  const Rect& r = Rect(), const Color& color = Color());
+		ChoicePseudostate*             new_choice(ElementCollection* parent, const Name& name,
+												  const Rect& r = Rect(), const Color& color = Color());
+		ChoicePseudostate*             new_choice(ElementCollection* parent, const ID& id, const Name& name,
+												  const Rect& r = Rect(), const Color& color = Color());
 
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;

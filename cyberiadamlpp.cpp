@@ -1278,6 +1278,34 @@ FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const
 	return fin;	
 }
 
+ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Rect& r, const Color& c)
+{
+	check_parent_element(_parent);
+
+	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), r, c);
+	_parent->add_element(choice);
+	return choice;
+}
+
+ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Name& _name, const Rect& r, const Color& c)
+{
+	check_parent_element(_parent);
+
+	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
+	_parent->add_element(choice);
+	return choice;
+}
+
+ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _id, const Name& _name, const Rect& r, const Color& c)
+{
+	check_parent_element(_parent);
+	check_id_uniqueness(_id);
+	
+	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
+	_parent->add_element(choice);
+	return choice;
+}
+
 void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {
