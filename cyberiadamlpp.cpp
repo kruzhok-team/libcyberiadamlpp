@@ -225,8 +225,8 @@ CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
 // Action
 // -----------------------------------------------------------------------------	
 
-Action::Action(ActionType _type, const Guard& _guard, const Behavior& _behavior):
-	type(_type), guard(_guard), behavior(_behavior)
+Action::Action(ActionType _type, const Behavior& _behavior):
+	type(_type), behavior(_behavior)
 {
 }
 
@@ -940,6 +940,12 @@ void State::remove_element(const ID& _id)
 
 void State::add_action(const Action& a)
 {
+	if (a.is_empty_transition()) {
+		throw ParametersException("Empty transition action is not allowed");
+	}
+	if (a.get_type() != actionTransition && a.has_guard()) {
+		throw ParametersException("Guards are not allowed for entry/exit activities");
+	}
 	actions.push_back(a);
 }
 
@@ -1306,6 +1312,33 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	return choice;
 }
 
+Transition* Document::new_transition(ElementCollection* _parent, Element* source, Element* target,
+									 const Action& action, const Polyline& pl,
+									 const Point& sp, const Point& tp,
+									 const Point& label, const Color& c)
+{
+	check_parent_element(_parent);
+	
+	Transition* t = new Transition(_parent, generate_vertex_id(_parent), source, target,
+								   action, pl, sp, tp, label, c);
+	_parent->add_element(t);
+	return t;
+}
+
+Transition* Document::new_transition(ElementCollection* _parent, const ID& _id, Element* source, Element* target,
+									 const Action& action, const Polyline& pl,
+									 const Point& sp, const Point& tp,
+									 const Point& label, const Color& c)
+{
+	check_parent_element(_parent);
+	check_id_uniqueness(_id);
+
+	Transition* t = new Transition(_parent, _id, source, target,
+								   action, pl, sp, tp, label, c);
+	_parent->add_element(t);
+	return t;
+}
+
 void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {
@@ -1388,7 +1421,11 @@ void Document::import_nodes_recursively(ElementCollection* collection, Cyberiada
 					} else {
 						throw CybMLException("Unsupported action type " + std::to_string(a->type));
 					}
-					state->add_action(Action(at, a->guard, a->behavior));
+					if (a->guard && *(a->guard)) {
+						// guard is not empty
+						throw CybMLException("Guards are not allowed in entry/exit actions");
+					}
+					state->add_action(Action(at, a->behavior));
 				}
 			}
 			

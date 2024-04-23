@@ -389,9 +389,11 @@ namespace Cyberiada {
 	
 	class Action {
 	public:
-		Action(ActionType type, const Guard& guard = Guard(), const Behavior& behavior = Behavior());
+		Action(ActionType type, const Behavior& behavior = Behavior());
 		Action(const Event& trigger = Event(), const Guard& guard = Guard(), const Behavior& behavior = Behavior());
 
+		bool                   is_empty_transition() const { return (type == actionTransition && !has_trigger() &&
+																	 !has_guard() && !has_behavior()); }
 		ActionType             get_type() const { return type; }
 		bool                   has_trigger() const { return !trigger.empty(); }
 		const Event&           get_trigger() const { return trigger; }
@@ -556,6 +558,14 @@ namespace Cyberiada {
 												  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent, const ID& id, const Name& name,
 												  const Rect& r = Rect(), const Color& color = Color());
+		Transition*                    new_transition(ElementCollection* parent, Element* source, Element* target,
+													  const Action& action, const Polyline& pl = Polyline(),
+													  const Point& sp = Point(), const Point& tp = Point(),
+													  const Point& label = Point(), const Color& color = Color());
+		Transition*                    new_transition(ElementCollection* parent, const ID& id, Element* source, Element* target,
+													  const Action& action, const Polyline& pl = Polyline(),
+													  const Point& sp = Point(), const Point& tp = Point(),
+													  const Point& label = Point(), const Color& color = Color());
 
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
