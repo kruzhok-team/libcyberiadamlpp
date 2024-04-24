@@ -382,9 +382,10 @@ Comment::Comment(Element* _parent, const ID& _id, const String& _body, const Nam
 	update_comment_type();
 }
 
-void Comment::add_subject(const CommentSubject& s)
+const CommentSubject& Comment::add_subject(const CommentSubject& s)
 {
 	subjects.push_back(s);
+	return subjects.back();
 }
 
 void Comment::remove_subject(CommentSubjectType _type, const String& fragment)
@@ -1221,6 +1222,7 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 State* Document::new_state(ElementCollection* _parent, const String& state_name, const Rect& r, const Color& _color)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(state_name);
 	
 	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, _color);
 	_parent->add_element(state);
@@ -1230,6 +1232,7 @@ State* Document::new_state(ElementCollection* _parent, const String& state_name,
 State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Rect& r, const Color& _color)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(state_name);
 	check_id_uniqueness(state_id);
 
 	State* state = new State(_parent, state_id, state_name, r, _color);
@@ -1250,6 +1253,7 @@ InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Poin
 InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(initial_name);
 	check_single_initial(_parent);
 	
 	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p);
@@ -1260,6 +1264,7 @@ InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name
 InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(initial_name);
 	check_single_initial(_parent);
 	check_id_uniqueness(_id);
 	
@@ -1280,6 +1285,7 @@ FinalState* Document::new_final(ElementCollection* _parent, const Point& point)
 FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 
 	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point);
 	_parent->add_element(fin);
@@ -1289,6 +1295,7 @@ FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, c
 FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
 	FinalState* fin = new FinalState(_parent, _id, _name, point);
@@ -1308,6 +1315,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Rect& 
 ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Name& _name, const Rect& r, const Color& c)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 
 	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
 	_parent->add_element(choice);
@@ -1317,6 +1325,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Name& 
 ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _id, const Name& _name, const Rect& r, const Color& c)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 	
 	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
@@ -1330,8 +1339,8 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 									 const Point& label, const Color& c)
 {
 	check_parent_element(sm);
-	check_transition_element(source);
-	check_transition_element(target);
+	check_transition_source(source);
+	check_transition_target(target);
 	check_transition_action(action);
 	
 	Transition* t = new Transition(sm, generate_transition_id(source->get_id(), target->get_id()),
@@ -1346,8 +1355,8 @@ Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* s
 									 const Point& label, const Color& c)
 {
 	check_parent_element(sm);
-	check_transition_element(source);
-	check_transition_element(target);	
+	check_transition_source(source);
+	check_transition_target(target);	
 	check_id_uniqueness(_id);
 	check_transition_action(action);
 
@@ -1369,6 +1378,7 @@ Comment* Document::new_comment(ElementCollection* _parent, const String& _name, 
 							   const String& markup)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, true, markup, r, c);
 	_parent->add_element(comm);
@@ -1399,6 +1409,7 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const String& 
 									  const String& markup)
 {
 	check_parent_element(_parent);
+	check_nonempty_string(_name);
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, false, markup, r, c);
 	_parent->add_element(comm);
@@ -1416,6 +1427,72 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const ID& _id,
 	return comm;
 }
 
+const CommentSubject& Document::add_comment_to_element(Comment* comment, Element* element,
+													   const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+
+	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()),
+											   element, source, target, pl));
+}
+
+const CommentSubject& Document::add_comment_to_element(Comment* comment, Element* element, const ID& _id,
+													   const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	check_id_uniqueness(_id);
+
+	return comment->add_subject(CommentSubject(_id, element, source, target, pl));	
+}
+
+const CommentSubject& Document::add_comment_to_element_name(Comment* comment, Element* element, const String& fragment,
+															const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	check_nonempty_string(fragment);
+	
+	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
+											   commentSubjectName, fragment, source, target, pl));
+}
+
+const CommentSubject& Document::add_comment_to_element_name(Comment* comment, Element* element, const String& fragment, const ID& _id,
+															const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	check_nonempty_string(fragment);
+	check_id_uniqueness(_id);
+	
+	return comment->add_subject(CommentSubject(_id, element,
+											   commentSubjectName, fragment, source, target, pl));
+}
+
+const CommentSubject& Document::add_comment_to_element_body(Comment* comment, Element* element, const String& fragment,
+															const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	check_nonempty_string(fragment);
+	
+	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
+											   commentSubjectData, fragment, source, target, pl));
+}
+
+const CommentSubject& Document::add_comment_to_element_body(Comment* comment, Element* element, const String& fragment, const ID& _id,
+															const Point& source, const Point& target, const Polyline& pl)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	check_nonempty_string(fragment);
+	check_id_uniqueness(_id);
+	
+	return comment->add_subject(CommentSubject(_id, element,
+											   commentSubjectData, fragment, source, target, pl));
+}
+
 void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {
@@ -1431,10 +1508,17 @@ void Document::check_cyberiada_error(int res, const String& msg) const
 	}
 }
 
-void Document::check_parent_element(const ElementCollection* _parent) const
+void Document::check_parent_element(const Element* _parent) const
 {
 	if (!_parent) {
 		throw ParametersException("No parent element");
+	}
+}
+
+void Document::check_nonempty_string(const String& s) const
+{
+	if (s.empty()) {
+		throw ParametersException(String("Empty string parameter"));
 	}
 }
 
@@ -1459,13 +1543,56 @@ void Document::check_transition_action(const Action& action) const
 	}
 }
 
-void Document::check_transition_element(const Element* element) const
+void Document::check_transition_source(const Element* element) const
+{
+	if (!element) {
+		throw ParametersException("Empty element");
+	}
+	if (element->get_type() == elementRoot || 
+		element->get_type() == elementSM ||
+		element->get_type() == elementComment ||
+		element->get_type() == elementFormalComment ||
+		element->get_type() == elementFinal ||
+		element->get_type() == elementTransition) {
+		throw ParametersException("Bad source for transition");
+	}
+}
+
+void Document::check_transition_target(const Element* element) const
+{
+	if (!element) {
+		throw ParametersException("Empty element");
+	}
+	if (element->get_type() == elementRoot || 
+		element->get_type() == elementSM ||
+		element->get_type() == elementComment ||
+		element->get_type() == elementFormalComment ||
+		element->get_type() == elementInitial ||
+		element->get_type() == elementTransition) {
+		throw ParametersException("Bad target for transition");
+	} else if (element->get_type() == elementChoice) {
+		bool found = false;
+		ConstElementList transitions = find_elements_by_type(elementTransition);
+		for (ConstElementList::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
+			const Transition* t = static_cast<const Transition*>(*i);
+			if (t->target_element()->get_id() == element->get_id()) {
+				found = true;
+				break;
+			}
+		}
+		if (found) {
+			throw ParametersException("Choice pseudostate may have only one incoming transition");
+		}
+	}
+}
+
+void Document::check_comment_subject_element(const Element* element) const
 {
 	if (!element) {
 		throw ParametersException("Empty element");
 	}
 	if (element->get_type() == elementRoot || element->get_type() == elementSM) {
-		throw ParametersException("Bad element for transition");
+		throw ParametersException("Bad element to comment");
 	}
 }
 

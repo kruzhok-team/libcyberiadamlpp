@@ -204,7 +204,7 @@ namespace Cyberiada {
 		
 		bool                             has_subjects() const { return !subjects.empty(); }
 		const std::list<CommentSubject>& get_subjects() const { return subjects; }
-		void                             add_subject(const CommentSubject& s);
+	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 
 		virtual bool                     has_geometry() const { return geometry_rect.valid; }
@@ -584,6 +584,24 @@ namespace Cyberiada {
 		Comment*                       new_formal_comment(ElementCollection* parent, const ID& id, const String& name, const String& body,
 														  const Rect& rect = Rect(), const Color& color = Color(),
 														  const String& markup = String());
+		const CommentSubject&          add_comment_to_element(Comment* comment, Element* element,
+															  const Point& source = Point(), const Point& target = Point(),
+															  const Polyline& pl = Polyline());
+		const CommentSubject&          add_comment_to_element(Comment* comment, Element* element, const ID& id,
+															  const Point& source = Point(), const Point& target = Point(),
+															  const Polyline& pl = Polyline());
+		const CommentSubject&          add_comment_to_element_name(Comment* comment, Element* element, const String& fragment,
+																   const Point& source = Point(), const Point& target = Point(),
+																   const Polyline& pl = Polyline());
+		const CommentSubject&          add_comment_to_element_name(Comment* comment, Element* element, const String& fragment, const ID& id,
+																   const Point& source = Point(), const Point& target = Point(),
+																   const Polyline& pl = Polyline());
+		const CommentSubject&          add_comment_to_element_body(Comment* comment, Element* element, const String& fragment,
+																   const Point& source = Point(), const Point& target = Point(),
+																   const Polyline& pl = Polyline());
+		const CommentSubject&          add_comment_to_element_body(Comment* comment, Element* element, const String& fragment, const ID& id,
+																   const Point& source = Point(), const Point& target = Point(),
+																   const Polyline& pl = Polyline());
 		
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
@@ -609,10 +627,13 @@ namespace Cyberiada {
 		CyberiadaMetainformation*      export_meta() const;
 
 		void                           check_cyberiada_error(int res, const String& msg = "") const;
-		void                           check_parent_element(const ElementCollection* parent) const;
+		void                           check_nonempty_string(const String& s) const;
+		void                           check_parent_element(const Element* parent) const;
 		void                           check_id_uniqueness(const ID& id) const;
 		void                           check_single_initial(const ElementCollection* parent) const;
-		void                           check_transition_element(const Element* element) const;
+		void                           check_transition_source(const Element* element) const;
+		void                           check_transition_target(const Element* element) const;
+		void                           check_comment_subject_element(const Element* element) const;
 		void                           check_transition_action(const Action& action) const;
 		
 		String                         format;
