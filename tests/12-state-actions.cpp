@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 
 	State* s2 = d.new_state(s1, "State 2");
 	s2->add_action(Action("EVENT", "is_guard()", "action();"));
-	s2->add_action(Action("EVENT", "is_guard() && is_second()", "action1();\naction2();"));
+	s2->add_action(Action("EVENT(b)", "is_guard() && is_second()", "action1();\naction2();"));
 	s2->add_action(Action("EVENT", "else"));
 	s2->add_action(Action(actionEntry, "init();"));
 	try {
