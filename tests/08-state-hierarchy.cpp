@@ -33,10 +33,14 @@ int main(int argc, char** argv)
 	StateMachine* sm = d.new_state_machine("SM");
 
 	State* parent1 = d.new_state(sm, "Parent 0");
-
 	try {
 		// check id uniqueness
 		d.new_state(sm, "n0", "test");
+	} catch (const Cyberiada::ParametersException&){
+	}
+	try {
+		// check non-empty name
+		d.new_state(sm, "");
 	} catch (const Cyberiada::ParametersException&){
 	}
 	

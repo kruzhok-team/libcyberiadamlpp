@@ -38,6 +38,11 @@ int main(int argc, char** argv)
 		d.new_final(sm, "n0", "test");
 	} catch (const Cyberiada::ParametersException&){
 	}
+	try {
+		// check non-empty name
+		d.new_final(sm, "");
+	} catch (const Cyberiada::ParametersException&){
+	}
 	
 	State* parent = d.new_state(sm, "State");
 	d.new_final(parent, "Local exit");
