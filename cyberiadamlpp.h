@@ -219,7 +219,7 @@ namespace Cyberiada {
 		const String&                    get_markup() const { return markup; }
 
 		virtual CyberiadaNode*           to_node() const;
-		virtual CyberiadaEdge*           subjects_to_edge() const;
+		virtual CyberiadaEdge*           subjects_to_edges() const;
 
 	protected:
 	    virtual std::ostream&            dump(std::ostream& os) const;
@@ -566,7 +566,25 @@ namespace Cyberiada {
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
 													  const Point& label = Point(), const Color& color = Color());
-
+		Comment*                       new_comment(ElementCollection* parent, const String& body,
+												   const Rect& rect = Rect(), const Color& color = Color(),
+												   const String& markup = String());
+		Comment*                       new_comment(ElementCollection* parent, const String& name, const String& body,
+												   const Rect& rect = Rect(), const Color& color = Color(),
+												   const String& markup = String());
+		Comment*                       new_comment(ElementCollection* parent, const ID& id, const String& name, const String& body,
+												   const Rect& rect = Rect(), const Color& color = Color(),
+												   const String& markup = String());
+		Comment*                       new_formal_comment(ElementCollection* parent, const String& body,
+														  const Rect& rect = Rect(), const Color& color = Color(),
+														  const String& markup = String());
+		Comment*                       new_formal_comment(ElementCollection* parent, const String& name, const String& body,
+														  const Rect& rect = Rect(), const Color& color = Color(),
+														  const String& markup = String());
+		Comment*                       new_formal_comment(ElementCollection* parent, const ID& id, const String& name, const String& body,
+														  const Rect& rect = Rect(), const Color& color = Color(),
+														  const String& markup = String());
+		
 		void                           load(const String& path, DocumentFormat f = formatDetect);
 		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
 

@@ -429,7 +429,7 @@ CyberiadaNode* Comment::to_node() const
 	return node;
 }
 
-CyberiadaEdge* Comment::subjects_to_edge() const
+CyberiadaEdge* Comment::subjects_to_edges() const
 {
 	CyberiadaEdge* result = NULL;
 	if (has_subjects()) {
@@ -1356,6 +1356,66 @@ Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* s
 	return t;
 }
 
+Comment* Document::new_comment(ElementCollection* _parent, const String& body, const Rect& r, const Color& c, const String& markup)
+{
+	check_parent_element(_parent);
+
+	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, true, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
+Comment* Document::new_comment(ElementCollection* _parent, const String& _name, const String& body, const Rect& r, const Color& c,
+							   const String& markup)
+{
+	check_parent_element(_parent);
+
+	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, true, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
+Comment* Document::new_comment(ElementCollection* _parent, const ID& _id, const String& _name, const String& body,
+							   const Rect& r, const Color& c, const String& markup)
+{
+	check_parent_element(_parent);
+	check_id_uniqueness(_id);
+
+	Comment* comm = new Comment(_parent, _id, body, _name, true, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
+Comment* Document::new_formal_comment(ElementCollection* _parent, const String& body, const Rect& r, const Color& c, const String& markup)
+{
+	check_parent_element(_parent);
+
+	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, false, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
+Comment* Document::new_formal_comment(ElementCollection* _parent, const String& _name, const String& body, const Rect& r, const Color& c,
+									  const String& markup)
+{
+	check_parent_element(_parent);
+
+	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, false, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
+Comment* Document::new_formal_comment(ElementCollection* _parent, const ID& _id, const String& _name, const String& body,
+									  const Rect& r, const Color& c, const String& markup)
+{
+	check_parent_element(_parent);
+	check_id_uniqueness(_id);
+
+	Comment* comm = new Comment(_parent, _id, body, _name, true, markup, r, c);
+	_parent->add_element(comm);
+	return comm;
+}
+
 void Document::check_cyberiada_error(int res, const String& msg) const
 {
 	switch (res) {
@@ -1770,7 +1830,7 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 	std::list<const Comment*> comments = sm->get_comments();
 	for (std::list<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
 		const Comment* c = *j;
-		edge = c->subjects_to_edge();
+		edge = c->subjects_to_edges();
 		if (*edges) {
 			CyberiadaEdge* e = *edges;
 			while (e->next) e = e->next;
