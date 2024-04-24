@@ -558,11 +558,11 @@ namespace Cyberiada {
 												  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent, const ID& id, const Name& name,
 												  const Rect& r = Rect(), const Color& color = Color());
-		Transition*                    new_transition(ElementCollection* parent, Element* source, Element* target,
+		Transition*                    new_transition(StateMachine* sm, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
 													  const Point& label = Point(), const Color& color = Color());
-		Transition*                    new_transition(ElementCollection* parent, const ID& id, Element* source, Element* target,
+		Transition*                    new_transition(StateMachine* sm, const ID& id, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
 													  const Point& label = Point(), const Color& color = Color());
@@ -594,6 +594,8 @@ namespace Cyberiada {
 		void                           check_parent_element(const ElementCollection* parent) const;
 		void                           check_id_uniqueness(const ID& id) const;
 		void                           check_single_initial(const ElementCollection* parent) const;
+		void                           check_transition_element(const Element* element) const;
+		void                           check_transition_action(const Action& action) const;
 		
 		String                         format;
 		DocumentMetainformation        metainfo;

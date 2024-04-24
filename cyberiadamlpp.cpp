@@ -682,7 +682,17 @@ void ElementCollection::add_element(Element* e)
 {
 	CYB_ASSERT(e);
 	CYB_ASSERT(e->get_parent() == this);
-	children.push_back(e);
+	if (e->get_type() == elementTransition) {
+		children.push_back(e);
+	} else {
+		ElementList::iterator i;
+		for (i = children.begin(); i != children.end(); i++) {
+			if ((*i)->get_type() == elementTransition) {
+				break;
+			}
+		}
+		children.insert(i, e);
+	}
 }
 
 void ElementCollection::add_first_element(Element* e)
@@ -1080,6 +1090,8 @@ CyberiadaEdge* Transition::to_edge() const
 std::ostream& Transition::dump(std::ostream& os) const
 {
 	Element::dump(os);
+	os << ", source: '" << source->get_id() << "'";
+	os << ", target: '" << target->get_id() << "'";
 	if (has_action()) {
 		os << ", action: {";
 		os << action;
@@ -1312,30 +1324,35 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	return choice;
 }
 
-Transition* Document::new_transition(ElementCollection* _parent, Element* source, Element* target,
+Transition* Document::new_transition(StateMachine* sm, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
 									 const Point& label, const Color& c)
 {
-	check_parent_element(_parent);
+	check_parent_element(sm);
+	check_transition_element(source);
+	check_transition_element(target);
+	check_transition_action(action);
 	
-	Transition* t = new Transition(_parent, generate_vertex_id(_parent), source, target,
-								   action, pl, sp, tp, label, c);
-	_parent->add_element(t);
+	Transition* t = new Transition(sm, generate_transition_id(source->get_id(), target->get_id()),
+								   source, target, action, pl, sp, tp, label, c);
+	sm->add_element(t);
 	return t;
 }
 
-Transition* Document::new_transition(ElementCollection* _parent, const ID& _id, Element* source, Element* target,
+Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
 									 const Point& label, const Color& c)
 {
-	check_parent_element(_parent);
+	check_parent_element(sm);
+	check_transition_element(source);
+	check_transition_element(target);	
 	check_id_uniqueness(_id);
+	check_transition_action(action);
 
-	Transition* t = new Transition(_parent, _id, source, target,
-								   action, pl, sp, tp, label, c);
-	_parent->add_element(t);
+	Transition* t = new Transition(sm, _id, source, target, action, pl, sp, tp, label, c);
+	sm->add_element(t);
 	return t;
 }
 
@@ -1372,6 +1389,23 @@ void Document::check_single_initial(const ElementCollection* _parent) const
 {
 	if (_parent->has_initial()) {
 		throw ParametersException("Parent already has initial element");
+	}
+}
+
+void Document::check_transition_action(const Action& action) const
+{
+	if (action.get_type() != actionTransition) {
+		throw ParametersException("Transitions cannot contain entry/exit activities");
+	}
+}
+
+void Document::check_transition_element(const Element* element) const
+{
+	if (!element) {
+		throw ParametersException("Empty element");
+	}
+	if (element->get_type() == elementRoot || element->get_type() == elementSM) {
+		throw ParametersException("Bad element for transition");
 	}
 }
 
