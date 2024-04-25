@@ -199,6 +199,9 @@ test3sm_orient.py</data>
       <data key="dTargetPoint">
         <point x="-4.118959" y="-7.297270"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="-50.904530" y="-43.776615"/>
+      </data>
     </edge>
     <edge id="n0::e0" source="n0::n1" target="n0::n0">
       <data key="dData">TANGENT(target_a)/
@@ -213,6 +216,9 @@ update_turn_parameters(target_a, 0.0)
       <data key="dTargetPoint">
         <point x="129.207840" y="23.561827"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="-248.976791" y="112.880707"/>
+      </data>
     </edge>
     <edge id="n0::e1" source="n0::n1" target="n0::n0">
       <data key="dData">BACK(target_a)/
@@ -226,6 +232,9 @@ update_turn_parameters(target_a, 180.0)
       </data>
       <data key="dTargetPoint">
         <point x="148.774094" y="117.967224"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-263.427216" y="205.216812"/>
       </data>
     </edge>
     <edge id="n0::n0::e0" source="n0::n0::n2" target="n0::n0::n0">
@@ -244,6 +253,9 @@ update_turn_parameters(target_a, 180.0)
       <data key="dTargetPoint">
         <point x="0.000000" y="0.000000"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="1.574948" y="11.386170"/>
+      </data>
     </edge>
     <edge id="n0::n0::e2" source="n0::n0::n1" target="n0::n0::n3">
       <data key="dData">[completed()]/</data>
@@ -252,6 +264,9 @@ update_turn_parameters(target_a, 180.0)
       </data>
       <data key="dTargetPoint">
         <point x="0.000000" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="5.912465" y="11.386169"/>
       </data>
     </edge>
     <edge id="n0::e2" source="n0::n2" target="n0::n1">
@@ -268,6 +283,9 @@ DISPATCH(navigation, 'ORIENTED')
       <data key="dTargetPoint">
         <point x="128.219757" y="13.393255"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="-237.115860" y="17.656166"/>
+      </data>
     </edge>
     <edge id="n0::n2::n0::e0" source="n0::n2::n0::n0" target="n0::n2::n0::n1">
       <data key="dData">[orientation.get_angular_velocity(AXIS_Z) &lt; DW]/</data>
@@ -277,6 +295,9 @@ DISPATCH(navigation, 'ORIENTED')
       <data key="dTargetPoint">
         <point x="-154.388992" y="5.481530"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="11.403487" y="9.562100"/>
+      </data>
     </edge>
     <edge id="n0::n2::n0::e1" source="n0::n2::n0::n1" target="n0::n2::n0::n0">
       <data key="dData">[orientation.get_angular_velocity(AXIS_Z) &gt; DW]/</data>
@@ -285,6 +306,9 @@ DISPATCH(navigation, 'ORIENTED')
       </data>
       <data key="dTargetPoint">
         <point x="163.300400" y="1.093013"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-299.029510" y="-26.177195"/>
       </data>
     </edge>
     <edge id="n0::n2::n0::e2" source="n0::n2::n0::n2" target="n0::n2::n0::n0">
@@ -314,6 +338,9 @@ DISPATCH(navigation, 'ORIENTED')
       <data key="dTargetPoint">
         <point x="-17.616568" y="284.015320"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="17.582609" y="96.752647"/>
+      </data>
     </edge>
     <edge id="n0::n2::e1" source="n0::n2::n0" target="n0::n2::n1">
       <data key="dData">[is_target_dw()]/</data>
@@ -323,6 +350,9 @@ DISPATCH(navigation, 'ORIENTED')
       <data key="dTargetPoint">
         <point x="136.996552" y="11.085690"/>
       </data>
+      <data key="dLabelGeometry">
+        <point x="-100.932228" y="-30.990881"/>
+      </data>
     </edge>
     <edge id="n0::n2::e2" source="n0::n2::n1" target="n0::n2::n0">
       <data key="dData">[not is_target_dw()]/</data>
@@ -331,6 +361,9 @@ DISPATCH(navigation, 'ORIENTED')
       </data>
       <data key="dTargetPoint">
         <point x="-134.980087" y="-169.298065"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="9.669483" y="13.809602"/>
       </data>
     </edge>
   </graph>
