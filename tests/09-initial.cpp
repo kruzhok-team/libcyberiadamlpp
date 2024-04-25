@@ -31,20 +31,18 @@ int main(int argc, char** argv)
 	Document d;
 
 	StateMachine* sm = d.new_state_machine("SM");
-
-	d.new_initial(sm);
+	State* parent = d.new_state(sm, "State");
 	try {
 		// check id uniqueness
-		d.new_initial(sm, "n0");
+		d.new_initial(sm, "n0", "init name");
 	} catch (const Cyberiada::ParametersException&){
 	}
+	d.new_initial(sm);
 	try {
 		// check non-empty name
 		d.new_initial(sm, "");
 	} catch (const Cyberiada::ParametersException&){
 	}
-	
-	State* parent = d.new_state(sm, "State");
 	d.new_initial(parent, "Local init");
 	try {
 		// check double initial

@@ -47,7 +47,7 @@ exit();
           <data key="dData">EVENT [is_guard()]/
 action();
 
-EVENT [is_guard() &amp;&amp; is_second()]/
+EVENT(b) [is_guard() &amp;&amp; is_second()]/
 action1();
 action2();
 
