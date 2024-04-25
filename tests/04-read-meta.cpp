@@ -21,13 +21,10 @@
 
 #include <iostream>
 #include "cyberiadamlpp.h"
+#include "testutils.h"
 
 using namespace Cyberiada;
 using namespace std;
-
-#define CYB_ASSERT(q)   if (!(q)) {                                      \
-					        throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
-	                    }
 
 int main(int argc, char** argv)
 {
