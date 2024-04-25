@@ -347,7 +347,7 @@ std::ostream& CommentSubject::dump(std::ostream& os) const
 		CYB_ASSERT(type == commentSubjectData);
 		type_str = "data";
 	}
-	os << "{ id: '" << id << "'";
+	os << "{id: '" << id << "'";
 	os << ", type: " << type_str;
 	if (element) {
 		os << ", to: '" << element->get_id() << "'";
@@ -468,6 +468,14 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 					edge->geometry_polyline = c_polyline(i->get_geometry_polyline());
 				}
 			}
+
+			if (result) {
+				CyberiadaEdge* e = result;
+				while (e->next) e = e->next;
+				e->next = edge;
+			} else {
+				result = edge;
+			}
 		}
 	}
 	return result;
@@ -481,7 +489,7 @@ std::ostream& Comment::dump(std::ostream& os) const
 		os << ", geometry: " << geometry_rect;
 	}
 	if (has_subjects()) {
-		os << "subjects: {";
+		os << ", subjects: {";
 		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
 			os << *i;
 			if(std::next(i) != subjects.end()) {
@@ -1223,23 +1231,31 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 	return sm;
 }
 
-State* Document::new_state(ElementCollection* _parent, const String& state_name, const Rect& r, const Color& _color)
+State* Document::new_state(ElementCollection* _parent, const String& state_name, const Action& a,
+						   const Rect& r, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(state_name);
 	
 	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, _color);
+	if (!a.is_empty_transition()) {
+		state->add_action(a);
+	}
 	_parent->add_element(state);
 	return state;
 }
 
-State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Rect& r, const Color& _color)
+State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Action& a,
+						   const Rect& r, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(state_name);
 	check_id_uniqueness(state_id);
 
 	State* state = new State(_parent, state_id, state_name, r, _color);
+	if (!a.is_empty_transition()) {
+		state->add_action(a);
+	}
 	_parent->add_element(state);
 	return state;
 }

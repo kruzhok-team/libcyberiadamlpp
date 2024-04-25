@@ -546,9 +546,9 @@ namespace Cyberiada {
 		StateMachine*                  new_state_machine(const String& sm_name, const Rect& r = Rect());
 		StateMachine*                  new_state_machine(const ID& id, const String& sm_name, const Rect& r = Rect());
 		State*                         new_state(ElementCollection* parent, const String& state_name, 
-												 const Rect& r = Rect(), const Color& color = Color());
+												 const Action& a = Action(), const Rect& r = Rect(), const Color& color = Color());
 		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
-												 const Rect& r = Rect(), const Color& color = Color());
+												 const Action& a = Action(), const Rect& r = Rect(), const Color& color = Color());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& name, const Point& p = Point());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
