@@ -39,11 +39,15 @@ int main(int argc, char** argv)
 	}
 	State* state = d.new_state(sm, "State", Action(actionEntry, "action();"));
 	Comment* comm2 = d.new_comment(state, "Comment inside a state\nwith two lines");
-	d.new_formal_comment(sm, "Name", "Named formal comment");
+	d.new_formal_comment(sm, "Name", "Named formal comment", Rect(0, 5, 100, 50));
 
 	d.add_comment_to_element(comm, state);
-	d.add_comment_to_element_name(comm2, state, "S");
-	d.add_comment_to_element_body(comm2, state, "action");
+	d.add_comment_to_element_name(comm2, state, "S", Point(-1, -2), Point(3, 4));
+	Polyline pl;
+	pl.push_back(Point(0, 0));
+	pl.push_back(Point(5, 10));
+	pl.push_back(Point(15, 20));
+	d.add_comment_to_element_body(comm2, state, "action", Point(), Point(), pl);
 
 	try {
 		cout << d << endl;

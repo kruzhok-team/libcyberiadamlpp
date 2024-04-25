@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 	}
 	
 	State* parent = d.new_state(sm, "State");
-	d.new_choice(parent, "Local choice");
+	d.new_choice(parent, "Local choice", Rect(0, 5, 100, 50));
 
 	try {
 		cout << d << endl;

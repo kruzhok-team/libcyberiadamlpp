@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 	}
 	
 	State* parent = d.new_state(sm, "State");
-	d.new_final(parent, "Local exit");
+	d.new_final(parent, "Local exit", Point(30, 40));
 
 	try {
 		cout << d << endl;

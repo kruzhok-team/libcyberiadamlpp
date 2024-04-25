@@ -1,1 +1,1 @@
-Document: {id: '', name: '', format: 'Cyberiada-GraphML-1.0', meta: {standard version: '1.0', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'G0', name: 'SM1'}, State Machine: {id: 'G1', name: 'SM2'}}
+Document: {id: '', name: '', format: 'Cyberiada-GraphML-1.0', meta: {standard version: '1.0', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'G0', name: 'SM1'}, State Machine: {id: 'G1', name: 'SM2', geometry: (1; 2; 300; 40)}}

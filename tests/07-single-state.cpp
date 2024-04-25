@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 {
 	Document d;
 	StateMachine* sm = d.new_state_machine("SM");
-	d.new_state(sm, "First state");
+	d.new_state(sm, "First state", Action(), Rect(0, 50, 100, 25));
 	try {
 		cout << d << endl;
 		d.save(string(argv[0]) + ".graphml", formatCyberiada10);

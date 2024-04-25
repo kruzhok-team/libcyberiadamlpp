@@ -45,10 +45,14 @@ int main(int argc, char** argv)
 		d.new_transition(sm, sm, s1, Action());
 	} catch (const Cyberiada::ParametersException&){
 	}
-	
-	d.new_transition(sm, s1, s1, Action("IDLE"));
-	d.new_transition(sm, parent1, s1, Action("INSIDE"));
-	d.new_transition(sm, s2, parent1, Action("OUTSIDE"));
+
+	Polyline pl;
+	pl.push_back(Point(0, 0));
+	pl.push_back(Point(5, 10));
+	pl.push_back(Point(15, 20));
+	d.new_transition(sm, s1, s1, Action("IDLE"), pl, Point(-1, -2), Point(3, 4));
+	d.new_transition(sm, parent1, s1, Action("INSIDE"), Polyline(), Point(-1, -2), Point(3, 4));
+	d.new_transition(sm, s2, parent1, Action("OUTSIDE"), Polyline(), Point(-1, -2), Point(3, 4), Point(5, 6));
 
 	try {
 		// check transition action

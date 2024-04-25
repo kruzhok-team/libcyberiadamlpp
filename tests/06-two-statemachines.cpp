@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		d.new_state_machine("G0", "SM2");
 	} catch (const Cyberiada::ParametersException&){
 	}
-	d.new_state_machine("SM2");
+	d.new_state_machine("SM2", Rect(1, 2, 300, 40));
 	try {
 		cout << d << endl;
 		d.save(string(argv[0]) + ".graphml", formatCyberiada10);

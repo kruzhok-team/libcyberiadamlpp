@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 		d.new_initial(sm, "");
 	} catch (const Cyberiada::ParametersException&){
 	}
-	d.new_initial(parent, "Local init");
+	d.new_initial(parent, "Local init", Point(30, 40));
 	try {
 		// check double initial
 		d.new_initial(parent);

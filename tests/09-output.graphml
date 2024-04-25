@@ -40,6 +40,9 @@ eventPropagation/ block
         <node id="n0::n0">
           <data key="dVertex">initial</data>
           <data key="dName">Local init</data>
+          <data key="dGeometry">
+            <point x="30.000000" y="40.000000"/>
+          </data>
         </node>
       </graph>
     </node>
