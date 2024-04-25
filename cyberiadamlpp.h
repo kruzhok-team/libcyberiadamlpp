@@ -49,6 +49,7 @@ namespace Cyberiada {
 		elementInitial,              // initial pseudostate
 		elementFinal,                // final state
 		elementChoice,               // choice pseudostate
+		elementTerminate,            // terminate pseudostate
 		elementTransition            // transition
 	};
 
@@ -329,9 +330,6 @@ namespace Cyberiada {
 	public:
 		InitialPseudostate(Element* parent, const ID& id, const Point& p = Point());
 		InitialPseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
-
-	protected:
-		virtual std::ostream& dump(std::ostream& os) const;
 	};
 
 // -----------------------------------------------------------------------------
@@ -360,16 +358,21 @@ namespace Cyberiada {
 	};
 
 // -----------------------------------------------------------------------------
+// Initial pseudostate
+// -----------------------------------------------------------------------------
+	class TerminatePseudostate: public Pseudostate {
+	public:
+		TerminatePseudostate(Element* parent, const ID& id, const Point& p = Point());
+		TerminatePseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
+	};
+	
+// -----------------------------------------------------------------------------
 // Final state
 // -----------------------------------------------------------------------------
 	class FinalState: public Vertex {
 	public:
 		FinalState(Element* parent, const ID& id, const Point& point = Point());
 		FinalState(Element* parent, const ID& id, const Name& name, const Point& point = Point());
-
-	protected:
-		
-		virtual std::ostream& dump(std::ostream& os) const;
 	};
 
 // -----------------------------------------------------------------------------
@@ -547,8 +550,8 @@ namespace Cyberiada {
 		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
 												 const Rect& r = Rect(), const Color& color = Color());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point());
-		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& initial_name, const Point& p = Point());
-		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& initial_name, const Point& p = Point());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& name, const Point& p = Point());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
 		FinalState*                    new_final(ElementCollection* parent, const Point& point = Point());
 		FinalState*                    new_final(ElementCollection* parent, const Name& name, const Point& point = Point());
 		FinalState*                    new_final(ElementCollection* parent, const ID& id, const Name& name, const Point& point = Point());
@@ -558,6 +561,9 @@ namespace Cyberiada {
 												  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent, const ID& id, const Name& name,
 												  const Rect& r = Rect(), const Color& color = Color());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Point& p = Point());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Name& name, const Point& p = Point());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
 		Transition*                    new_transition(StateMachine* sm, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),

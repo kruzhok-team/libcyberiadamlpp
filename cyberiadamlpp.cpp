@@ -107,6 +107,7 @@ CyberiadaNode* Element::to_node() const
 	case elementInitial:        node->type = cybNodeInitial; break;
 	case elementFinal:          node->type = cybNodeFinal; break;
 	case elementChoice:         node->type = cybNodeChoice; break;
+	case elementTerminate:      node->type = cybNodeTerminate; break;
 	default:
 		std::cerr << id << " " << type << std::endl;
 		CYB_ASSERT(false);
@@ -131,6 +132,7 @@ std::ostream& Element::dump(std::ostream& os) const
 	case elementInitial:        type_str = "Initial"; break;
 	case elementFinal:          type_str = "Final"; break;
 	case elementChoice:         type_str = "Choice"; break;
+	case elementTerminate:      type_str = "Terminate"; break;
 	case elementTransition:     type_str = "Transition"; break;
 	default:
 		CYB_ASSERT(false);
@@ -508,9 +510,11 @@ Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Name& _
 
 std::ostream& Vertex::dump(std::ostream& os) const
 {
+	Element::dump(os);
 	if (has_geometry()) {
 		os << ", geometry: " << geometry_point;
 	}
+	os << "}";	
 	return os;
 }
 
@@ -728,7 +732,8 @@ std::list<const Vertex*> ElementCollection::get_vertexes() const
 						   elementCompositeState,
 						   elementInitial,
 						   elementFinal,
-						   elementChoice };
+						   elementChoice,
+						   elementTerminate};
 	std::list<const Vertex*> result;
 	ConstElementList vertexes = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = vertexes.begin(); i != vertexes.end(); i++) {
@@ -745,7 +750,8 @@ std::list<Vertex*> ElementCollection::get_vertexes()
 						   elementCompositeState,
 						   elementInitial,
 						   elementFinal,
-						   elementChoice };
+						   elementChoice,
+						   elementTerminate};
 	std::list<Vertex*> result;
 	ElementList vertexes = find_elements_by_types(types);
 	for (ElementList::const_iterator i =  vertexes.begin(); i != vertexes.end(); i++) {
@@ -853,12 +859,18 @@ InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Na
 {
 }
 
-std::ostream& InitialPseudostate::dump(std::ostream& os) const
+// -----------------------------------------------------------------------------
+// Terminate pseudostate
+// -----------------------------------------------------------------------------
+
+TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Point& p):
+	Pseudostate(_parent, elementTerminate, _id, p)
 {
-	Element::dump(os);
-	Vertex::dump(os);
-	os << "}";
-	return os;
+}
+
+TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p):
+	Pseudostate(_parent, elementTerminate, _id, _name, p)
+{
 }
 
 // -----------------------------------------------------------------------------
@@ -912,14 +924,6 @@ FinalState::FinalState(Element* _parent, const ID& _id, const Point& p):
 FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const Point& p):
 	Vertex(_parent, elementFinal, _id, _name, p)
 {
-}
-
-std::ostream& FinalState::dump(std::ostream& os) const
-{
-	Element::dump(os);
-	Vertex::dump(os);
-	os << "}";
-	return os;
 }
 
 // -----------------------------------------------------------------------------
@@ -1333,6 +1337,36 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	return choice;
 }
 
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Point& p)
+{
+	check_parent_element(_parent);
+
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p);
+	_parent->add_element(term);
+	return term;
+}
+
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Name& _name, const Point& p)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p);
+	_parent->add_element(term);
+	return term;
+}
+
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+	check_id_uniqueness(_id);
+	
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p);
+	_parent->add_element(term);
+	return term;
+}
+
 Transition* Document::new_transition(StateMachine* sm, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
@@ -1553,6 +1587,7 @@ void Document::check_transition_source(const Element* element) const
 		element->get_type() == elementComment ||
 		element->get_type() == elementFormalComment ||
 		element->get_type() == elementFinal ||
+		element->get_type() == elementTerminate ||
 		element->get_type() == elementTransition) {
 		throw ParametersException("Bad source for transition");
 	}
@@ -1698,6 +1733,15 @@ void Document::import_nodes_recursively(ElementCollection* collection, Cyberiada
 
 			break;
 
+		case cybNodeTerminate:
+			if (n->title) {
+				element = new TerminatePseudostate(collection, n->id, n->title, point);
+			} else {
+				element = new TerminatePseudostate(collection, n->id, point);
+			}
+
+			break;
+			
 		case cybNodeFinal:
 			if (n->title) {
 				element = new FinalState(collection, n->id, n->title, point);
