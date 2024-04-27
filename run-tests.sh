@@ -13,7 +13,7 @@ echo "tests ready!"
 echo
 
 for t in $(ls tests/*.test); do
-    num=$(echo $t | grep -Poe '\d+')
+    num=$(echo $t | grep -Poe '\d\d')
     echo -n "$num $t... "
     if [ -f "$t-input.graphml" -o -f "tests/$num-output.txt" ]
     then
