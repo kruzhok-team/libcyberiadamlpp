@@ -81,9 +81,12 @@ namespace Cyberiada {
 		QualifiedName          qualified_name() const;
 
 		bool                   is_root() const { return !parent; }
+		const Element*         get_parent() const { return parent; }
 		Element*               get_parent() { return parent; }
 		virtual bool           has_children() const { return false; }
+		virtual size_t         children_count() const { return 0; }
 		virtual size_t         elements_count() const { return 1; }
+		virtual int            index() const;
 
 		virtual bool           has_geometry() const = 0;
 
@@ -280,6 +283,8 @@ namespace Cyberiada {
 		virtual size_t           elements_count() const;
 		const Element*           first_element() const;
 		Element*                 first_element();
+		const Element*           get_element(int index) const;
+		Element*                 get_element(int index);
 		const Element*           find_element_by_id(const ID& id) const;
 		Element*                 find_element_by_id(const ID& id);
 		ConstElementList         find_elements_by_type(ElementType type) const;
@@ -287,6 +292,7 @@ namespace Cyberiada {
 		ElementList              find_elements_by_type(ElementType type);
 		ElementList              find_elements_by_types(const ElementTypes& types);
 		bool                     has_initial() const;
+		virtual int              element_index(const Element* e) const;
 
 		virtual void             add_element(Element* e);
 		virtual void             add_first_element(Element* e);
@@ -439,7 +445,7 @@ namespace Cyberiada {
 		const std::list<Action>& get_actions() const { return actions; }
 		std::list<Action>&       get_actions() { return actions; }
 		void                     add_action(const Action& a);
-
+		
 		virtual CyberiadaNode*   to_node() const;
 		
 	protected:

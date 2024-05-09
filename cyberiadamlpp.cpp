@@ -60,6 +60,17 @@ Element::Element(Element* _parent, ElementType _type, const ID& _id, const Name&
 	set_name(_name);
 }
 
+int Element::index() const
+{
+	if (parent) {
+		const ElementCollection* collection = static_cast<const ElementCollection*>(parent);
+		CYB_ASSERT(collection);
+		return collection->element_index(this);
+	} else {
+		return 0;
+	}
+}
+
 void Element::set_name(const Name& n)
 {
 	name = n;
@@ -674,7 +685,7 @@ ElementList ElementCollection::find_elements_by_types(const ElementTypes& types)
 
 size_t  ElementCollection::elements_count() const
 {
-	size_t count = 0;
+	size_t count = 1;
 	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
 		count += (*i)->elements_count();
 	}
@@ -689,6 +700,18 @@ bool ElementCollection::has_initial() const
 		}
 	}
 	return false;
+}
+
+int ElementCollection::element_index(const Element* e) const
+{
+	CYB_ASSERT(e);
+	int index = 0;
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++, index++) {
+		if (*i == e) {
+			return index;
+		}
+	}
+	return -1;
 }
 
 void ElementCollection::add_element(Element* e)
@@ -786,6 +809,32 @@ Element* ElementCollection::first_element()
 	} else {
 		return NULL;
 	}
+}
+
+const Element* ElementCollection::get_element(int index) const
+{
+	int idx = 0;
+	if (has_children()) {
+		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++, idx++) {
+			if (idx == index) {
+				return *i;
+			}
+		}
+	}
+	return NULL;
+}
+
+Element* ElementCollection::get_element(int index)
+{
+	int idx = 0;
+	if (has_children()) {
+		for (ElementList::iterator i = children.begin(); i != children.end(); i++, idx++) {
+			if (idx == index) {
+				return *i;
+			}
+		}
+	}
+	return NULL;	
 }
 
 CyberiadaNode* ElementCollection::to_node() const
