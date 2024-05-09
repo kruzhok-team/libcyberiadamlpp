@@ -13,6 +13,9 @@ if(!cyberiadaml_FOUND)
   message(FATAL_ERROR "Cannot find libcyberiadaml library")
 endif()
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_library(cyberiadamlpp SHARED cyberiadamlpp.cpp)
 target_include_directories(cyberiadamlpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -46,7 +49,7 @@ foreach(source_path ${files})
   else()
     add_custom_command(TARGET "${target_name}"
       POST_BUILD
-      COMMAND ln -s "${PROJECT_BINARY_DIR}/${target_name}" "${PROJECT_BINARY_DIR}/tests/"
+      COMMAND ln -sf "${PROJECT_BINARY_DIR}/${target_name}" "${PROJECT_BINARY_DIR}/tests/"
       )
   endif()
 endforeach()
