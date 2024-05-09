@@ -12,17 +12,20 @@ the GNU Free Documentation License (version 1.3).
 
 * libcyberidaml
 * libstdc++
+* cmake (version 3.12+)
 
 ## Installation
 
-Run `make` to build the library binaries.
+Create `build` directory: `mkdir build && cd build`
 
-Run `make main` to build the console printer/converter program.
+Run `cmake ..` to build the library binaries and the test program.
 
-Use variables:
-* `DEBUG=1` debug version of the library
-* `DYNAMIC=1` build shared version of the library
+Run `make install` to install the library.
+
+Use CMake parameters to change the build type / installation prefix / etc.
 
 ## Testing
+
+`cd build`
 
 Run `run-tests.sh` to build and process the tests.

@@ -27,7 +27,7 @@
 #include <list>
 #include <vector>
 #include <ostream>
-#include <cyberiadaml.h>
+#include <cyberiada/cyberiadaml.h>
 
 // -----------------------------------------------------------------------------
 // The Cyberiada GraphML classes

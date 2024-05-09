@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEBUG=1 make
-DEBUG=1 make tests
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make
 if [ $? != 0 ]
 then
     echo "make test failed!"
