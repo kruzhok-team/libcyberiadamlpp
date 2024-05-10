@@ -1256,7 +1256,8 @@ std::ostream& StateMachine::dump(std::ostream& os) const
 // -----------------------------------------------------------------------------
 Document::Document():
 	ElementCollection(NULL, elementRoot, "", ""),
-	format(DEFAULT_GRAPHML_FORMAT),
+	format_str(DEFAULT_GRAPHML_FORMAT),
+	format(formatCyberiada10),
 	metainfo_element(NULL)
 {
 	reset();
@@ -1268,7 +1269,8 @@ void Document::reset()
 	metainfo.standard_version = STANDARD_VERSION;
 	metainfo.transition_order_flag = false;     
 	metainfo.event_propagation_flag = false;
-	format = DEFAULT_GRAPHML_FORMAT;
+	format = formatCyberiada10;
+	format_str = DEFAULT_GRAPHML_FORMAT;
 	metainfo_element = NULL;
 	clear();
 }
@@ -1949,7 +1951,12 @@ void Document::load(const String& path, DocumentFormat f)
 	try {		
 
 		CYB_ASSERT(doc.format);
-		format = doc.format;
+		format_str = doc.format;
+		if (format_str == DEFAULT_GRAPHML_FORMAT) {
+			format = formatCyberiada10;
+		} else {
+			format = formatLegacyYED;
+		}
 		
 		CYB_ASSERT(doc.meta_info);
 		CYB_ASSERT(doc.meta_info->standard_version);
@@ -2211,6 +2218,16 @@ void Document::save(const String& path, DocumentFormat f) const
 	cyberiada_cleanup_sm_document(&doc);
 }
 
+String Document::get_format_str() const
+{
+	if (format == formatCyberiada10) {
+		return DEFAULT_GRAPHML_FORMAT;
+	} else {
+		CYB_ASSERT(format == formatLegacyYED);
+		return format_str;
+	}
+}
+
 std::list<const StateMachine*> Document::get_state_machines() const
 {
 	std::list<const StateMachine*> result;
@@ -2251,7 +2268,7 @@ const StateMachine* Document::get_parent_sm(const Element* element) const
 std::ostream& Document::dump(std::ostream& os) const
 {
 	Element::dump(os);
-	os << ", format: '" << format << "', meta: {";
+	os << ", format: '" << get_format_str() << "', meta: {";
 	std::list<String> params;
 	if (!metainfo.standard_version.empty()) {
 		params.push_back("standard version: '" + metainfo.standard_version + "'");

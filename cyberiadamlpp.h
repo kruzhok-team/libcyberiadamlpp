@@ -630,7 +630,9 @@ namespace Cyberiada {
 		virtual void                   set_name(const Name& name);
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
-
+		DocumentFormat                 get_format() const { return format; }
+		String                         get_format_str() const;
+		
 		std::list<const StateMachine*> get_state_machines() const;
 		std::list<StateMachine*>       get_state_machines();
 		const StateMachine*            get_parent_sm(const Element* element) const;
@@ -657,8 +659,9 @@ namespace Cyberiada {
 		void                           check_transition_target(const Element* element) const;
 		void                           check_comment_subject_element(const Element* element) const;
 		void                           check_transition_action(const Action& action) const;
-		
-		String                         format;
+
+		String                         format_str;
+		DocumentFormat                 format;
 		DocumentMetainformation        metainfo;
 		Comment*                       metainfo_element;
 	};
