@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 		CYB_ASSERT(d.meta().contact == "platform@kruzhok.org");
 		CYB_ASSERT(d.meta().description == "1\n2\n3"); 
 		CYB_ASSERT(d.meta().version == "0.1");
-		CYB_ASSERT(d.meta().date == "2024-04-14 11:22");
+		CYB_ASSERT(d.meta().date == "2024-04-14T11:22:00");
 		CYB_ASSERT(d.meta().markup_language == "html");
 		CYB_ASSERT(d.meta().transition_order_flag); // exit first
 		CYB_ASSERT(d.meta().event_propagation_flag); // propagate

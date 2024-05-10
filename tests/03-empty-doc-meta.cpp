@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	d.meta().contact = "platform@kruzhok.org";
 	d.meta().description = "1\n2\n3"; 
 	d.meta().version = "0.1";
-	d.meta().date = "2024-04-14 11:22";
+	d.meta().date = "2024-04-14T11:22:00";
 	d.meta().markup_language = "html";
 	d.meta().transition_order_flag = true; // exit first
 	d.meta().event_propagation_flag = true; // propagate

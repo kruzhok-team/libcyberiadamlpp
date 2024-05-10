@@ -1,6 +1,6 @@
 Document: {id: '', name: 'Test document', format: 'Cyberiada-GraphML-1.0', meta: {standard version: '1.0', platform name: 'Berloga', platform version: '1.4', platform language: 'script', target system: 'Unit', name: 'Test document', author: 'Author', contact: 'platform@kruzhok.org', description: '1
 2
-3', version: '0.1', date: '2024-04-14 11:22', markup language: 'html', transition order: exit first, event propagation: propagate events}, elements: {State Machine: {id: 'G0', name: 'SM', elements: {Formal Comment: {id: 'nMeta', name: 'CGML_META', body: 'standardVersion/ 1.0
+3', version: '0.1', date: '2024-04-14T11:22:00', markup language: 'html', transition order: exit first, event propagation: propagate events}, elements: {State Machine: {id: 'G0', name: 'SM', elements: {Formal Comment: {id: 'nMeta', name: 'CGML_META', body: 'standardVersion/ 1.0
 
 platform/ Berloga
 
@@ -22,7 +22,7 @@ description/ 1
 
 version/ 0.1
 
-date/ 2024-04-14 11:22
+date/ 2024-04-14T11:22:00
 
 markupLanguage/ html
 
