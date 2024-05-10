@@ -633,7 +633,8 @@ ConstElementList ElementCollection::find_elements_by_type(ElementType _type) con
 		const Element* e = *i;
 		if (e->get_type() == _type) {
 			result.push_back(e);
-		} else if (e->has_children()) {
+		}
+		if (e->has_children()) {
 			const ElementCollection* c = static_cast<const ElementCollection*>(e);
 			ConstElementList r = c->find_elements_by_type(_type);
 			result.insert(result.end(), r.begin(), r.end());
@@ -649,7 +650,8 @@ ConstElementList ElementCollection::find_elements_by_types(const ElementTypes& t
 		const Element* e = *i;
 		if (std::find(types.begin(), types.end(), e->get_type()) != types.end()) {
 			result.push_back(e);
-		} else if (e->has_children()) {
+		}
+		if (e->has_children()) {
 			const ElementCollection* c = static_cast<const ElementCollection*>(e);
 			ConstElementList r = c->find_elements_by_types(types);
 			result.insert(result.end(), r.begin(), r.end());
@@ -665,7 +667,8 @@ ElementList ElementCollection::find_elements_by_type(ElementType _type)
 		Element* e = *i;
 		if (e->get_type() == _type) {
 			result.push_back(e);
-		} else if (e->has_children()) {
+		}
+		if (e->has_children()) {
 			ElementCollection* c = static_cast<ElementCollection*>(e);
 			ElementList r = c->find_elements_by_type(_type);
 			result.insert(result.end(), r.begin(), r.end());
@@ -681,7 +684,8 @@ ElementList ElementCollection::find_elements_by_types(const ElementTypes& types)
 		Element* e = *i;
 		if (std::find(types.begin(), types.end(), e->get_type()) != types.end()) {
 			result.push_back(e);
-		} else if (e->has_children()) {
+		}
+		if (e->has_children()) {
 			ElementCollection* c = static_cast<ElementCollection*>(e);
 			ElementList r = c->find_elements_by_types(types);
 			result.insert(result.end(), r.begin(), r.end());

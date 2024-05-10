@@ -1,0 +1,5 @@
+Initial: {id: 'n1', name: '', geometry: (-1623; 753)}
+Composite State: {id: 'n0', name: 'Бой', actions: {a {entry}, a {exit}}, geometry: (-786; 492; 517; 770), elements: {Simple State: {id: 'n0::n1', name: 'Сближение', actions: {a {entry, behavior: 'МодульДвижения.ДвигатьсяКЦели()'}, a {exit}}, geometry: (-2; 153; 413; 208)}, Simple State: {id: 'n0::n2', name: 'Атака', actions: {a {entry, behavior: 'ОружиеЦелевое.АтаковатьЦель()'}, a {exit}}, geometry: (2; -181; 413; 208)}}}
+Simple State: {id: 'n0::n1', name: 'Сближение', actions: {a {entry, behavior: 'МодульДвижения.ДвигатьсяКЦели()'}, a {exit}}, geometry: (-2; 153; 413; 208)}
+Simple State: {id: 'n0::n2', name: 'Атака', actions: {a {entry, behavior: 'ОружиеЦелевое.АтаковатьЦель()'}, a {exit}}, geometry: (2; -181; 413; 208)}
+Simple State: {id: 'n3', name: 'Скан', actions: {a {entry, behavior: 'Сенсор.ПоискВрагаПоДистанции(мин)'}, a {exit, behavior: 'Сенсор.ОстановкаПоиска()'}}, geometry: (-1573; 738; 413; 288)}
