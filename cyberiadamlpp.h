@@ -93,6 +93,8 @@ namespace Cyberiada {
 		friend std::ostream&   operator<<(std::ostream& os, const Element& e);
 		virtual CyberiadaNode* to_node() const;
 
+		virtual std::string    dump_to_str() const;
+
 	protected:		
 		Element*               find_root();
 		void                   set_type(ElementType t) { type = t; };

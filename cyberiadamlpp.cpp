@@ -130,6 +130,13 @@ CyberiadaNode* Element::to_node() const
 	return node;
 }
 
+std::string Element::dump_to_str() const
+{
+	std::ostringstream s;
+	dump(s);
+	return s.str();
+}
+
 std::ostream& Element::dump(std::ostream& os) const
 {
 	String type_str;
