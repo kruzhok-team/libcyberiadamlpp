@@ -208,6 +208,7 @@ namespace Cyberiada {
 		bool                             is_machine_readable() const { return !human_readable; }
 
 		bool                             has_body() const { return !body.empty(); }
+		const String&                    get_body() const { return body; }
 		void                             set_body(const String& b) { body = b; }
 		
 		bool                             has_subjects() const { return !subjects.empty(); }
@@ -391,7 +392,7 @@ namespace Cyberiada {
 
 	// Cyberiada action types:
 	typedef enum {
-		actionTransition,
+		actionTransition = 0,
 		actionEntry,
 		actionExit
 	} ActionType;
