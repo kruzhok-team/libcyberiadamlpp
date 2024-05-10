@@ -492,6 +492,7 @@ namespace Cyberiada {
 		const Point&           get_label_point() const { return label_point; }
 
 		bool                   has_color() const { return !color.empty(); }
+		const Color&           get_color() const { return color; }
 
 		virtual CyberiadaEdge* to_edge() const;
 		
