@@ -2220,6 +2220,23 @@ std::list<StateMachine*> Document::get_state_machines()
 	return result;
 }
 
+const StateMachine* Document::get_parent_sm(const Element* element) const
+{
+	if (element != NULL) {
+		ElementType type = element->get_type();
+		if (type == elementRoot) {
+			return NULL;
+		} else if (type == elementSM) {
+			return static_cast<const StateMachine*>(element);
+		} else {
+			CYB_ASSERT(element->get_parent());
+			return get_parent_sm(element->get_parent());
+		}
+	} else {
+		return NULL;
+	}
+}
+
 std::ostream& Document::dump(std::ostream& os) const
 {
 	Element::dump(os);

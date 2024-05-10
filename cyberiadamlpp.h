@@ -40,7 +40,7 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
     // Cyberiada diagram element types:
 	enum ElementType {
-		elementRoot,                 // document (root namespace)
+		elementRoot = 0,             // document (root namespace)
 		elementSM,                   // state machine
 		elementSimpleState,          // simple state
 		elementCompositeState,       // composite state
@@ -624,6 +624,7 @@ namespace Cyberiada {
 
 		std::list<const StateMachine*> get_state_machines() const;
 		std::list<StateMachine*>       get_state_machines();
+		const StateMachine*            get_parent_sm(const Element* element) const;
 
 	protected:
 		virtual std::ostream&          dump(std::ostream& os) const;
