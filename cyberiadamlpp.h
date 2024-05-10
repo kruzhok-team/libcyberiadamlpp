@@ -173,6 +173,8 @@ namespace Cyberiada {
 		const String&          get_fragment() const { return fragment; }
 		
 		bool                   has_geometry() const { return source_point.valid || target_point.valid || has_polyline(); }
+		bool                   has_geometry_source_point() const { return source_point.valid; }
+		bool                   has_geometry_target_point() const { return target_point.valid; }
 		bool                   has_polyline() const { return !polyline.empty(); }
 		const Point&           get_geometry_source_point() const { return source_point; }
 		const Point&           get_geometry_target_point() const { return target_point; }
@@ -480,6 +482,9 @@ namespace Cyberiada {
 															 label_point.valid ||
 															 has_polyline()); }
 		bool                   has_polyline() const { return !polyline.empty(); }
+		bool                   has_geometry_source_point() const { return source_point.valid; }
+		bool                   has_geometry_target_point() const { return target_point.valid; }
+		bool                   has_geometry_label_point() const { return label_point.valid; }
 		const Polyline&        get_geometry_polyline() const { return polyline; }
 		const Point&           get_source_point() const { return source_point; }
 		const Point&           get_target_point() const { return target_point; }
