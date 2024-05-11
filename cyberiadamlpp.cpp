@@ -36,10 +36,10 @@ namespace Cyberiada {
 	static const String DEFAULT_GRAPHML_FORMAT = "Cyberiada-GraphML-1.0";
 	static const String META_NODE_NAME = "CGML_META";
 	static const String META_NODE_ID = "nMeta";
-	const String VERTEX_ID_PREFIX = "n";
-	const String SM_ID_PREFIX = "G";
-	const String TRANTISION_ID_SEP = "-";
-	const String TRANTISION_ID_NUM_SEP = "#"; 
+	static const String VERTEX_ID_PREFIX = "n";
+	static const String SM_ID_PREFIX = "G";
+	static const String TRANTISION_ID_SEP = "-";
+	static const String TRANTISION_ID_NUM_SEP = "#"; 
 	static const std::string tab = "\t";
 };
 	
@@ -286,6 +286,50 @@ std::ostream& Action::dump(std::ostream& os) const
 // Geometry objects
 // -----------------------------------------------------------------------------
 
+bool Rect::operator==(const Rect& r)
+{
+	if (!valid && !r.valid) return true;
+	if (!valid || !r.valid) return false;
+	return x == r.x && y == r.y && width == r.width && height == r.height;
+}
+
+void Rect::expand(const Point& p)
+{
+	if (p.valid) {
+		if (valid) {
+			if (p.x < x) x = p.x;
+			if (p.x > x + width) width = p.x - x;
+			if (p.y < y) y = p.y;
+			if (p.y > y + height) height = p.y - y;
+		} else {
+			x = p.x;
+			y = p.y;
+			width = height = 0.0;
+		}
+	}
+}
+
+void Rect::expand(const Rect& r)
+{
+	if (r.valid) {
+		if (valid) {
+			expand(Point(r.x, r.y));
+			expand(Point(r.x + r.width, r.y + r.height));
+		} else {
+			*this = r;
+		}
+	}
+}
+
+void Rect::expand(const Polyline& pl)
+{
+	if (pl.size() > 0) {
+		for (Polyline::const_iterator i = pl.begin(); i != pl.end(); i++) {
+			expand(*i);
+		}
+	}
+}
+
 std::ostream& Cyberiada::operator<<(std::ostream& os, const Point& p)
 {
 	if (!p.valid) {
@@ -346,6 +390,23 @@ CommentSubject& CommentSubject::operator=(const CommentSubject& cs)
 	target_point = cs.target_point;
 	polyline = cs.polyline;
 	return *this;
+}
+
+Rect CommentSubject::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		if (has_geometry_source_point()) {
+			r.expand(source_point);
+		}
+		if (has_geometry_target_point()) {
+			r.expand(target_point);
+		}
+		if (has_polyline()) {
+			r.expand(polyline);
+		}
+	}
+	return r;
 }
 
 std::ostream& Cyberiada::operator<<(std::ostream& os, const CommentSubject& cs)
@@ -499,6 +560,20 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 	return result;
 }
 
+Rect Comment::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		r = geometry_rect;
+	}
+	if (has_subjects()) {
+		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
+			r.expand(i->get_bound_rect());
+		}
+	}	
+	return r;
+}
+
 std::ostream& Comment::dump(std::ostream& os) const
 {
 	Element::dump(os);
@@ -532,6 +607,15 @@ Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Point& 
 Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& pos):
 	Element(_parent, _type, _id, _name), geometry_point(pos)
 {
+}
+
+Rect Vertex::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		r.expand(geometry_point);
+	}	
+	return r;
 }
 
 std::ostream& Vertex::dump(std::ostream& os) const
@@ -876,6 +960,15 @@ CyberiadaNode* ElementCollection::to_node() const
 	return node;
 }
 
+Rect ElementCollection::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		r = geometry_rect;
+	}
+	return r;
+}
+
 std::ostream& ElementCollection::dump(std::ostream& os) const
 {
 	if (has_geometry()) {
@@ -965,6 +1058,15 @@ CyberiadaNode* ChoicePseudostate::to_node() const
 		}
 	}
 	return node;
+}
+
+Rect ChoicePseudostate::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		r = geometry_rect;
+	}
+	return r;
 }
 
 std::ostream& ChoicePseudostate::dump(std::ostream& os) const
@@ -1160,6 +1262,26 @@ CyberiadaEdge* Transition::to_edge() const
 	return edge;
 }
 
+Rect Transition::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		if (has_geometry_source_point()) {
+			r.expand(source_point);
+		}
+		if (has_geometry_target_point()) {
+			r.expand(target_point);
+		}
+		if (has_geometry_label_point()) {
+			r.expand(label_point);
+		}
+		if (has_polyline()) {
+			r.expand(polyline);
+		}
+	}
+	return r;
+}
+
 std::ostream& Transition::dump(std::ostream& os) const
 {
 	Element::dump(os);
@@ -1241,6 +1363,19 @@ std::list<Transition*> StateMachine::get_transitions()
 		result.push_back(static_cast<Transition*>(*i));
 	}
 	return result;
+}
+
+Rect StateMachine::get_bound_rect() const
+{
+	Rect r;
+	if (has_geometry()) {
+		r = ElementCollection::get_bound_rect();
+	} else if (has_children()) {
+		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+			r.expand((*i)->get_bound_rect());
+		}
+	}
+	return r;
 }
 
 std::ostream& StateMachine::dump(std::ostream& os) const

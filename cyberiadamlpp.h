@@ -62,6 +62,47 @@ namespace Cyberiada {
 	const String QUALIFIED_NAME_SEPARATOR = "::";
 
 // -----------------------------------------------------------------------------
+// Geometry
+// -----------------------------------------------------------------------------	
+	struct Point {
+		Point(): valid(false) {}
+		Point(float _x, float _y):
+			valid(true), x(_x), y(_y) {}
+		Point(CyberiadaPoint* p);
+
+		CyberiadaPoint* c_point() const;
+		
+		bool   valid;
+		float  x, y;
+	};
+	typedef std::list<Point> Polyline;
+	
+	struct Rect {
+		Rect(): valid(false) {}
+		Rect(float _x, float _y, float _width, float _height):
+			valid(true), x(_x), y(_y), width(_width), height(_height) {}
+		Rect(CyberiadaRect* r);
+
+		void expand(const Point& p);
+		void expand(const Rect& r);
+		void expand(const Polyline& pl);
+
+		CyberiadaRect* c_rect() const;
+
+		bool operator==(const Rect& r);
+		
+		bool   valid;
+		float  x, y;
+		float  width, height;
+	};
+	
+	std::ostream& operator<<(std::ostream& os, const Point& p);
+	std::ostream& operator<<(std::ostream& os, const Rect& r);
+	std::ostream& operator<<(std::ostream& os, const Polyline& pl);
+
+	CyberiadaPolyline* c_polyline(const Polyline& polyline);
+	
+// -----------------------------------------------------------------------------
 // Base Element
 // -----------------------------------------------------------------------------
 	class Element {
@@ -89,6 +130,7 @@ namespace Cyberiada {
 		virtual int            index() const;
 
 		virtual bool           has_geometry() const = 0;
+		virtual Rect           get_bound_rect() const = 0;
 
 		friend std::ostream&   operator<<(std::ostream& os, const Element& e);
 		virtual CyberiadaNode* to_node() const;
@@ -109,42 +151,6 @@ namespace Cyberiada {
 	};
 
 	std::ostream& operator<<(std::ostream& os, const Element& e);
-
-// -----------------------------------------------------------------------------
-// Geometry
-// -----------------------------------------------------------------------------	
-	struct Point {
-		Point(): valid(false) {}
-		Point(float _x, float _y):
-			valid(true), x(_x), y(_y) {}
-		Point(CyberiadaPoint* p);
-
-		CyberiadaPoint* c_point() const;
-		
-		bool   valid;
-		float  x, y;
-	};
-	
-	struct Rect {
-		Rect(): valid(false) {}
-		Rect(float _x, float _y, float _width, float _height):
-			valid(true), x(_x), y(_y), width(_width), height(_height) {}
-		Rect(CyberiadaRect* r);
-
-		CyberiadaRect* c_rect() const;
-		
-		bool   valid;
-		float  x, y;
-		float  width, height;
-	};
-	
-	typedef std::list<Point> Polyline;
-
-	std::ostream& operator<<(std::ostream& os, const Point& p);
-	std::ostream& operator<<(std::ostream& os, const Rect& r);
-	std::ostream& operator<<(std::ostream& os, const Polyline& pl);
-
-	CyberiadaPolyline* c_polyline(const Polyline& polyline);
 	
 // -----------------------------------------------------------------------------
 // Comment
@@ -179,6 +185,7 @@ namespace Cyberiada {
 		const Point&           get_geometry_source_point() const { return source_point; }
 		const Point&           get_geometry_target_point() const { return target_point; }
 		const Polyline&        get_geometry_polyline() const { return polyline; }
+        Rect                   get_bound_rect() const;
 
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
@@ -218,6 +225,7 @@ namespace Cyberiada {
 
 		virtual bool                     has_geometry() const { return geometry_rect.valid; }
 		const Rect&                      get_geometry_rect() const { return geometry_rect; }
+		virtual Rect                     get_bound_rect() const;
 
 		virtual bool                     has_children() const { return false; }
 
@@ -254,6 +262,7 @@ namespace Cyberiada {
 
 		virtual bool           has_geometry() const { return geometry_point.valid; }
 		const Point&           get_geometry_point() const { return geometry_point; }
+		virtual Rect           get_bound_rect() const;		
 
 		virtual bool           has_children() const { return false; }
 
@@ -309,7 +318,8 @@ namespace Cyberiada {
 
 		virtual bool             has_geometry() const { return geometry_rect.valid; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
-
+		virtual Rect             get_bound_rect() const;
+		
         bool                     has_color() const { return !color.empty(); }
 		const Color&             get_color() const { return color; }
 
@@ -355,6 +365,7 @@ namespace Cyberiada {
 
 		virtual bool           has_geometry() const { return geometry_rect.valid; }
 		const Rect&            get_geometry_rect() const { return geometry_rect; }
+		virtual Rect           get_bound_rect() const;
 
         bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
@@ -490,6 +501,7 @@ namespace Cyberiada {
 		const Point&           get_source_point() const { return source_point; }
 		const Point&           get_target_point() const { return target_point; }
 		const Point&           get_label_point() const { return label_point; }
+		virtual Rect           get_bound_rect() const;
 
 		bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
@@ -522,6 +534,8 @@ namespace Cyberiada {
 		std::list<const Transition*> get_transitions() const;
 		std::list<Transition*>       get_transitions();
 
+		virtual Rect                 get_bound_rect() const;
+		
 	protected:
 		virtual std::ostream&        dump(std::ostream& os) const;
 	};
@@ -636,6 +650,9 @@ namespace Cyberiada {
 		std::list<const StateMachine*> get_state_machines() const;
 		std::list<StateMachine*>       get_state_machines();
 		const StateMachine*            get_parent_sm(const Element* element) const;
+
+		virtual bool                   has_geometry() const { return false; }
+		virtual Rect                   get_bound_rect() const { return Rect(); }
 
 	protected:
 		virtual std::ostream&          dump(std::ostream& os) const;
