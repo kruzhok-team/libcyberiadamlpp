@@ -21,6 +21,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include <algorithm>
+#include <cyberiada/cyberiadaml.h>
 #include <sstream>
 #include "cyberiadamlpp.h"
 
@@ -2077,7 +2078,7 @@ void Document::load(const String& path, DocumentFormat f)
 	int res = cyberiada_init_sm_document(&doc);
 	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
 
-	res = cyberiada_read_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
+	res = cyberiada_read_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f), CYBERIADA_NO_ERROR);
 	if (res != CYBERIADA_NO_ERROR) {
 		cyberiada_cleanup_sm_document(&doc);
 		CYB_CHECK_RESULT(res);
@@ -2344,7 +2345,7 @@ void Document::save(const String& path, DocumentFormat f) const
 		throw AssertException("Internal save error: " + e.str());
 	}
 	
-	res = cyberiada_write_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
+	res = cyberiada_write_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f), CYBERIADA_NO_ERROR);
 	if (res != CYBERIADA_NO_ERROR) {
 		cyberiada_cleanup_sm_document(&doc);
 		CYB_CHECK_RESULT(res);
