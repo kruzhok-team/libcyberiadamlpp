@@ -21,7 +21,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include <algorithm>
-#include <cyberiada/cyberiadaml.h>
 #include <sstream>
 #include "cyberiadamlpp.h"
 
