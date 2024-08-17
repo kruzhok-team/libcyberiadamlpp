@@ -22,6 +22,8 @@
 
 #include <algorithm>
 #include <sstream>
+#include <fstream>
+#include <math.h>
 #include "cyberiadamlpp.h"
 
 #define CYB_CHECK_RESULT(r) this->check_cyberiada_error((r), std::string(__FILE__) + ":" + std::to_string(__LINE__))
@@ -34,6 +36,7 @@ namespace Cyberiada {
 
 	static const String STANDARD_VERSION = "1.0";	
 	static const String DEFAULT_GRAPHML_FORMAT = "Cyberiada-GraphML-1.0";
+	static const String DEFAULT_YED_FORMAT = "yEd Berloga";
 	static const String META_NODE_NAME = "CGML_META";
 	static const String META_NODE_ID = "nMeta";
 	static const String VERTEX_ID_PREFIX = "n";
@@ -41,6 +44,7 @@ namespace Cyberiada {
 	static const String TRANTISION_ID_SEP = "-";
 	static const String TRANTISION_ID_NUM_SEP = "#"; 
 	static const std::string tab = "\t";
+	static DocumentGeometryFormat DEFAULT_REAL_GEOMETRY_FORMAT = geometryFormatQt;
 };
 	
 using namespace Cyberiada;
@@ -58,6 +62,11 @@ Element::Element(Element* _parent, ElementType _type, const ID& _id, const Name&
 	type(_type), id(_id), parent(_parent)
 {
 	set_name(_name);
+}
+
+Element::Element(const Element& e):
+	type(e.type), id(e.id), name(e.name), name_is_set(e.name_is_set), parent(e.parent)
+{
 }
 
 int Element::index() const
@@ -172,6 +181,12 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const Element& e)
 // Geometry
 // -----------------------------------------------------------------------------	
 
+static double round_num(double n)
+{
+//	return int(::round(n * 1000)) / 1000.0;
+	return int(n);//::round(n);
+}
+
 Point::Point(CyberiadaPoint* p)
 {
 	if (p) {
@@ -193,6 +208,24 @@ CyberiadaPoint* Point::c_point() const
 	} else {
 		return NULL;
 	}
+}
+
+void Point::round()
+{
+	if (valid) {
+		x = round_num(x);
+		y = round_num(y);
+	}
+}
+
+Point Point::round() const
+{
+	Point p;
+	if (valid) {
+		p.x = round_num(x);
+		p.y = round_num(y);
+	}
+	return p;
 }
 
 Rect::Rect(CyberiadaRect* r)
@@ -241,6 +274,156 @@ CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
 	return result;
 }
 
+bool Rect::operator==(const Rect& r)
+{
+	if (!valid && !r.valid) return true;
+	if (!valid || !r.valid) return false;
+	return x == r.x && y == r.y && width == r.width && height == r.height;
+}
+
+bool Rect::operator!=(const Rect& r)
+{
+	return !(*this == r);
+}
+
+Rect Rect::round() const
+{
+	Rect r;
+	if (valid) {
+		r.valid = true;
+		r.x = round_num(x);
+		r.y = round_num(y);
+		r.width = round_num(width);
+		r.height = round_num(height);
+	}
+	return r;
+}
+
+void Rect::round()
+{
+	if (valid) {
+		x = round_num(x);
+		y = round_num(y);
+		width = round_num(width);
+		height = round_num(height);
+	}
+}
+
+void Cyberiada::round_polyline(Polyline& pl)
+{
+	for (Polyline::iterator i = pl.begin(); i != pl.end(); i++) {
+		i->round();
+	}
+}
+
+void Rect::expand(const Point& p, const Document& d)
+{
+	if (p.valid) {
+		if (valid) {
+			if (d.get_geometry_format() == geometryFormatQt) {
+				double half_w = width / 2.0;
+				double half_h = height / 2.0;
+				double delta;
+				if (p.x < x - half_w) {
+					delta = x - half_w - p.x;
+					width += delta;
+					x -= delta / 2.0;
+				} else if (p.x > x + half_w) {
+					delta = p.x - x - half_w;
+					width += delta;
+					x += delta / 2.0;
+				}
+				if (p.y < y - half_h) {
+					delta = y - half_h - p.y;
+					height += delta;
+					y -= delta / 2.0;
+				} else if (p.y > y + half_h) {
+					delta = p.y - y - half_h;
+					height += delta;
+					y += delta / 2.0;
+				}
+			} else {
+				if (p.x < x) {
+					width += x - p.x;
+					x = p.x;
+				} else if (p.x > x + width) {
+					width = p.x - x;
+				}
+				if (p.y < y) {
+					height += y - p.y;
+					y = p.y;
+				} else if (p.y > y + height) {
+					height = p.y - y;
+				}
+			}
+		} else {
+			valid = true;
+			x = p.x;
+			y = p.y;
+			width = height = 0.0;
+		}
+	}
+}
+
+void Rect::expand(const Rect& r, const Document& d)
+{
+	if (r.valid) {
+		if (valid) {
+			if (d.get_geometry_format() == geometryFormatQt) {
+				expand(Point(r.x - r.width / 2.0, r.y - r.height / 2.0), d);
+				expand(Point(r.x + r.width / 2.0, r.y + r.height / 2.0), d);				
+			} else {
+				expand(Point(r.x, r.y), d);
+				expand(Point(r.x + r.width, r.y + r.height), d);
+			}
+		} else {
+			*this = r;
+		}
+	}
+}
+
+void Rect::expand(const Polyline& pl, const Document& d)
+{
+	if (pl.size() > 0) {
+		for (Polyline::const_iterator i = pl.begin(); i != pl.end(); i++) {
+			expand(*i, d);
+		}
+	}
+}
+
+std::ostream& Cyberiada::operator<<(std::ostream& os, const Point& p)
+{
+	if (!p.valid) {
+		os << "()";
+	} else {
+		os << "(" << p.x << "; " << p.y << ")";
+	}
+	return os;
+}
+
+std::ostream& Cyberiada::operator<<(std::ostream& os, const Rect& r)
+{
+	if (!r.valid) {
+		os << "()";
+	} else {
+		os << "(" << r.x << "; " << r.y << "; " << r.width << "; " << r.height << ")";
+	}
+	return os;
+}
+
+std::ostream& Cyberiada::operator<<(std::ostream& os, const Polyline& pl)
+{
+	os << "[ ";
+	for (Polyline::const_iterator i = pl.begin(); i != pl.end(); i++) {	
+		os << *i;
+		if (std::next(i) != pl.end()) {
+			os << ", ";
+		}
+	}
+	os << " ]";
+	return os;
+}
+
 // -----------------------------------------------------------------------------
 // Action
 // -----------------------------------------------------------------------------	
@@ -283,87 +466,6 @@ std::ostream& Action::dump(std::ostream& os) const
 }
 
 // -----------------------------------------------------------------------------
-// Geometry objects
-// -----------------------------------------------------------------------------
-
-bool Rect::operator==(const Rect& r)
-{
-	if (!valid && !r.valid) return true;
-	if (!valid || !r.valid) return false;
-	return x == r.x && y == r.y && width == r.width && height == r.height;
-}
-
-void Rect::expand(const Point& p)
-{
-	if (p.valid) {
-		if (valid) {
-			if (p.x < x) x = p.x;
-			if (p.x > x + width) width = p.x - x;
-			if (p.y < y) y = p.y;
-			if (p.y > y + height) height = p.y - y;
-		} else {
-			x = p.x;
-			y = p.y;
-			width = height = 0.0;
-		}
-	}
-}
-
-void Rect::expand(const Rect& r)
-{
-	if (r.valid) {
-		if (valid) {
-			expand(Point(r.x, r.y));
-			expand(Point(r.x + r.width, r.y + r.height));
-		} else {
-			*this = r;
-		}
-	}
-}
-
-void Rect::expand(const Polyline& pl)
-{
-	if (pl.size() > 0) {
-		for (Polyline::const_iterator i = pl.begin(); i != pl.end(); i++) {
-			expand(*i);
-		}
-	}
-}
-
-std::ostream& Cyberiada::operator<<(std::ostream& os, const Point& p)
-{
-	if (!p.valid) {
-		os << "()";
-	} else {
-		os << "(" << p.x << "; " << p.y << ")";
-	}
-	return os;
-}
-
-std::ostream& Cyberiada::operator<<(std::ostream& os, const Rect& r)
-{
-	if (!r.valid) {
-		os << "()";
-	} else {
-		os << "(" << r.x << "; " << r.y << "; " << r.width << "; " << r.height << ")";
-	}
-	return os;
-}
-
-std::ostream& Cyberiada::operator<<(std::ostream& os, const Polyline& pl)
-{
-	os << "[ ";
-	for (Polyline::const_iterator i = pl.begin(); i != pl.end(); i++) {	
-		os << *i;
-		if (std::next(i) != pl.end()) {
-			os << ", ";
-		}
-	}
-	os << " ]";
-	return os;
-}
-
-// -----------------------------------------------------------------------------
 // Comment
 // -----------------------------------------------------------------------------
 
@@ -376,6 +478,12 @@ CommentSubject::CommentSubject(const ID& _id, Element* _element,
 CommentSubject::CommentSubject(const ID& _id, Element* _element, CommentSubjectType _type, const String& _fragment,
 							   const Point& source, const Point& target, const Polyline& pl):
 	type(_type), id(_id), element(_element), has_frag(true), fragment(_fragment), source_point(source), target_point(target), polyline(pl)
+{
+}
+
+CommentSubject::CommentSubject(const CommentSubject& cs):
+	type(cs.type), id(cs.id), element(cs.element), has_frag(cs.has_frag), fragment(cs.fragment),
+	source_point(cs.source_point), target_point(cs.target_point), polyline(cs.polyline)	
 {
 }
 
@@ -392,19 +500,11 @@ CommentSubject& CommentSubject::operator=(const CommentSubject& cs)
 	return *this;
 }
 
-Rect CommentSubject::get_bound_rect() const
+Rect CommentSubject::get_bound_rect(const Document& d) const
 {
 	Rect r;
-	if (has_geometry()) {
-		if (has_geometry_source_point()) {
-			r.expand(source_point);
-		}
-		if (has_geometry_target_point()) {
-			r.expand(target_point);
-		}
-		if (has_polyline()) {
-			r.expand(polyline);
-		}
+	if (has_geometry() && has_polyline()) {
+		r.expand(polyline, d);
 	}
 	return r;
 }
@@ -413,6 +513,23 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const CommentSubject& cs)
 {
 	cs.dump(os);
 	return os;
+}
+
+void CommentSubject::clean_geometry()
+{
+	source_point = Point();
+	target_point = Point();
+	polyline.clear();
+	CYB_ASSERT(!has_geometry());
+}
+
+void CommentSubject::round_geometry()
+{
+	if (has_geometry()) {
+		source_point.round();
+		target_point.round();
+		round_polyline(polyline);
+	}
 }
 
 std::ostream& CommentSubject::dump(std::ostream& os) const
@@ -461,6 +578,24 @@ Comment::Comment(Element* _parent, const ID& _id, const String& _body, const Nam
 	human_readable(_human_readable), geometry_rect(rect), color(_color)
 {
 	update_comment_type();
+}
+
+Comment::Comment(const Comment& c):
+	Element(c), body(c.body), markup(c.markup), human_readable(c.human_readable),
+	geometry_rect(c.geometry_rect), subjects(c.subjects), color(c.color)
+{
+}
+
+Element* Comment::copy(Element* _parent) const
+{
+	Comment* c;
+	if (has_name()) {
+		c = new Comment(_parent, get_id(), body, get_name(), human_readable, markup, geometry_rect, color);
+	} else {
+		c = new Comment(_parent, get_id(), body, human_readable, markup, geometry_rect, color);
+	}
+	c->subjects = subjects;
+	return c;
 }
 
 const CommentSubject& Comment::add_subject(const CommentSubject& s)
@@ -560,18 +695,50 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 	return result;
 }
 
-Rect Comment::get_bound_rect() const
+Rect Comment::get_bound_rect(const Document& d) const
 {
-	Rect r;
+	Rect r, parent;
 	if (has_geometry()) {
-		r = geometry_rect;
+		parent = r = geometry_rect;
 	}
-	if (has_subjects()) {
+	if (has_geometry() && has_subjects()) {
 		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
-			r.expand(i->get_bound_rect());
+			if (!i->get_element() || !i->get_element()->has_geometry()) {
+				continue;
+			}
+			Rect ch_r = i->get_bound_rect(d);
+			if (d.get_geometry_format() == geometryFormatCyberiada10 ||
+				d.get_geometry_format() == geometryFormatQt) {
+				ch_r.x += parent.x;
+				ch_r.y += parent.y;
+			}
+			r.expand(ch_r, d);
+		}
+	}
+	return r;
+}
+
+void Comment::clean_geometry()
+{
+	geometry_rect = Rect();
+	if (has_subjects()) {
+		for (std::list<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+			i->clean_geometry();
 		}
 	}	
-	return r;
+	CYB_ASSERT(!has_geometry());
+}
+
+void Comment::round_geometry()
+{
+	if (has_geometry()) {
+		geometry_rect.round();
+		if (has_subjects()) {
+			for (std::list<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+				i->round_geometry();
+			}
+		}
+	}
 }
 
 std::ostream& Comment::dump(std::ostream& os) const
@@ -609,13 +776,31 @@ Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Name& _
 {
 }
 
-Rect Vertex::get_bound_rect() const
+Vertex::Vertex(const Vertex& v):
+	Element(v), geometry_point(v.geometry_point)
+{
+}
+
+Rect Vertex::get_bound_rect(const Document& d) const
 {
 	Rect r;
 	if (has_geometry()) {
-		r.expand(geometry_point);
-	}	
+		r.expand(geometry_point, d);
+	}
 	return r;
+}
+
+void Vertex::clean_geometry()
+{
+	geometry_point = Point();
+	CYB_ASSERT(!has_geometry());
+}
+
+void Vertex::round_geometry()
+{
+	if (has_geometry()) {
+		geometry_point.round();
+	}
 }
 
 std::ostream& Vertex::dump(std::ostream& os) const
@@ -645,6 +830,12 @@ ElementCollection::ElementCollection(Element* _parent, ElementType _type, const 
 									 const Rect& rect, const Color& _color):
 	Element(_parent, _type, _id, _name), geometry_rect(rect), color(_color)
 {
+}
+
+ElementCollection::ElementCollection(const ElementCollection& ec):
+	Element(ec), geometry_rect(ec.geometry_rect), color(ec.color)
+{
+	copy_elements(ec);
 }
 
 ElementCollection::~ElementCollection()
@@ -949,6 +1140,7 @@ CyberiadaNode* ElementCollection::to_node() const
 		}
 		CyberiadaNode* child = e->to_node();
 		CYB_ASSERT(child);
+		child->parent = node;
 		if (node->children) {
 			CyberiadaNode* n = node->children;
 			while (n->next) n = n->next;
@@ -960,18 +1152,90 @@ CyberiadaNode* ElementCollection::to_node() const
 	return node;
 }
 
-Rect ElementCollection::get_bound_rect() const
+ConstElementList ElementCollection::get_children() const
 {
-	Rect r;
-	if (has_geometry()) {
-		r = geometry_rect;
+	ConstElementList result;
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		result.push_back(static_cast<const Element*>(*i));
 	}
+	return result;
+}
+
+Rect ElementCollection::get_bound_rect(const Document& d) const
+{
+	Rect r, parent;
+	if (has_geometry()) {
+		parent = geometry_rect;
+		r.expand(geometry_rect, d);
+	}
+	if (has_children()) {
+		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+			CYB_ASSERT(*i);
+			Rect ch_r = (*i)->get_bound_rect(d);
+			if ((*i)->get_type() == elementTransition) {
+				continue;
+				const Transition* t = static_cast<const Transition*>(*i);
+				const Element* source = d.find_element_by_id(t->source_element_id());
+				const Element* target = d.find_element_by_id(t->target_element_id());
+				if (!source || !source->has_geometry() || !target || !target->has_geometry()) {
+					continue;
+				}
+				Rect source_rect = source->get_bound_rect(d);
+				if (d.get_geometry_format() == geometryFormatCyberiada10 ||
+					d.get_geometry_format() == geometryFormatQt) {
+					ch_r.x += source_rect.x;
+					ch_r.y += source_rect.y;
+				}
+			} else {
+				if (d.get_geometry_format() == geometryFormatCyberiada10 ||
+					d.get_geometry_format() == geometryFormatQt) {
+					ch_r.x += parent.x;
+					ch_r.y += parent.y;
+				}
+			}
+			r.expand(ch_r, d);
+		}
+	}
+	//std::cerr << "element " << get_id() << " " << get_name() << " } rect " << r << std::endl;
 	return r;
+}
+
+void ElementCollection::clean_geometry()
+{
+	geometry_rect = Rect();
+	if (has_children()) {
+		for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
+			(*i)->clean_geometry();
+		}
+	}
+	CYB_ASSERT(!has_geometry());
+}
+
+void ElementCollection::round_geometry()
+{
+	if (has_geometry()) {
+		geometry_rect.round();
+	};
+	if (has_children()) {
+		for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
+			(*i)->round_geometry();
+		}
+	}
+}
+
+void ElementCollection::copy_elements(const ElementCollection& source)
+{
+	CYB_ASSERT(children.empty());
+	for (ElementList::const_iterator i = source.children.begin(); i != source.children.end(); i++) {
+		const Element* e = *i;
+		Element* new_e = e->copy(this);
+		children.push_back(new_e);
+	}
 }
 
 std::ostream& ElementCollection::dump(std::ostream& os) const
 {
-	if (has_geometry()) {
+	if (has_geometry() && geometry_rect.valid) {
 		os << ", geometry: " << geometry_rect;
 		if (has_color()) {
 			os << ", color: " << color;
@@ -1020,6 +1284,15 @@ InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Na
 {
 }
 
+Element* InitialPseudostate::copy(Element* parent) const
+{
+	if (has_name()) {
+		return new InitialPseudostate(parent, get_id(), get_name(), get_geometry_point());
+	} else {
+		return new InitialPseudostate(parent, get_id(), get_geometry_point());
+	}
+}
+
 // -----------------------------------------------------------------------------
 // Terminate pseudostate
 // -----------------------------------------------------------------------------
@@ -1032,6 +1305,15 @@ TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, cons
 TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p):
 	Pseudostate(_parent, elementTerminate, _id, _name, p)
 {
+}
+
+Element* TerminatePseudostate::copy(Element* parent) const
+{
+	if (has_name()) {
+		return new TerminatePseudostate(parent, get_id(), get_name(), get_geometry_point());
+	} else {
+		return new TerminatePseudostate(parent, get_id(), get_geometry_point());
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -1048,6 +1330,11 @@ ChoicePseudostate::ChoicePseudostate(Element* _parent, const ID& _id, const Name
 {
 }
 
+ChoicePseudostate::ChoicePseudostate(const ChoicePseudostate& cp):
+	Pseudostate(cp), geometry_rect(cp.geometry_rect), color(cp.color)
+{
+}
+
 CyberiadaNode* ChoicePseudostate::to_node() const
 {
 	CyberiadaNode* node = Element::to_node();
@@ -1060,13 +1347,35 @@ CyberiadaNode* ChoicePseudostate::to_node() const
 	return node;
 }
 
-Rect ChoicePseudostate::get_bound_rect() const
+Rect ChoicePseudostate::get_bound_rect(const Document&) const
 {
 	Rect r;
 	if (has_geometry()) {
 		r = geometry_rect;
 	}
 	return r;
+}
+
+void ChoicePseudostate::clean_geometry()
+{
+	geometry_rect = Rect();
+	CYB_ASSERT(!has_geometry());
+}
+
+void ChoicePseudostate::round_geometry()
+{
+	if (has_geometry()) {
+		geometry_rect.round();
+	}
+}
+
+Element* ChoicePseudostate::copy(Element* parent) const
+{
+	if (has_name()) {
+		return new ChoicePseudostate(parent, get_id(), get_name(), get_geometry_rect(), color);
+	} else {
+		return new ChoicePseudostate(parent, get_id(), get_geometry_rect(), color);
+	}
 }
 
 std::ostream& ChoicePseudostate::dump(std::ostream& os) const
@@ -1096,6 +1405,15 @@ FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const
 {
 }
 
+Element* FinalState::copy(Element* parent) const
+{
+	if (has_name()) {
+		return new FinalState(parent, get_id(), get_name(), get_geometry_point());
+	} else {
+		return new FinalState(parent, get_id(), get_geometry_point());
+	}
+}
+
 // -----------------------------------------------------------------------------
 // State
 // -----------------------------------------------------------------------------
@@ -1108,6 +1426,11 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const Action& a)
 
 State::State(Element* _parent, const ID& _id, const Name& _name, const Rect& r, const Color& c):
 	ElementCollection(_parent, elementSimpleState, _id, _name, r, c)
+{
+}
+
+State::State(const State& s):
+	ElementCollection(s), actions(s.actions)
 {
 }
 
@@ -1198,6 +1521,15 @@ CyberiadaNode* State::to_node() const
 	return node;
 }
 
+Element* State::copy(Element* parent) const
+{
+	State* s = new State(parent, get_id(), get_name(), get_geometry_rect(), get_color());
+	s->copy_elements(*this);
+	s->actions = actions;
+	s->update_state_type();
+	return s;
+}
+
 std::ostream& State::dump(std::ostream& os) const
 {
 	Element::dump(os);
@@ -1220,21 +1552,28 @@ std::ostream& State::dump(std::ostream& os) const
 // Transition
 // -----------------------------------------------------------------------------
 
-Transition::Transition(Element* _parent, const ID& _id, Element* _source, Element* _target, const Action& _action,
-					   const Polyline& pl, const Point& sp, const Point& tp, const Point& label,
+Transition::Transition(Element* _parent, const ID& _id, const ID& _source_id, const ID& _target_id,
+					   const Action& _action, const Polyline& pl, const Point& sp, const Point& tp, const Point& label,
 					   const Color& c):
-	Element(_parent, elementTransition, _id), source(_source), target(_target), action(_action),
+	Element(_parent, elementTransition, _id), source_id(_source_id), target_id(_target_id), action(_action),
 	source_point(sp), target_point(tp), label_point(label), polyline(pl), color(c)
+{
+}
+
+Transition::Transition(const Transition& t):
+	Element(t), source_id(t.source_id), target_id(t.target_id), action(t.action),
+	source_point(t.source_point), target_point(t.target_point), label_point(t.label_point),
+	polyline(t.polyline), color(t.color)
 {
 }
 
 CyberiadaEdge* Transition::to_edge() const
 {
-	CYB_ASSERT(source);
-	CYB_ASSERT(target);
+	CYB_ASSERT(!source_id.empty());
+	CYB_ASSERT(!target_id.empty());
 	CyberiadaEdge* edge = cyberiada_new_edge(get_id().c_str(),
-											 source->get_id().c_str(),
-											 target->get_id().c_str());
+											 source_id.c_str(),
+											 target_id.c_str());
 	edge->type = cybEdgeTransition;
 	if (has_action()) {
 		edge->action = cyberiada_new_action(cybActionTransition,
@@ -1262,31 +1601,46 @@ CyberiadaEdge* Transition::to_edge() const
 	return edge;
 }
 
-Rect Transition::get_bound_rect() const
+Rect Transition::get_bound_rect(const Document& d) const
 {
 	Rect r;
-	if (has_geometry()) {
-		if (has_geometry_source_point()) {
-			r.expand(source_point);
-		}
-		if (has_geometry_target_point()) {
-			r.expand(target_point);
-		}
-		if (has_geometry_label_point()) {
-			r.expand(label_point);
-		}
-		if (has_polyline()) {
-			r.expand(polyline);
-		}
+	if (has_geometry() && has_polyline()) {
+		r.expand(polyline, d);
 	}
 	return r;
+}
+
+void Transition::clean_geometry()
+{
+	source_point = Point();
+	target_point = Point();
+	label_point = Point();
+	polyline.clear();
+	CYB_ASSERT(!has_geometry());
+}
+
+void Transition::round_geometry()
+{
+	if (has_geometry()) {
+		source_point.round();
+		target_point.round();
+		label_point.round();
+		round_polyline(polyline);
+	}
+}
+
+Element* Transition::copy(Element* parent) const
+{
+	return new Transition(parent, get_id(), source_id, target_id, action,
+						  polyline, source_point, target_point, label_point,
+						  get_color());
 }
 
 std::ostream& Transition::dump(std::ostream& os) const
 {
 	Element::dump(os);
-	os << ", source: '" << source->get_id() << "'";
-	os << ", target: '" << target->get_id() << "'";
+	os << ", source: '" << source_id << "'";
+	os << ", target: '" << target_id << "'";
 	if (has_action()) {
 		os << ", action: {";
 		os << action;
@@ -1318,6 +1672,11 @@ std::ostream& Transition::dump(std::ostream& os) const
 // -----------------------------------------------------------------------------
 StateMachine::StateMachine(Element* _parent, const ID& _id, const Name& _name, const Rect& r):
 	ElementCollection(_parent, elementSM, _id, _name, r)
+{	
+}
+
+StateMachine::StateMachine(const StateMachine& sm):
+	ElementCollection(sm)
 {
 }
 
@@ -1365,17 +1724,45 @@ std::list<Transition*> StateMachine::get_transitions()
 	return result;
 }
 
-Rect StateMachine::get_bound_rect() const
+// Rect StateMachine::get_bound_rect(const Document& d) const
+// {
+// 	Rect r;
+// 	if (has_geometry()) {
+// 		r = ElementCollection::get_bound_rect(d);
+// 	} else if (has_children()) {
+// 		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+// 			r.expand((*i)->get_bound_rect(d), d);
+// 		}
+// 	}
+// 	return r;
+// }
+
+CyberiadaNode* StateMachine::to_node(const Point& center) const
 {
-	Rect r;
-	if (has_geometry()) {
-		r = ElementCollection::get_bound_rect();
-	} else if (has_children()) {
-		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
-			r.expand((*i)->get_bound_rect());
-		}
+	CyberiadaNode* node = ElementCollection::to_node();
+	CYB_ASSERT(node != NULL);
+	if (node->geometry_rect) {
+		return node;
 	}
-	return r;
+	// move center only if SM has no geometry
+	for (CyberiadaNode* n = node->children; n; n = n->next) {
+		if (n->geometry_point) {
+			n->geometry_point->x += center.x;
+			n->geometry_point->y += center.y;			
+		}
+		if (n->geometry_rect) {
+			n->geometry_rect->x += center.x;
+			n->geometry_rect->y += center.y;			
+		}		
+	}
+	return node;
+}
+
+Element* StateMachine::copy(Element* parent) const
+{
+	 StateMachine* sm = new StateMachine(*this);
+	 sm->update_parent(parent);
+	 return sm;
 }
 
 std::ostream& StateMachine::dump(std::ostream& os) const
@@ -1389,24 +1776,30 @@ std::ostream& StateMachine::dump(std::ostream& os) const
 // -----------------------------------------------------------------------------
 // Cyberiada-GraphML Document
 // -----------------------------------------------------------------------------
-Document::Document():
-	ElementCollection(NULL, elementRoot, "", ""),
-	format_str(DEFAULT_GRAPHML_FORMAT),
-	format(formatCyberiada10),
-	metainfo_element(NULL)
+Document::Document(DocumentGeometryFormat format):
+	ElementCollection(NULL, elementRoot, "", "")
 {
-	reset();
+	reset(format);
 }
 
-void Document::reset()
+Document::Document(const Document& d):
+	ElementCollection(d),
+	geometry_format(d.geometry_format), metainfo(d.metainfo), metainfo_element(NULL), center_point(d.center_point)
+{
+	update_metainfo_element();	
+}
+
+void Document::reset(DocumentGeometryFormat format)
 {
 	metainfo = DocumentMetainformation();
 	metainfo.standard_version = STANDARD_VERSION;
 	metainfo.transition_order_flag = false;     
 	metainfo.event_propagation_flag = false;
-	format = formatCyberiada10;
-	format_str = DEFAULT_GRAPHML_FORMAT;
+	geometry_format = format;
 	metainfo_element = NULL;
+	if (format != geometryFormatNone) {
+		center_point = Point(0.0, 0.0);
+	}
 	clear();
 }
 
@@ -1414,6 +1807,7 @@ StateMachine* Document::new_state_machine(const String& sm_name, const Rect& r)
 {
 	StateMachine* sm = new StateMachine(this, generate_sm_id(), sm_name, r);
 	add_element(sm);
+	check_geometry_update(r);
 	update_metainfo_element();
 	return sm;
 }
@@ -1424,6 +1818,7 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 	
 	StateMachine* sm = new StateMachine(this, _id, sm_name, r); 
 	add_element(sm);
+	check_geometry_update(r);	
 	update_metainfo_element();
 	return sm;
 }
@@ -1439,6 +1834,7 @@ State* Document::new_state(ElementCollection* _parent, const String& state_name,
 		state->add_action(a);
 	}
 	_parent->add_element(state);
+	check_geometry_update(r);
 	return state;
 }
 
@@ -1454,6 +1850,7 @@ State* Document::new_state(ElementCollection* _parent, const ID& state_id, const
 		state->add_action(a);
 	}
 	_parent->add_element(state);
+	check_geometry_update(r);	
 	return state;
 }
 
@@ -1464,6 +1861,7 @@ InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Poin
 
 	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p);
 	_parent->add_element(initial);
+	check_geometry_update(p);	
 	return initial;
 }
 
@@ -1475,6 +1873,7 @@ InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name
 	
 	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p);
 	_parent->add_element(initial);
+	check_geometry_update(p);
 	return initial;
 }
 
@@ -1487,6 +1886,7 @@ InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& 
 	
 	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p);
 	_parent->add_element(initial);
+	check_geometry_update(p);
 	return initial;
 }
 
@@ -1506,6 +1906,7 @@ FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, c
 
 	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point);
 	_parent->add_element(fin);
+	check_geometry_update(point);
 	return fin;
 }
 
@@ -1517,6 +1918,7 @@ FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const
 
 	FinalState* fin = new FinalState(_parent, _id, _name, point);
 	_parent->add_element(fin);
+	check_geometry_update(point);	
 	return fin;	
 }
 
@@ -1526,6 +1928,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Rect& 
 
 	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), r, c);
 	_parent->add_element(choice);
+	check_geometry_update(r);
 	return choice;
 }
 
@@ -1536,6 +1939,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const Name& 
 
 	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
 	_parent->add_element(choice);
+	check_geometry_update(r);
 	return choice;
 }
 
@@ -1547,6 +1951,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	
 	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
 	_parent->add_element(choice);
+	check_geometry_update(r);
 	return choice;
 }
 
@@ -1556,6 +1961,7 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 
 	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p);
 	_parent->add_element(term);
+	check_geometry_update(p);
 	return term;
 }
 
@@ -1566,6 +1972,7 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 
 	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p);
 	_parent->add_element(term);
+	check_geometry_update(p);	
 	return term;
 }
 
@@ -1577,6 +1984,7 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 	
 	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p);
 	_parent->add_element(term);
+	check_geometry_update(p);
 	return term;
 }
 
@@ -1591,8 +1999,12 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 	check_transition_action(action);
 	
 	Transition* t = new Transition(sm, generate_transition_id(source->get_id(), target->get_id()),
-								   source, target, action, pl, sp, tp, label, c);
+								   source->get_id(), target->get_id(), action, pl, sp, tp, label, c);
 	sm->add_element(t);
+	check_geometry_update(sp);
+	check_geometry_update(tp);
+	check_geometry_update(label);
+	check_geometry_update(pl);
 	return t;
 }
 
@@ -1607,8 +2019,12 @@ Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* s
 	check_id_uniqueness(_id);
 	check_transition_action(action);
 
-	Transition* t = new Transition(sm, _id, source, target, action, pl, sp, tp, label, c);
+	Transition* t = new Transition(sm, _id, source->get_id(), target->get_id(), action, pl, sp, tp, label, c);
 	sm->add_element(t);
+	check_geometry_update(sp);
+	check_geometry_update(tp);
+	check_geometry_update(label);
+	check_geometry_update(pl);
 	return t;
 }
 
@@ -1618,6 +2034,7 @@ Comment* Document::new_comment(ElementCollection* _parent, const String& body, c
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, true, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1629,6 +2046,7 @@ Comment* Document::new_comment(ElementCollection* _parent, const String& _name, 
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, true, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1640,6 +2058,7 @@ Comment* Document::new_comment(ElementCollection* _parent, const ID& _id, const 
 
 	Comment* comm = new Comment(_parent, _id, body, _name, true, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1649,6 +2068,7 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const String& 
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, false, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1660,6 +2080,7 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const String& 
 
 	Comment* comm = new Comment(_parent, generate_vertex_id(_parent), body, _name, false, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1671,6 +2092,7 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const ID& _id,
 
 	Comment* comm = new Comment(_parent, _id, body, _name, true, markup, r, c);
 	_parent->add_element(comm);
+	check_geometry_update(r);
 	return comm;
 }
 
@@ -1679,6 +2101,10 @@ const CommentSubject& Document::add_comment_to_element(Comment* comment, Element
 {
 	check_parent_element(comment);
 	check_comment_subject_element(element);
+
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
 
 	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()),
 											   element, source, target, pl));
@@ -1691,6 +2117,10 @@ const CommentSubject& Document::add_comment_to_element(Comment* comment, Element
 	check_comment_subject_element(element);
 	check_id_uniqueness(_id);
 
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
+	
 	return comment->add_subject(CommentSubject(_id, element, source, target, pl));	
 }
 
@@ -1700,6 +2130,10 @@ const CommentSubject& Document::add_comment_to_element_name(Comment* comment, El
 	check_parent_element(comment);
 	check_comment_subject_element(element);
 	check_nonempty_string(fragment);
+
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
 	
 	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
 											   commentSubjectName, fragment, source, target, pl));
@@ -1712,6 +2146,10 @@ const CommentSubject& Document::add_comment_to_element_name(Comment* comment, El
 	check_comment_subject_element(element);
 	check_nonempty_string(fragment);
 	check_id_uniqueness(_id);
+
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
 	
 	return comment->add_subject(CommentSubject(_id, element,
 											   commentSubjectName, fragment, source, target, pl));
@@ -1723,6 +2161,10 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 	check_parent_element(comment);
 	check_comment_subject_element(element);
 	check_nonempty_string(fragment);
+
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
 	
 	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
 											   commentSubjectData, fragment, source, target, pl));
@@ -1735,6 +2177,10 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 	check_comment_subject_element(element);
 	check_nonempty_string(fragment);
 	check_id_uniqueness(_id);
+
+	check_geometry_update(source);
+	check_geometry_update(target);
+	check_geometry_update(pl);
 	
 	return comment->add_subject(CommentSubject(_id, element,
 											   commentSubjectData, fragment, source, target, pl));
@@ -1750,6 +2196,7 @@ void Document::check_cyberiada_error(int res, const String& msg) const
 	case CYBERIADA_NOT_FOUND: throw NotFoundException(msg);
 	case CYBERIADA_BAD_PARAMETER: throw ParametersException(msg);
     case CYBERIADA_ASSERT: throw AssertException(msg);
+    case CYBERIADA_NOT_IMPLEMENTED: throw NotImplementedException(msg);
 	default:
 		break;
 	}
@@ -1823,7 +2270,7 @@ void Document::check_transition_target(const Element* element) const
 		ConstElementList transitions = find_elements_by_type(elementTransition);
 		for (ConstElementList::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
 			const Transition* t = static_cast<const Transition*>(*i);
-			if (t->target_element()->get_id() == element->get_id()) {
+			if (t->target_element_id() == element->get_id()) {
 				found = true;
 				break;
 			}
@@ -1841,6 +2288,38 @@ void Document::check_comment_subject_element(const Element* element) const
 	}
 	if (element->get_type() == elementRoot || element->get_type() == elementSM) {
 		throw ParametersException("Bad element to comment");
+	}
+}
+
+void Document::check_geometry_update(const Rect& r)
+{
+	if (!has_geometry() && r.valid) {
+		set_geometry(DEFAULT_REAL_GEOMETRY_FORMAT);
+		center_point = Point(0, 0);
+	}
+}
+
+void Document::check_geometry_update(const Point& p)
+{
+	if (!has_geometry() && p.valid) {
+		set_geometry(DEFAULT_REAL_GEOMETRY_FORMAT);
+		center_point = Point(0, 0);
+	}
+}
+
+void Document::check_geometry_update(const Polyline& pl)
+{
+	if (!has_geometry() && pl.size() > 0) {
+		set_geometry(DEFAULT_REAL_GEOMETRY_FORMAT);
+		center_point = Point(0, 0);
+	}
+}
+
+void Document::set_geometry(DocumentGeometryFormat format)
+{
+	geometry_format = format;
+	if (format == geometryFormatNone) {
+		center_point = Point();		
 	}
 }
 
@@ -2026,7 +2505,7 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 				action = Action(e->action->trigger, e->action->guard, e->action->behavior);
 			}
 			
-			element = new Transition(collection, e->id, source_element, target_element,
+			element = new Transition(collection, e->id, e->source_id, e->target_id,
 									 action, polyline, source_point, target_point, label_point,
 									 _color);
 			break;
@@ -2070,14 +2549,42 @@ void Document::set_name(const Name& _name)
 	update_metainfo_element();
 }
 
-void Document::load(const String& path, DocumentFormat f)
+void Document::decode(const String& buffer,
+					  DocumentFormat& format,
+					  String& format_str,
+					  DocumentGeometryFormat gf,
+					  bool reconstruct)
 {
 	reset();
 	CyberiadaDocument doc;
 	int res = cyberiada_init_sm_document(&doc);
 	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
+	
+	int flags = 0;
 
-	res = cyberiada_read_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
+	if (reconstruct) {
+		flags |= CYBERIADA_FLAG_RECONSTRUCT_GEOMETRY;
+	}
+	
+	switch(gf) {
+	case geometryFormatNone:
+		flags = CYBERIADA_FLAG_SKIP_GEOMETRY;
+		break;
+	case geometryFormatLegacyYED:
+		flags |= CYBERIADA_FLAG_ABSOLUTE_GEOMETRY | CYBERIADA_FLAG_CENTER_EDGE_GEOMETRY;
+		break;
+	case geometryFormatCyberiada10:
+		flags |= CYBERIADA_FLAG_LEFTTOP_LOCAL_GEOMETRY | CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY;
+		break;
+	case geometryFormatQt:
+		flags |= CYBERIADA_FLAG_CENTER_LOCAL_GEOMETRY | CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY;
+		break;
+	default:
+		throw ParametersException("Bad geometry format " + std::to_string(int(gf)));
+	}
+
+	res = cyberiada_decode_sm_document(&doc, buffer.c_str(), buffer.length(),
+									   CyberiadaXMLFormat(format), flags);
 	if (res != CYBERIADA_NO_ERROR) {
 		cyberiada_cleanup_sm_document(&doc);
 		CYB_CHECK_RESULT(res);
@@ -2087,12 +2594,14 @@ void Document::load(const String& path, DocumentFormat f)
 
 		CYB_ASSERT(doc.format);
 		format_str = doc.format;
-		if (format_str == DEFAULT_GRAPHML_FORMAT) {
-			format = formatCyberiada10;
-		} else {
-			format = formatLegacyYED;
+		if (format == formatDetect) {
+			if (format_str == DEFAULT_GRAPHML_FORMAT) {
+				format = formatCyberiada10;
+			} else {
+				format = formatLegacyYED;
+			}
 		}
-		
+
 		CYB_ASSERT(doc.meta_info);
 		CYB_ASSERT(doc.meta_info->standard_version);
 		metainfo.standard_version = doc.meta_info->standard_version;
@@ -2151,7 +2660,7 @@ void Document::load(const String& path, DocumentFormat f)
 			if (sm->edges) { 
 				import_edges(new_sm, sm->edges);
 			}
-		}
+		}		
 	} catch (const CybMLException& e) {
 		cyberiada_cleanup_sm_document(&doc);
 		throw CybMLException(e.str());		
@@ -2160,6 +2669,25 @@ void Document::load(const String& path, DocumentFormat f)
 		throw AssertException("Internal load error: " + e.str());
 	}
 	
+	if (doc.geometry_format == cybCoordNone) {
+		geometry_format = geometryFormatNone;
+	} else {
+		geometry_format = gf;
+	}
+
+	Rect r1 = Rect(doc.bounding_rect);
+	Rect r2 = get_bound_rect(); 
+	if (r1 == r2) {
+		center_point = Point(0.0, 0.0);
+	} else if (geometry_format == geometryFormatQt && r1.width == r2.width && r1.height == r2.height) {
+		center_point = Point(r1.x, r1.y);
+	} else {
+		std::ostringstream s;
+		s << "lib " << r1 << " lib++ " << r2 << " doc: " << *this;
+		cyberiada_cleanup_sm_document(&doc);
+		throw AssertException("Bounding rectangles mismatch: " + s.str());
+	}
+
 	cyberiada_cleanup_sm_document(&doc);
 }
 
@@ -2201,9 +2729,10 @@ void Document::update_metainfo_element()
 	}
 }
 
-void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
+void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm, const CyberiadaSM* new_sm) const
 {
 	CyberiadaEdge* edge;
+	size_t c = 0;
 	std::list<const Transition*> transitions = sm->get_transitions();
 	for (std::list<const Transition*>::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
 		const Transition* t = *i;
@@ -2215,6 +2744,7 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 		} else {
 			*edges = edge;
 		}
+		c++;
 	}
 	std::list<const Comment*> comments = sm->get_comments();
 	for (std::list<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
@@ -2227,6 +2757,12 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm) const
 		} else {
 			*edges = edge;
 		}
+	}
+	edge = *edges;
+	while (edge) {
+		edge->source = cyberiada_graph_find_node_by_id(new_sm->nodes, edge->source_id);
+		edge->target = cyberiada_graph_find_node_by_id(new_sm->nodes, edge->target_id);		
+		edge = edge->next;
 	}
 }
 
@@ -2296,10 +2832,12 @@ CyberiadaMetainformation* Document::export_meta() const
 	return meta_info;
 }
 
-void Document::save(const String& path, DocumentFormat f) const
+void Document::encode(String& res_buffer, DocumentFormat f, bool round)
 {
 	CyberiadaDocument doc;
 	int res;
+	char* buffer = NULL;
+	size_t buffer_size;
 	
 	if (f == formatDetect) {
 		throw ParametersException("Bad save format " + std::to_string(f));
@@ -2309,13 +2847,34 @@ void Document::save(const String& path, DocumentFormat f) const
 		}
 	}
 
-	std::list<const StateMachine*> state_machines = get_state_machines();
+	std::list<StateMachine*> state_machines = get_state_machines();
 	if (state_machines.empty()) {
 		throw ParametersException("At least one state machine required");
 	}
 	
 	res = cyberiada_init_sm_document(&doc);
 	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
+
+	switch (geometry_format) {
+	case geometryFormatNone:
+		doc.geometry_format = cybCoordNone;
+		doc.edge_geom_format = cybEdgeNone;
+		break;
+	case geometryFormatLegacyYED:
+		doc.geometry_format = cybCoordAbsolute;
+		doc.edge_geom_format = cybEdgeCenter;
+		break;
+	case geometryFormatCyberiada10:
+		doc.geometry_format = cybCoordLeftTop;
+		doc.edge_geom_format = cybEdgeBorder;
+		break;
+	case geometryFormatQt:
+		doc.geometry_format = cybCoordLocalCenter;
+		doc.edge_geom_format = cybEdgeBorder;
+		break;
+	default:
+		throw ParametersException("Bad geometry format");
+	}
 	
 	try {
 		if (f == formatCyberiada10) {
@@ -2325,12 +2884,16 @@ void Document::save(const String& path, DocumentFormat f) const
 		
 		doc.meta_info = export_meta();
 
-		for (std::list<const StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
+		for (std::list<StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
 			const StateMachine* orig_sm = *i;
 			CYB_ASSERT(orig_sm);
 			CyberiadaSM* new_sm = cyberiada_new_sm();
-			new_sm->nodes = orig_sm->to_node();
-			export_edges(&(new_sm->edges), orig_sm);
+/*			if (geometry_format == geometryFormatQt) {
+				new_sm->nodes = orig_sm->to_node(center_point);
+				} else {*/
+				new_sm->nodes = orig_sm->to_node(Point(0.0, 0.0));
+/*			}*/
+			export_edges(&(new_sm->edges), orig_sm, new_sm);
 			if (doc.state_machines) {
 				CyberiadaSM* sm = doc.state_machines;
 				while(sm->next) sm = sm->next;
@@ -2344,23 +2907,29 @@ void Document::save(const String& path, DocumentFormat f) const
 		throw AssertException("Internal save error: " + e.str());
 	}
 	
-	res = cyberiada_write_sm_document(&doc, path.c_str(), CyberiadaXMLFormat(f));
+	int flags = 0;
+
+	if (geometry_format == geometryFormatNone) {
+		flags = CYBERIADA_FLAG_SKIP_GEOMETRY;
+	} else if (round) {
+		flags |= CYBERIADA_FLAG_ROUND_GEOMETRY;
+	}
+
+	if (geometry_format == geometryFormatQt) {
+		doc.bounding_rect = get_bound_rect().c_rect();
+	}
+
+	res = cyberiada_encode_sm_document(&doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
 	if (res != CYBERIADA_NO_ERROR) {
 		cyberiada_cleanup_sm_document(&doc);
+		if (buffer) free(buffer);
 		CYB_CHECK_RESULT(res);
 	}
 
+	res_buffer = buffer;
+	
 	cyberiada_cleanup_sm_document(&doc);
-}
-
-String Document::get_format_str() const
-{
-	if (format == formatCyberiada10) {
-		return DEFAULT_GRAPHML_FORMAT;
-	} else {
-		CYB_ASSERT(format == formatLegacyYED);
-		return format_str;
-	}
+	if (buffer) free(buffer);
 }
 
 std::list<const StateMachine*> Document::get_state_machines() const
@@ -2400,10 +2969,34 @@ const StateMachine* Document::get_parent_sm(const Element* element) const
 	}
 }
 
+StateMachine* Document::get_parent_sm(const Element* element)
+{
+	if (element != NULL) {
+		ElementType type = element->get_type();
+		if (type == elementRoot) {
+			return NULL;
+		} else if (type == elementSM) {
+			return static_cast<StateMachine*>(const_cast<Element*>(element));
+		} else {
+			CYB_ASSERT(element->get_parent());
+			return get_parent_sm(element->get_parent());
+		}
+	} else {
+		return NULL;
+	}
+}
+
 std::ostream& Document::dump(std::ostream& os) const
 {
 	Element::dump(os);
-	os << ", format: '" << get_format_str() << "', meta: {";
+	os << ", geometry format: "; 
+	switch(geometry_format) {
+	case geometryFormatNone:        os << "none"; break;
+	case geometryFormatLegacyYED:   os << "yed"; break;
+	case geometryFormatCyberiada10: os << "cyb"; break;
+	case geometryFormatQt:          os << "qt"; break;
+	}
+	os << ", meta: {";
 	std::list<String> params;
 	if (!metainfo.standard_version.empty()) {
 		params.push_back("standard version: '" + metainfo.standard_version + "'");
@@ -2451,6 +3044,10 @@ std::ostream& Document::dump(std::ostream& os) const
 	}
 	os << "}";
 	ElementCollection::dump(os);
+	if (has_geometry()) {
+		os << ", bounding rect: " << get_bound_rect();
+	}
+	os << "}";
 	return os;
 }
 
@@ -2505,4 +3102,144 @@ ID Document::generate_transition_id(const String& source_id, const String& targe
 		id_num++;
 	}	
 	return result;
+}
+
+void Document::clean_geometry()
+{
+	ElementCollection::clean_geometry();
+	geometry_format = geometryFormatNone;
+	CYB_ASSERT(!has_geometry());
+}
+
+void Document::convert_geometry(DocumentGeometryFormat geom_format)
+{
+}
+
+Element* Document::copy(Element*) const
+{
+	 return new Document(*this);
+}
+
+Rect Document::get_bound_rect() const
+{
+	return get_bound_rect(*this);
+}
+
+Rect Document::get_bound_rect(const Document& d) const
+{
+	Rect r;
+	if (has_geometry()) {
+		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+			r.expand((*i)->get_bound_rect(d), d);
+		}
+	}
+	if (r.valid && center_point.valid) {
+		r.x += center_point.x;
+		r.y += center_point.y;
+	}
+	return r;
+}
+
+LocalDocument::LocalDocument():
+	Document(), file_format(formatCyberiada10), file_format_str(DEFAULT_GRAPHML_FORMAT)
+{
+}
+
+LocalDocument::LocalDocument(const Document& d, const String& path, DocumentFormat f):
+	Document(d), file_path(path), file_format(f)
+{
+	file_format_str = get_file_format_str();
+}
+
+LocalDocument::LocalDocument(const LocalDocument& ld):
+	Document(ld), file_path(ld.file_path), file_format(ld.file_format),
+	file_format_str(ld.file_format_str)  
+{
+}
+
+void LocalDocument::reset()
+{
+	Document::reset();
+	file_format = formatCyberiada10;
+	file_format_str = DEFAULT_GRAPHML_FORMAT;
+	file_path = "";
+}
+
+String LocalDocument::get_file_format_str() const
+{
+	if (file_format == formatCyberiada10) {
+		return DEFAULT_GRAPHML_FORMAT;
+	} else {
+		CYB_ASSERT(file_format == formatLegacyYED);
+		return file_format_str;
+	}
+}
+
+std::ostream& LocalDocument::dump(std::ostream& os) const
+{
+	os << "LocalDocument: {";
+	Document::dump(os);
+	if (!file_path.empty()) {
+		os << ", file: '" << file_path << "'";
+	}
+	os << ", format: ";
+	if (file_format == formatCyberiada10) {
+		os << "cyberiada";
+	} else if (file_format == formatLegacyYED) {
+		os << "yed";
+	} else {
+		os << "unknown";
+	}
+	os << ", " << "format_str: '" << file_format_str << "'}";
+	return os;
+}
+
+void LocalDocument::open(const String& path,
+						 DocumentFormat f,
+						 DocumentGeometryFormat gf,
+						 bool reconstruct)
+{
+	std::ifstream file(path);
+	if (!file.is_open()) {
+		throw Exception("Cannot open file " + path);
+	}
+	std::string content((std::istreambuf_iterator<char>(file)), 
+						std::istreambuf_iterator<char>());
+
+	file.close();
+
+	reset();	
+	file_format = f;
+	decode(content, file_format, file_format_str, gf, reconstruct);
+	file_path = path;
+}
+
+void LocalDocument::save(bool round)
+{
+	String buffer;
+	encode(buffer, file_format, round);
+
+	std::ofstream file(file_path);
+	if (!file.is_open()) {
+		throw Exception("Cannot open file " + file_path);
+	}
+	file << buffer.c_str();
+	file.close();
+}
+
+void LocalDocument::save_as(const String& path,
+							DocumentFormat f,
+							bool round)
+{
+	file_path = path;
+	if (f != formatDetect) {
+		file_format = f;
+		file_format_str = get_file_format_str();
+	}
+	save(round);
+}
+
+Element* LocalDocument::copy(Element*) const
+{
+	 return new LocalDocument(*this);
 }

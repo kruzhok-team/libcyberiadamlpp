@@ -61,6 +61,21 @@ namespace Cyberiada {
 
 	const String QUALIFIED_NAME_SEPARATOR = "::";
 
+	enum DocumentFormat {
+		formatCyberiada10 = 0,                      // Cyberiada 1.0 format
+		formatLegacyYED = 1,                        // Legacy YED-based Berloga/Ostranna format 
+		formatDetect = 99                           // Format is not specified and will be detected while loading
+	};
+
+	enum DocumentGeometryFormat {
+		geometryFormatNone,                         // No geometry
+		geometryFormatLegacyYED,                    // Legacy YED geometry: absolute coordinates, edges with local center source/target poins 
+		geometryFormatCyberiada10,                  // Cyberiada 1.0 geometry: local left-top coordinates, edges based on local border points
+		geometryFormatQt,                           // Qt geometry: local centered coordinates, edges based on local border points
+	};
+
+	class Document;
+	
 // -----------------------------------------------------------------------------
 // Geometry
 // -----------------------------------------------------------------------------	
@@ -71,6 +86,8 @@ namespace Cyberiada {
 		Point(CyberiadaPoint* p);
 
 		CyberiadaPoint* c_point() const;
+		void  round();
+		Point round() const;
 		
 		bool   valid;
 		float  x, y;
@@ -78,18 +95,20 @@ namespace Cyberiada {
 	typedef std::list<Point> Polyline;
 	
 	struct Rect {
-		Rect(): valid(false) {}
+		Rect(): valid(false), x(0.0), y(0.0), width(0.0), height(0.0) {}
 		Rect(float _x, float _y, float _width, float _height):
 			valid(true), x(_x), y(_y), width(_width), height(_height) {}
 		Rect(CyberiadaRect* r);
 
-		void expand(const Point& p);
-		void expand(const Rect& r);
-		void expand(const Polyline& pl);
-
+		void expand(const Point& p, const Document& d);
+		void expand(const Rect& r, const Document& d);
+		void expand(const Polyline& pl, const Document& d);
+		void round();
+		Rect round() const;		
 		CyberiadaRect* c_rect() const;
 
 		bool operator==(const Rect& r);
+		bool operator!=(const Rect& r);
 		
 		bool   valid;
 		float  x, y;
@@ -101,6 +120,7 @@ namespace Cyberiada {
 	std::ostream& operator<<(std::ostream& os, const Polyline& pl);
 
 	CyberiadaPolyline* c_polyline(const Polyline& polyline);
+	void round_polyline(Polyline& polyline);
 	
 // -----------------------------------------------------------------------------
 // Base Element
@@ -109,6 +129,7 @@ namespace Cyberiada {
 	public:
 		Element(Element* parent, ElementType type, const ID& id);
 		Element(Element* parent, ElementType type, const ID& id, const Name& name);
+		Element(const Element& e);
 		virtual ~Element() {}
 
 		ElementType            get_type() const { return type; }
@@ -124,18 +145,22 @@ namespace Cyberiada {
 		bool                   is_root() const { return !parent; }
 		const Element*         get_parent() const { return parent; }
 		Element*               get_parent() { return parent; }
+		void                   update_parent(Element* p) { parent = p; }
 		virtual bool           has_children() const { return false; }
 		virtual size_t         children_count() const { return 0; }
 		virtual size_t         elements_count() const { return 1; }
 		virtual int            index() const;
 
 		virtual bool           has_geometry() const = 0;
-		virtual Rect           get_bound_rect() const = 0;
+		virtual Rect           get_bound_rect(const Document& d) const = 0;
+		virtual void           clean_geometry() = 0;
+		virtual void           round_geometry() = 0;
 
 		friend std::ostream&   operator<<(std::ostream& os, const Element& e);
 		virtual CyberiadaNode* to_node() const;
 
 		virtual std::string    dump_to_str() const;
+		virtual Element*       copy(Element* parent) const = 0;
 
 	protected:		
 		Element*               find_root();
@@ -167,6 +192,7 @@ namespace Cyberiada {
 					   const Point& source = Point(), const Point& target = Point(), const Polyline& pl = Polyline());
 		CommentSubject(const ID& id, Element* element, CommentSubjectType type, const String& fragment,
 					   const Point& source = Point(), const Point& target = Point(), const Polyline& pl = Polyline());
+		CommentSubject(const CommentSubject& cs);
 		
 		CommentSubject&        operator=(const CommentSubject& cs);
 
@@ -185,7 +211,9 @@ namespace Cyberiada {
 		const Point&           get_geometry_source_point() const { return source_point; }
 		const Point&           get_geometry_target_point() const { return target_point; }
 		const Polyline&        get_geometry_polyline() const { return polyline; }
-        Rect                   get_bound_rect() const;
+        virtual Rect           get_bound_rect(const Document& d) const;
+		void                   clean_geometry();
+		void                   round_geometry();
 
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
@@ -210,6 +238,7 @@ namespace Cyberiada {
 				const String& markup = String(), const Rect& rect = Rect(), const Color& color = Color());
 		Comment(Element* parent, const ID& id, const String& body, const Name& name, bool human_readable,
 				const String& markup = String(), const Rect& rect = Rect(), const Color& color = Color());
+		Comment(const Comment& c);
 
 		bool                             is_human_readable() const { return human_readable; }
 		bool                             is_machine_readable() const { return !human_readable; }
@@ -225,8 +254,10 @@ namespace Cyberiada {
 
 		virtual bool                     has_geometry() const { return geometry_rect.valid; }
 		const Rect&                      get_geometry_rect() const { return geometry_rect; }
-		virtual Rect                     get_bound_rect() const;
-
+		virtual Rect                     get_bound_rect(const Document& d) const;
+		virtual void                     clean_geometry();
+		virtual void                     round_geometry();
+		
 		virtual bool                     has_children() const { return false; }
 
         bool                             has_color() const { return !color.empty(); }
@@ -237,6 +268,7 @@ namespace Cyberiada {
 
 		virtual CyberiadaNode*           to_node() const;
 		virtual CyberiadaEdge*           subjects_to_edges() const;
+		Element*                         copy(Element* parent) const;
 
 	protected:
 	    virtual std::ostream&            dump(std::ostream& os) const;
@@ -259,11 +291,14 @@ namespace Cyberiada {
 	public:
 		Vertex(Element* parent, ElementType type, const ID& id, const Point& pos = Point());
 		Vertex(Element* parent, ElementType type, const ID& id, const Name& name, const Point& pos = Point());
+		Vertex(const Vertex& v);
 
 		virtual bool           has_geometry() const { return geometry_point.valid; }
 		const Point&           get_geometry_point() const { return geometry_point; }
-		virtual Rect           get_bound_rect() const;		
-
+		virtual Rect           get_bound_rect(const Document& d) const;
+		virtual void           clean_geometry();
+		virtual void           round_geometry();
+		
 		virtual bool           has_children() const { return false; }
 
 		virtual CyberiadaNode* to_node() const;
@@ -287,6 +322,7 @@ namespace Cyberiada {
 	public:
 		ElementCollection(Element* parent, ElementType type, const ID& id,
 						  const Name& name, const Rect& rect = Rect(), const Color& color = Color());
+		ElementCollection(const ElementCollection& ec);
 		virtual ~ElementCollection();
 
 		bool                     has_qualified_name(const ID& element_id) const;
@@ -295,6 +331,8 @@ namespace Cyberiada {
 		virtual bool             has_children() const { return !children.empty(); }
 		virtual size_t           children_count() const { return children.size(); }
 		virtual size_t           elements_count() const;
+		ConstElementList         get_children() const;
+		const ElementList&       get_children() { return children; };
 		const Element*           first_element() const;
 		Element*                 first_element();
 		const Element*           get_element(int index) const;
@@ -318,15 +356,18 @@ namespace Cyberiada {
 
 		virtual bool             has_geometry() const { return geometry_rect.valid; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
-		virtual Rect             get_bound_rect() const;
+		virtual Rect             get_bound_rect(const Document& d) const;
+		virtual void             clean_geometry();
+		virtual void             round_geometry();
 		
         bool                     has_color() const { return !color.empty(); }
 		const Color&             get_color() const { return color; }
 
 		virtual CyberiadaNode*   to_node() const;
-
+		
 	protected:
 		virtual std::ostream&    dump(std::ostream& os) const;
+		void                     copy_elements(const ElementCollection& source);
 
 		ElementList              children;
 		
@@ -351,6 +392,8 @@ namespace Cyberiada {
 	public:
 		InitialPseudostate(Element* parent, const ID& id, const Point& p = Point());
 		InitialPseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
+
+		virtual Element*       copy(Element* parent) const;
 	};
 
 // -----------------------------------------------------------------------------
@@ -362,15 +405,19 @@ namespace Cyberiada {
 						  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate(Element* parent, const ID& id, const Name& name,
 						  const Rect& r = Rect(), const Color& color = Color());
+		ChoicePseudostate(const ChoicePseudostate& cp);
 
 		virtual bool           has_geometry() const { return geometry_rect.valid; }
 		const Rect&            get_geometry_rect() const { return geometry_rect; }
-		virtual Rect           get_bound_rect() const;
-
+		virtual Rect           get_bound_rect(const Document& d) const;
+		virtual void           clean_geometry();
+		virtual void           round_geometry();
+		
         bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
 
 		virtual CyberiadaNode* to_node() const;
+		virtual Element*       copy(Element* parent) const;
 		
 	protected:
 	    virtual std::ostream&  dump(std::ostream& os) const;
@@ -386,6 +433,8 @@ namespace Cyberiada {
 	public:
 		TerminatePseudostate(Element* parent, const ID& id, const Point& p = Point());
 		TerminatePseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
+
+		virtual Element*       copy(Element* parent) const;
 	};
 	
 // -----------------------------------------------------------------------------
@@ -395,6 +444,8 @@ namespace Cyberiada {
 	public:
 		FinalState(Element* parent, const ID& id, const Point& point = Point());
 		FinalState(Element* parent, const ID& id, const Name& name, const Point& point = Point());
+
+		virtual Element*       copy(Element* parent) const;
 	};
 
 // -----------------------------------------------------------------------------
@@ -447,6 +498,7 @@ namespace Cyberiada {
 	public:
 		State(Element* parent, const ID& id, const Name& name,
 			  const Rect& r = Rect(), const Color& color = Color());
+		State(const State& s);
 
 		virtual void             add_element(Element* e);
 		virtual void             remove_element(const ID& id);
@@ -463,6 +515,7 @@ namespace Cyberiada {
 		void                     add_action(const Action& a);
 		
 		virtual CyberiadaNode*   to_node() const;
+		virtual Element*         copy(Element* parent) const;
 		
 	protected:
 		virtual std::ostream&    dump(std::ostream& os) const;
@@ -476,12 +529,13 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Transition: public Element {
 	public:
-		Transition(Element* parent, const ID& id, Element* source, Element* target, const Action& action,
+		Transition(Element* parent, const ID& id, const ID& source, const ID& target, const Action& action,
 				   const Polyline& pl = Polyline(), const Point& sp = Point(), const Point& tp = Point(),
 				   const Point& label = Point(), const Color& color = Color());
+		Transition(const Transition& t);
 
-		const Element*         source_element() const { return source; }
-		const Element*         target_element() const { return target; }
+		const ID&              source_element_id() const { return source_id; }
+		const ID&              target_element_id() const { return target_id; }
 
 		bool                   has_action() const { return (action.has_trigger() ||
 														   action.has_guard() ||
@@ -501,19 +555,22 @@ namespace Cyberiada {
 		const Point&           get_source_point() const { return source_point; }
 		const Point&           get_target_point() const { return target_point; }
 		const Point&           get_label_point() const { return label_point; }
-		virtual Rect           get_bound_rect() const;
-
+		virtual Rect           get_bound_rect(const Document& d) const;
+		virtual void           clean_geometry();
+		virtual void           round_geometry();
+		
 		bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
 
 		virtual CyberiadaEdge* to_edge() const;
+		virtual Element*       copy(Element* parent) const;
 		
 	protected:
 		virtual std::ostream&  dump(std::ostream& os) const;
 
 	private:
-		Element*               source;
-		Element*               target;
+		ID                     source_id;
+		ID                     target_id;
 		Action                 action;
 		Point                  source_point;
 		Point                  target_point;
@@ -528,13 +585,18 @@ namespace Cyberiada {
 	class StateMachine: public ElementCollection {
 	public:
 		StateMachine(Element* parent, const ID& id, const Name& name = "", const Rect& r = Rect());
+		StateMachine(const StateMachine& sm);
 
 		std::list<const Comment*>    get_comments() const;
 		std::list<Comment*>          get_comments();
 		std::list<const Transition*> get_transitions() const;
 		std::list<Transition*>       get_transitions();
 
-		virtual Rect                 get_bound_rect() const;
+		//virtual Rect                 get_bound_rect(const Document& d) const;
+
+		CyberiadaNode*               to_node(const Point& center) const;
+		
+		virtual Element*             copy(Element* parent) const;
 		
 	protected:
 		virtual std::ostream&        dump(std::ostream& os) const;
@@ -543,12 +605,6 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // Cyberiada-GraphML document
 // -----------------------------------------------------------------------------
-
-	enum DocumentFormat {
-		formatCyberiada10 = 0,                      // Cyberiada 1.0 format
-		formatLegacyYED = 1,                        // Legacy YED-based Berloga/Ostranna format 
-		formatDetect = 99                           // Format is not specified and will be detected while loading
-	};
 
 	struct DocumentMetainformation {
 		String                         standard_version;      // PRIMS standard version
@@ -569,9 +625,10 @@ namespace Cyberiada {
 	
 	class Document: public ElementCollection {
 	public: 
-		Document();
+		Document(DocumentGeometryFormat format = geometryFormatNone);
+		Document(const Document& d);
 
-		void                           reset();
+		void                           reset(DocumentGeometryFormat format = geometryFormatNone);
 		StateMachine*                  new_state_machine(const String& sm_name, const Rect& r = Rect());
 		StateMachine*                  new_state_machine(const ID& id, const String& sm_name, const Rect& r = Rect());
 		State*                         new_state(ElementCollection* parent, const String& state_name, 
@@ -638,22 +695,33 @@ namespace Cyberiada {
 																   const Point& source = Point(), const Point& target = Point(),
 																   const Polyline& pl = Polyline());
 		
-		void                           load(const String& path, DocumentFormat f = formatDetect);
-		void                           save(const String& path, DocumentFormat f = formatCyberiada10) const;
+		void                           decode(const String& buffer,
+											  DocumentFormat& format,
+											  String& format_str,
+											  DocumentGeometryFormat gf = geometryFormatQt,
+											  bool reconstruct = false);
+		void                           encode(String& buffer,
+											  DocumentFormat f = formatCyberiada10,
+											  bool round = false);
 
 		virtual void                   set_name(const Name& name);
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
-		DocumentFormat                 get_format() const { return format; }
-		String                         get_format_str() const;
+		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		
 		std::list<const StateMachine*> get_state_machines() const;
 		std::list<StateMachine*>       get_state_machines();
 		const StateMachine*            get_parent_sm(const Element* element) const;
+		StateMachine*                  get_parent_sm(const Element* element);
 
-		virtual bool                   has_geometry() const { return false; }
-		virtual Rect                   get_bound_rect() const { return Rect(); }
-
+		virtual bool                   has_geometry() const { return geometry_format != geometryFormatNone; }
+		Rect                           get_bound_rect() const;
+		virtual Rect                   get_bound_rect(const Document& d) const;
+		void                           convert_geometry(DocumentGeometryFormat geom_format);
+		virtual void                   clean_geometry();
+		
+		virtual Element*               copy(Element* parent) const;
+		
 	protected:
 		virtual std::ostream&          dump(std::ostream& os) const;
 		
@@ -664,8 +732,11 @@ namespace Cyberiada {
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
 		void                           import_nodes_recursively(ElementCollection* collection, CyberiadaNode* nodes);
 		void                           import_edges(ElementCollection* collection, CyberiadaEdge* edges);
-		void                           export_edges(CyberiadaEdge** edges, const StateMachine* sm) const;
+		void                           export_edges(CyberiadaEdge** edges,
+													const StateMachine* sm,
+													const CyberiadaSM* new_sm) const;
 		CyberiadaMetainformation*      export_meta() const;
+		void                           set_geometry(DocumentGeometryFormat format);
 
 		void                           check_cyberiada_error(int res, const String& msg = "") const;
 		void                           check_nonempty_string(const String& s) const;
@@ -676,13 +747,46 @@ namespace Cyberiada {
 		void                           check_transition_target(const Element* element) const;
 		void                           check_comment_subject_element(const Element* element) const;
 		void                           check_transition_action(const Action& action) const;
+		void                           check_geometry_update(const Rect& r);
+		void                           check_geometry_update(const Point& p);
+		void                           check_geometry_update(const Polyline& pl);
 
-		String                         format_str;
-		DocumentFormat                 format;
+		DocumentGeometryFormat         geometry_format;
 		DocumentMetainformation        metainfo;
 		Comment*                       metainfo_element;
+		Point                          center_point;
 	};
-	
+
+	class LocalDocument: public Document {
+	public: 
+		LocalDocument();
+		LocalDocument(const Document& d, const String& part, DocumentFormat f = formatCyberiada10);
+		LocalDocument(const LocalDocument& ld);
+
+		void                           reset();
+		void                           open(const String& path,
+											DocumentFormat f = formatDetect,
+											DocumentGeometryFormat gf = geometryFormatQt,
+											bool reconstruct = false);
+		void                           save(bool round = false);
+		void                           save_as(const String& path,
+											   DocumentFormat f = formatDetect,
+											   bool round = false);
+
+		DocumentFormat                 get_file_format() const { return file_format; }
+		String                         get_file_format_str() const;
+
+		virtual Element*               copy(Element* parent) const;
+		
+	protected:
+		virtual std::ostream&          dump(std::ostream& os) const;
+		
+	private:
+		String                         file_path;
+		DocumentFormat                 file_format;
+		String                         file_format_str;
+	};
+
 // -----------------------------------------------------------------------------
 // Exceptions
 // -----------------------------------------------------------------------------
@@ -743,6 +847,12 @@ namespace Cyberiada {
 	class AssertException: public Exception {
 	public:
 		AssertException(const String& msg, const String& e = "Assert Exception"):
+			Exception(msg, e) {}
+	};
+// -----------------------------------------------------------------------------
+	class NotImplementedException: public Exception {
+	public:
+		NotImplementedException(const String& msg, const String& e = "Not Implemented Exception"):
 			Exception(msg, e) {}
 	};
 // -----------------------------------------------------------------------------

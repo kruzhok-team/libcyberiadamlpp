@@ -38,7 +38,7 @@ void usage(const char* program)
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument d;
 	DocumentFormat format;
 	string command, from_file, to_file, format_str;
 	
@@ -79,11 +79,11 @@ int main(int argc, char** argv)
 	}
 	
 	try {
-		d.load(from_file);
+		d.open(from_file);
 		if (argc == 3) {
 			cout << d << endl;
 		} else {
-			d.save(to_file, format);
+			d.save_as(to_file, format);
 		}
 	} catch (const Cyberiada::Exception& e) {
 		cerr << "Error while processing graphml file: " << e.str() << endl;
