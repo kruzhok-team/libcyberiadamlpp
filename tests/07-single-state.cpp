@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	d.new_state(sm, "First state", Action(), Rect(0, 50, 100, 25));
 	try {
 		cout << d << endl;
-		d.save(string(argv[0]) + ".graphml", formatCyberiada10);
+		LocalDocument(d, string(argv[0]) + ".graphml").save(true);
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}

@@ -28,9 +28,10 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument ld;
 	try {
-		d.load(string(argv[0]) + "-input.graphml", formatCyberiada10);
+		ld.open(string(argv[0]) + "-input.graphml", formatCyberiada10);
+		Document d(ld);
 		CYB_ASSERT(d.get_state_machines().front()->get_name() == "SM");
 		CYB_ASSERT(d.meta().platform_name == "Berloga");
 		CYB_ASSERT(d.meta().platform_version == "1.4");

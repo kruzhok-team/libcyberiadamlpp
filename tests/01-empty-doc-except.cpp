@@ -29,7 +29,8 @@ int main(int argc, char** argv)
 {
 	Document d;
 	try {
-		d.save(string(argv[0]) + ".graphml", formatCyberiada10);
+		LocalDocument ld(d, string(argv[0]) + ".graphml");
+		ld.save();
 	} catch (const Cyberiada::ParametersException&) {
 		return 0;
 	} catch (const Cyberiada::Exception&) {

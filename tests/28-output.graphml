@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <data key="gFormat">Cyberiada-GraphML-1.0</data>
+  <key id="gFormat" for="graphml" attr.name="format" attr.type="string"/>
+  <key id="dName" for="graph" attr.name="name" attr.type="string"/>
+  <key id="dName" for="node" attr.name="name" attr.type="string"/>
+  <key id="dStateMachine" for="graph" attr.name="stateMachine" attr.type="string"/>
+  <key id="dSubmachineState" for="node" attr.name="submachineState" attr.type="string"/>
+  <key id="dGeometry" for="graph" attr.name="geometry"/>
+  <key id="dGeometry" for="node" attr.name="geometry"/>
+  <key id="dGeometry" for="edge" attr.name="geometry"/>
+  <key id="dSourcePoint" for="edge" attr.name="sourcePoint"/>
+  <key id="dTargetPoint" for="edge" attr.name="targetPoint"/>
+  <key id="dLabelGeometry" for="edge" attr.name="labelGeometry"/>
+  <key id="dNote" for="node" attr.name="note" attr.type="string"/>
+  <key id="dVertex" for="node" attr.name="vertex" attr.type="string"/>
+  <key id="dData" for="node" attr.name="data" attr.type="string"/>
+  <key id="dData" for="edge" attr.name="data" attr.type="string"/>
+  <key id="dMarkup" for="node" attr.name="markup" attr.type="string"/>
+  <key id="dColor" for="node" attr.name="color" attr.type="string"/>
+  <key id="dColor" for="edge" attr.name="color" attr.type="string"/>
+  <key id="dPivot" for="edge" attr.name="pivot" attr.type="string"/>
+  <key id="dChunk" for="edge" attr.name="chunk" attr.type="string"/>
+  <graph id="G" edgedefault="directed">
+    <data key="dStateMachine"/>
+    <data key="dName">orientation</data>
+    <node id="nMeta">
+      <data key="dNote">formal</data>
+      <data key="dName">CGML_META</data>
+      <data key="dData">standardVersion/ 1.0
+
+name/ orientation
+
+transitionOrder/ transitionFirst
+
+eventPropagation/ block
+
+</data>
+    </node>
+    <node id="n0">
+      <data key="dName">orientation</data>
+      <data key="dData">entry/</data>
+      <data key="dGeometry">
+        <rect x="409.904572" y="50.595303" width="1149.475220" height="725.384277"/>
+      </data>
+      <graph id="n0:" edgedefault="directed">
+        <node id="n0::n0">
+          <data key="dName">turn</data>
+          <data key="dData">entry/
+orientation.start_motor(AXIS_Z)
+
+exit/
+orientation.stop_motor(AXIS_Z)
+</data>
+          <data key="dGeometry">
+            <rect x="35.557465" y="47.118244" width="297.494720" height="506.212646"/>
+          </data>
+          <graph id="n0::n0:" edgedefault="directed">
+            <node id="n0::n0::n0">
+              <data key="dName">slow_down</data>
+              <data key="dData">entry/
+reduce_speed()
+</data>
+              <data key="dGeometry">
+                <rect x="15.000000" y="188.739487" width="267.494720" height="69.211853"/>
+              </data>
+            </node>
+            <node id="n0::n0::n1">
+              <data key="dName">start_turn</data>
+              <data key="dData">entry/
+calculate_turn()
+</data>
+              <data key="dGeometry">
+                <rect x="15.000000" y="298.670593" width="267.494720" height="69.211853"/>
+              </data>
+            </node>
+            <node id="n0::n0::n2">
+              <data key="dVertex">initial</data>
+              <data key="dName"></data>
+              <data key="dGeometry">
+                <point x="148.747375" y="150.239471"/>
+              </data>
+            </node>
+            <node id="n0::n0::n3">
+              <data key="dName">finish_turn</data>
+              <data key="dData">entry/
+complete_turn()
+</data>
+              <data key="dGeometry">
+                <rect x="15.000000" y="408.601746" width="267.494720" height="69.211853"/>
+              </data>
+            </node>
+          </graph>
+        </node>
+        <node id="n0::n1">
+          <data key="dName">idle</data>
+          <data key="dData">entry/</data>
+          <data key="dGeometry">
+            <rect x="356.263458" y="53.367176" width="313.216827" height="117.952454"/>
+          </data>
+        </node>
+        <node id="n0::n2">
+          <data key="dName">wait</data>
+          <data key="dData">entry/</data>
+          <data key="dGeometry">
+            <rect x="692.691528" y="56.341518" width="432.212921" height="640.662781"/>
+          </data>
+          <graph id="n0::n2:" edgedefault="directed">
+            <node id="n0::n2::n0">
+              <data key="dName">maintain</data>
+              <data key="dData">entry/
+orientation.start_motor(AXIS_Z)
+
+exit/
+orientation.stop_motor(AXIS_Z)
+</data>
+              <data key="dGeometry">
+                <rect x="19.000000" y="213.807129" width="393.600128" height="400.073730"/>
+              </data>
+              <graph id="n0::n2::n0:" edgedefault="directed">
+                <node id="n0::n2::n0::n0">
+                  <data key="dName">correct_cw</data>
+                  <data key="dData">entry/
+orientation.set_motor_moment(AXIS_Z, -M)
+</data>
+                  <data key="dGeometry">
+                    <rect x="18.753662" y="158.493500" width="358.315155" height="75.337151"/>
+                  </data>
+                </node>
+                <node id="n0::n2::n0::n1">
+                  <data key="dName">correct_ccw</data>
+                  <data key="dData">entry/
+orientation.set_motor_moment(AXIS_Z, M)
+</data>
+                  <data key="dGeometry">
+                    <rect x="18.753662" y="303.419373" width="358.315155" height="75.337151"/>
+                  </data>
+                </node>
+                <node id="n0::n2::n0::n2">
+                  <data key="dVertex">initial</data>
+                  <data key="dName"></data>
+                  <data key="dGeometry">
+                    <point x="197.911255" y="115.608673"/>
+                  </data>
+                </node>
+              </graph>
+            </node>
+            <node id="n0::n2::n1">
+              <data key="dName">static</data>
+              <data key="dData">entry/</data>
+              <data key="dGeometry">
+                <rect x="20.111206" y="94.501884" width="393.600128" height="75.337151"/>
+              </data>
+            </node>
+            <node id="n0::n2::n2">
+              <data key="dVertex">initial</data>
+              <data key="dName"></data>
+              <data key="dGeometry">
+                <point x="216.911255" y="51.617043"/>
+              </data>
+            </node>
+          </graph>
+        </node>
+      </graph>
+    </node>
+    <node id="n1">
+      <data key="dVertex">initial</data>
+      <data key="dName"></data>
+      <data key="dGeometry">
+        <point x="945.784363" y="-25.402416"/>
+      </data>
+    </node>
+    <node id="n2">
+      <data key="dNote">informal</data>
+      <data key="dData">Init scripts:
+
+test3sm_constants.py
+test3sm_orient.py</data>
+      <data key="dGeometry">
+        <rect x="445.462036" y="652.554016" width="160.084412" height="95.045609"/>
+      </data>
+    </node>
+    <edge id="e0" source="n1" target="n0::n1">
+      <data key="dSourcePoint">
+        <point x="0.000000" y="10.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="156.608414" y="0.000000"/>
+      </data>
+    </edge>
+    <edge id="e1" source="n0" target="n0::n1">
+      <data key="dData">STOP/</data>
+      <data key="dGeometry">
+        <point x="826.770386" y="-4.951387"/>
+        <point x="918.657471" y="-4.951387"/>
+      </data>
+      <data key="dSourcePoint">
+        <point x="574.737610" y="0.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="156.608414" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-50.904530" y="-43.776615"/>
+      </data>
+    </edge>
+    <edge id="n0::e0" source="n0::n1" target="n0::n0">
+      <data key="dData">TANGENT(target_a)/
+update_turn_parameters(target_a, 0.0)
+</data>
+      <data key="dGeometry">
+        <point x="1018.008484" y="374.381714"/>
+      </data>
+      <data key="dSourcePoint">
+        <point x="156.608414" y="117.952454"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="297.494720" y="276.668121"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-248.976791" y="112.880707"/>
+      </data>
+    </edge>
+    <edge id="n0::e1" source="n0::n1" target="n0::n0">
+      <data key="dData">BACK(target_a)/
+update_turn_parameters(target_a, 180.0)
+</data>
+      <data key="dGeometry">
+        <point x="1036.419922" y="468.787109"/>
+      </data>
+      <data key="dSourcePoint">
+        <point x="156.608414" y="117.952454"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="297.494720" y="371.073517"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-263.427216" y="205.216812"/>
+      </data>
+    </edge>
+    <edge id="n0::n0::e0" source="n0::n0::n2" target="n0::n0::n0">
+      <data key="dSourcePoint">
+        <point x="0.000000" y="10.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="133.747360" y="0.000000"/>
+      </data>
+    </edge>
+    <edge id="n0::n0::e1" source="n0::n0::n0" target="n0::n0::n1">
+      <data key="dData">[completed()]/</data>
+      <data key="dSourcePoint">
+        <point x="133.747360" y="69.211853"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="133.747360" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="1.574948" y="11.386170"/>
+      </data>
+    </edge>
+    <edge id="n0::n0::e2" source="n0::n0::n1" target="n0::n0::n3">
+      <data key="dData">[completed()]/</data>
+      <data key="dSourcePoint">
+        <point x="133.747360" y="69.211853"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="133.747360" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="5.912465" y="11.386169"/>
+      </data>
+    </edge>
+    <edge id="n0::e2" source="n0::n2" target="n0::n1">
+      <data key="dData">TIME_TICK [orientation_completed()]/
+DISPATCH(cpu, 'ORIENTED')
+DISPATCH(navigation, 'ORIENTED')
+</data>
+      <data key="dGeometry">
+        <point x="1050.996216" y="526.111328"/>
+      </data>
+      <data key="dSourcePoint">
+        <point x="0.000000" y="419.174500"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="156.608414" y="117.952454"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-237.115860" y="17.656166"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::n0::e0" source="n0::n2::n0::n0" target="n0::n2::n0::n1">
+      <data key="dData">[orientation.get_angular_velocity(AXIS_Z) &lt; DW]/</data>
+      <data key="dSourcePoint">
+        <point x="179.157578" y="75.337151"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="179.157578" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="11.403487" y="9.562100"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::n0::e1" source="n0::n2::n0::n1" target="n0::n2::n0::n0">
+      <data key="dData">[orientation.get_angular_velocity(AXIS_Z) &gt; DW]/</data>
+      <data key="dSourcePoint">
+        <point x="179.157578" y="0.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="179.157578" y="75.337151"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-299.029510" y="-26.177195"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::n0::e2" source="n0::n2::n0::n2" target="n0::n2::n0::n0">
+      <data key="dSourcePoint">
+        <point x="0.000000" y="10.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="179.157578" y="0.000000"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::e0" source="n0::n2::n2" target="n0::n2::n1">
+      <data key="dSourcePoint">
+        <point x="0.000000" y="10.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="196.800064" y="0.000000"/>
+      </data>
+    </edge>
+    <edge id="n0::e3" source="n0::n0::n3" target="n0::n2">
+      <data key="dData">[completed()]/</data>
+      <data key="dGeometry">
+        <point x="665.626831" y="711.283508"/>
+      </data>
+      <data key="dSourcePoint">
+        <point x="133.747360" y="69.211853"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="0.000000" y="604.346680"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="17.582609" y="96.752647"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::e1" source="n0::n2::n0" target="n0::n2::n1">
+      <data key="dData">[is_target_dw()]/</data>
+      <data key="dSourcePoint">
+        <point x="196.800064" y="0.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="196.800064" y="75.337151"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="-100.932228" y="-30.990881"/>
+      </data>
+    </edge>
+    <edge id="n0::n2::e2" source="n0::n2::n1" target="n0::n2::n0">
+      <data key="dData">[not is_target_dw()]/</data>
+      <data key="dSourcePoint">
+        <point x="196.800064" y="75.337151"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="196.800064" y="0.000000"/>
+      </data>
+      <data key="dLabelGeometry">
+        <point x="9.669483" y="13.809602"/>
+      </data>
+    </edge>
+  </graph>
+</graphml>

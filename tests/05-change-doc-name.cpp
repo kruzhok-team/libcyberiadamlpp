@@ -28,9 +28,10 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument ld;
 	try {
-		d.load(string(argv[0]) + "-input.graphml", formatCyberiada10);
+		ld.open(string(argv[0]) + "-input.graphml", formatCyberiada10);
+		Document d(ld);
 		CYB_ASSERT(d.meta().name == "Test document");
 		d.set_name("Test document 2");
 		CYB_ASSERT(d.meta().name == "Test document 2");

@@ -27,10 +27,10 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument d;
 	d.new_state_machine("SM");
 	try {
-		d.save(string(argv[0]) + ".graphml", formatCyberiada10);
+		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}

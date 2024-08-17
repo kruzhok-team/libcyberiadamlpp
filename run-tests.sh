@@ -12,7 +12,15 @@ echo
 echo "tests ready!"
 echo
 
+limit=$1
+i=-1
+
 for t in $(ls tests/*.test); do
+    i=$((i + 1))
+    if [ $i == $limit ]
+    then
+	break
+    fi
     num=$(echo $t | grep -Poe '\d\d')
     echo -n "$num $t... "
     if [ -f "$t-input.graphml" -o -f "tests/$num-output.txt" ]
@@ -24,16 +32,8 @@ for t in $(ls tests/*.test); do
     if [ $? != 0 ]
     then
 	echo "test $num run failed!"
-	continue
-    fi
-    if [ -f "tests/$num-output.graphml" ]
-    then
-	diff "$t.graphml" "tests/$num-output.graphml"
-	if [ $? != 0 ]
-	then
-	    echo "test $num failed: graphml file didn't match the pattern!"
-	    continue
-	fi
+	#continue
+	exit 1
     fi
     if [ -f "tests/$num-output.txt" ]
     then
@@ -41,7 +41,18 @@ for t in $(ls tests/*.test); do
 	if [ $? != 0 ]
 	then
 	    echo "test $num failed: output didn't match the pattern!"
-	    continue
+	    #continue
+	    exit 1
+	fi
+    fi
+    if [ -f "tests/$num-output.graphml" ]
+    then
+	diff "$t.graphml" "tests/$num-output.graphml"
+	if [ $? != 0 ]
+	then
+	    echo "test $num failed: graphml file didn't match the pattern!"
+	    #continue
+	    exit 1
 	fi
     fi
     echo "ok"

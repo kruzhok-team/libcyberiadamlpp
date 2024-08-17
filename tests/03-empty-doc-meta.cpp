@@ -27,7 +27,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument d;
 	d.new_state_machine("SM");
 	d.meta().platform_name = "Berloga";
 	d.meta().platform_version = "1.4";
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 	d.meta().transition_order_flag = true; // exit first
 	d.meta().event_propagation_flag = true; // propagate
 	try {
-		d.save(string(argv[0]) + ".graphml", formatCyberiada10);
+		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}

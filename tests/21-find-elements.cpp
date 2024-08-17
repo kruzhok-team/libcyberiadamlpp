@@ -27,9 +27,9 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument d;
 	try {
-		d.load(string(argv[0]) + "-input.graphml", formatLegacyYED);
+		d.open(string(argv[0]) + "-input.graphml", formatLegacyYED);
 		const StateMachine* sm = d.get_state_machines().front();
 		ConstElementList list = sm->find_elements_by_types({Cyberiada::elementSimpleState,
 															Cyberiada::elementCompositeState,

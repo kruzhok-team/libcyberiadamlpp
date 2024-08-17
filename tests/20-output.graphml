@@ -23,13 +23,13 @@
   <key id="dChunk" for="edge" attr.name="chunk" attr.type="string"/>
   <graph id="G" edgedefault="directed">
     <data key="dStateMachine"/>
-    <data key="dName">parent</data>
+    <data key="dName">Автобортник</data>
     <node id="nMeta">
       <data key="dNote">formal</data>
       <data key="dName">CGML_META</data>
       <data key="dData">standardVersion/ 1.0
 
-name/ parent
+name/ Автобортник
 
 transitionOrder/ transitionFirst
 
@@ -37,75 +37,107 @@ eventPropagation/ block
 
 </data>
     </node>
-    <node id="n0">
-      <data key="dName">parent</data>
+    <node id="n1">
+      <data key="dVertex">initial</data>
+      <data key="dName"></data>
       <data key="dGeometry">
-        <rect x="0.000000" y="0.000000" width="800.000000" height="800.000000"/>
+        <point x="-1623.000000" y="753.000000"/>
+      </data>
+    </node>
+    <node id="n0">
+      <data key="dName">Бой</data>
+      <data key="dData">entry/
+
+exit/</data>
+      <data key="dGeometry">
+        <rect x="-786.000000" y="274.000000" width="517.000000" height="770.000000"/>
       </data>
       <graph id="n0:" edgedefault="directed">
-        <node id="n0::n0">
-          <data key="dVertex">initial</data>
-          <data key="dName"></data>
-          <data key="dGeometry">
-            <point x="200.000000" y="200.000000"/>
-          </data>
-        </node>
         <node id="n0::n1">
-          <data key="dName">node 0</data>
+          <data key="dName">Сближение</data>
+          <data key="dData">entry/
+МодульДвижения.ДвигатьсяКЦели()
+
+exit/</data>
           <data key="dGeometry">
-            <rect x="325.000000" y="325.000000" width="150.000000" height="150.000000"/>
+            <rect x="2.000000" y="371.000000" width="413.000000" height="208.000000"/>
           </data>
         </node>
         <node id="n0::n2">
-          <data key="dName">node 1</data>
+          <data key="dName">Атака</data>
+          <data key="dData">entry/
+ОружиеЦелевое.АтаковатьЦель()
+
+exit/</data>
           <data key="dGeometry">
-            <rect x="525.000000" y="125.000000" width="150.000000" height="150.000000"/>
-          </data>
-        </node>
-        <node id="n0::n3">
-          <data key="dName">node 2</data>
-          <data key="dGeometry">
-            <rect x="525.000000" y="525.000000" width="150.000000" height="150.000000"/>
-          </data>
-        </node>
-        <node id="n0::n4">
-          <data key="dName">node 3</data>
-          <data key="dGeometry">
-            <rect x="125.000000" y="525.000000" width="150.000000" height="150.000000"/>
+            <rect x="2.000000" y="37.000000" width="413.000000" height="208.000000"/>
           </data>
         </node>
       </graph>
     </node>
-    <edge id="n0::e0" source="n0::n0" target="n0::n1">
+    <node id="n3">
+      <data key="dName">Скан</data>
+      <data key="dData">entry/
+Сенсор.ПоискВрагаПоДистанции(мин)
+
+exit/
+Сенсор.ОстановкаПоиска()
+</data>
+      <data key="dGeometry">
+        <rect x="-1573.000000" y="738.000000" width="413.000000" height="288.000000"/>
+      </data>
+    </node>
+    <edge id="n0-n3" source="n0" target="n3">
+      <data key="dData">АнализаторЦели.ЦельПотеряна/</data>
       <data key="dSourcePoint">
-        <point x="7.071068" y="7.071068"/>
+        <point x="0.000000" y="453.707390"/>
       </data>
       <data key="dTargetPoint">
+        <point x="413.000000" y="89.113827"/>
+      </data>
+    </edge>
+    <edge id="n0-n3#0" source="n0" target="n3">
+      <data key="dData">АнализаторЦели.ЦельУничтожена/</data>
+      <data key="dSourcePoint">
+        <point x="0.000000" y="453.707390"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="413.000000" y="89.113827"/>
+      </data>
+    </edge>
+    <edge id="n3-n0::n1" source="n3" target="n0::n1">
+      <data key="dData">Сенсор.ЦельПолучена/</data>
+      <data key="dSourcePoint">
+        <point x="413.000000" y="109.190746"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="0.000000" y="138.809254"/>
+      </data>
+    </edge>
+    <edge id="n0::n1-n0::n2" source="n0::n1" target="n0::n2">
+      <data key="dData">ОружиеЦелевое.ЦельВошлаВЗонуАтаки/</data>
+      <data key="dSourcePoint">
+        <point x="206.500000" y="0.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="206.500000" y="208.000000"/>
+      </data>
+    </edge>
+    <edge id="n0::n2-n0::n1" source="n0::n2" target="n0::n1">
+      <data key="dData">ОружиеЦелевое.ЦельВышлаИзЗоныАтаки/</data>
+      <data key="dSourcePoint">
+        <point x="206.500000" y="208.000000"/>
+      </data>
+      <data key="dTargetPoint">
+        <point x="206.500000" y="0.000000"/>
+      </data>
+    </edge>
+    <edge id="n1-n3" source="n1" target="n3">
+      <data key="dSourcePoint">
         <point x="0.000000" y="0.000000"/>
       </data>
-    </edge>
-    <edge id="n0::e1" source="n0::n1" target="n0::n2">
-      <data key="dSourcePoint">
-        <point x="150.000000" y="0.000000"/>
-      </data>
       <data key="dTargetPoint">
-        <point x="0.000000" y="150.000000"/>
-      </data>
-    </edge>
-    <edge id="n0::e2" source="n0::n3" target="n0::n1">
-      <data key="dSourcePoint">
-        <point x="0.000000" y="0.000000"/>
-      </data>
-      <data key="dTargetPoint">
-        <point x="149.999954" y="150.000000"/>
-      </data>
-    </edge>
-    <edge id="n0::e3" source="n0::n4" target="n0::n1">
-      <data key="dSourcePoint">
-        <point x="150.000000" y="0.000000"/>
-      </data>
-      <data key="dTargetPoint">
-        <point x="0.000000" y="150.000000"/>
+        <point x="0.000000" y="40.146202"/>
       </data>
     </edge>
   </graph>

@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	
 	try {
 		cout << d << endl;
-		d.save(string(argv[0]) + ".graphml", formatCyberiada10);
+		LocalDocument(d, string(argv[0]) + ".graphml").save();
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}
