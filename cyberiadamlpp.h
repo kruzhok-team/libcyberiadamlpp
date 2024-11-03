@@ -531,7 +531,7 @@ namespace Cyberiada {
 	public:
 		Transition(Element* parent, const ID& id, const ID& source, const ID& target, const Action& action,
 				   const Polyline& pl = Polyline(), const Point& sp = Point(), const Point& tp = Point(),
-				   const Point& label = Point(), const Color& color = Color());
+				   const Point& label_point = Point(), const Rect& label_rect = Rect(), const Color& color = Color());
 		Transition(const Transition& t);
 
 		const ID&              source_element_id() const { return source_id; }
@@ -544,17 +544,20 @@ namespace Cyberiada {
 		Action&                get_action() { return action; }
 		
 		bool                   has_geometry() const { return (source_point.valid ||
-															 target_point.valid ||
-															 label_point.valid ||
-															 has_polyline()); }
+															  target_point.valid ||
+															  label_point.valid ||
+															  label_rect.valid ||
+															  has_polyline()); }
 		bool                   has_polyline() const { return !polyline.empty(); }
 		bool                   has_geometry_source_point() const { return source_point.valid; }
 		bool                   has_geometry_target_point() const { return target_point.valid; }
 		bool                   has_geometry_label_point() const { return label_point.valid; }
+		bool                   has_geometry_label_rect() const { return label_rect.valid; }
 		const Polyline&        get_geometry_polyline() const { return polyline; }
 		const Point&           get_source_point() const { return source_point; }
 		const Point&           get_target_point() const { return target_point; }
 		const Point&           get_label_point() const { return label_point; }
+		const Rect&            get_label_rect() const { return label_rect; }
 		virtual Rect           get_bound_rect(const Document& d) const;
 		virtual void           clean_geometry();
 		virtual void           round_geometry();
@@ -575,6 +578,7 @@ namespace Cyberiada {
 		Point                  source_point;
 		Point                  target_point;
 		Point                  label_point;
+		Rect                   label_rect;
 		Polyline               polyline;
 		Color                  color;
 	};
@@ -653,11 +657,13 @@ namespace Cyberiada {
 		Transition*                    new_transition(StateMachine* sm, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
-													  const Point& label = Point(), const Color& color = Color());
+													  const Point& label_point = Point(), const Rect& label_rect = Rect(),
+													  const Color& color = Color());
 		Transition*                    new_transition(StateMachine* sm, const ID& id, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
-													  const Point& label = Point(), const Color& color = Color());
+													  const Point& label_point = Point(), const Rect& label_rect = Rect(),
+													  const Color& color = Color());
 		Comment*                       new_comment(ElementCollection* parent, const String& body,
 												   const Rect& rect = Rect(), const Color& color = Color(),
 												   const String& markup = String());

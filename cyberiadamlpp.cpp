@@ -201,7 +201,7 @@ Point::Point(CyberiadaPoint* p)
 CyberiadaPoint* Point::c_point() const
 {
 	if (valid) {
-		CyberiadaPoint* p = cyberiada_new_point();
+		CyberiadaPoint* p = htree_new_point();
 		p->x = x;
 		p->y = y;
 		return p;
@@ -244,7 +244,7 @@ Rect::Rect(CyberiadaRect* r)
 CyberiadaRect* Rect::c_rect() const
 {
 	if (valid) {
-		CyberiadaRect* r = cyberiada_new_rect();
+		CyberiadaRect* r = htree_new_rect();
 		r->x = x;
 		r->y = y;
 		r->width = width;
@@ -260,7 +260,7 @@ CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
 	CyberiadaPolyline* result = NULL;
 	for (Polyline::const_iterator i = polyline.begin(); i != polyline.end(); i++) {
 		const Point& point = *i;
-		CyberiadaPolyline* pl = cyberiada_new_polyline();
+		CyberiadaPolyline* pl = htree_new_polyline();
 		pl->point.x = point.x;
 		pl->point.y = point.y;
 		if (result) {
@@ -1553,17 +1553,17 @@ std::ostream& State::dump(std::ostream& os) const
 // -----------------------------------------------------------------------------
 
 Transition::Transition(Element* _parent, const ID& _id, const ID& _source_id, const ID& _target_id,
-					   const Action& _action, const Polyline& pl, const Point& sp, const Point& tp, const Point& label,
-					   const Color& c):
+					   const Action& _action, const Polyline& pl, const Point& sp, const Point& tp,
+					   const Point& label_p, const Rect& label_r, const Color& c):
 	Element(_parent, elementTransition, _id), source_id(_source_id), target_id(_target_id), action(_action),
-	source_point(sp), target_point(tp), label_point(label), polyline(pl), color(c)
+	source_point(sp), target_point(tp), label_point(label_p), label_rect(label_r), polyline(pl), color(c)
 {
 }
 
 Transition::Transition(const Transition& t):
 	Element(t), source_id(t.source_id), target_id(t.target_id), action(t.action),
 	source_point(t.source_point), target_point(t.target_point), label_point(t.label_point),
-	polyline(t.polyline), color(t.color)
+	label_rect(t.label_rect), polyline(t.polyline), color(t.color)
 {
 }
 
@@ -1591,6 +1591,9 @@ CyberiadaEdge* Transition::to_edge() const
 		if (label_point.valid) {
 			edge->geometry_label_point = label_point.c_point();
 		}
+		if (label_rect.valid) {
+			edge->geometry_label_rect = label_rect.c_rect();
+		}
 		if (has_polyline()) {
 			edge->geometry_polyline = c_polyline(polyline);
 		}
@@ -1615,6 +1618,7 @@ void Transition::clean_geometry()
 	source_point = Point();
 	target_point = Point();
 	label_point = Point();
+	label_rect = Rect();
 	polyline.clear();
 	CYB_ASSERT(!has_geometry());
 }
@@ -1625,6 +1629,7 @@ void Transition::round_geometry()
 		source_point.round();
 		target_point.round();
 		label_point.round();
+		label_rect.round();
 		round_polyline(polyline);
 	}
 }
@@ -1633,7 +1638,7 @@ Element* Transition::copy(Element* parent) const
 {
 	return new Transition(parent, get_id(), source_id, target_id, action,
 						  polyline, source_point, target_point, label_point,
-						  get_color());
+						  label_rect, get_color());
 }
 
 std::ostream& Transition::dump(std::ostream& os) const
@@ -1655,6 +1660,8 @@ std::ostream& Transition::dump(std::ostream& os) const
 		}
 		if (label_point.valid) {
 			os << ", label: " << label_point;
+		} else if (label_rect.valid) {
+			os << ", rect: " << label_rect;
 		}
 		if (has_polyline()) {
 			os << ", polyline: " << polyline;
@@ -1991,7 +1998,7 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 Transition* Document::new_transition(StateMachine* sm, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
-									 const Point& label, const Color& c)
+									 const Point& label_p, const Rect& label_r, const Color& c)
 {
 	check_parent_element(sm);
 	check_transition_source(source);
@@ -1999,11 +2006,12 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 	check_transition_action(action);
 	
 	Transition* t = new Transition(sm, generate_transition_id(source->get_id(), target->get_id()),
-								   source->get_id(), target->get_id(), action, pl, sp, tp, label, c);
+								   source->get_id(), target->get_id(), action, pl, sp, tp, label_p, label_r, c);
 	sm->add_element(t);
 	check_geometry_update(sp);
 	check_geometry_update(tp);
-	check_geometry_update(label);
+	check_geometry_update(label_p);
+	check_geometry_update(label_r);	
 	check_geometry_update(pl);
 	return t;
 }
@@ -2011,19 +2019,20 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
-									 const Point& label, const Color& c)
+									 const Point& label_p, const Rect& label_r, const Color& c)
 {
 	check_parent_element(sm);
 	check_transition_source(source);
-	check_transition_target(target);	
+	check_transition_target(target);
 	check_id_uniqueness(_id);
 	check_transition_action(action);
 
-	Transition* t = new Transition(sm, _id, source->get_id(), target->get_id(), action, pl, sp, tp, label, c);
+	Transition* t = new Transition(sm, _id, source->get_id(), target->get_id(), action, pl, sp, tp, label_p, label_r, c);
 	sm->add_element(t);
 	check_geometry_update(sp);
 	check_geometry_update(tp);
-	check_geometry_update(label);
+	check_geometry_update(label_p);
+	check_geometry_update(label_r);
 	check_geometry_update(pl);
 	return t;
 }
@@ -2471,6 +2480,7 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 
 		Element* element = NULL;
 		Point    source_point, target_point, label_point;
+		Rect     label_rect;
 		Polyline polyline;
 		Color    _color;
 		Action   action;
@@ -2483,6 +2493,9 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 		}
 		if (e->geometry_label_point) {
 			label_point = Point(e->geometry_label_point);
+		}
+		if (e->geometry_label_rect) {
+			label_rect = Rect(e->geometry_label_rect);
 		}
 		if (e->geometry_polyline) {
 			for (CyberiadaPolyline* pl = e->geometry_polyline; pl; pl = pl->next) {
@@ -2507,7 +2520,7 @@ void Document::import_edges(ElementCollection* collection, CyberiadaEdge* edges)
 			
 			element = new Transition(collection, e->id, e->source_id, e->target_id,
 									 action, polyline, source_point, target_point, label_point,
-									 _color);
+									 label_rect, _color);
 			break;
 
 		case cybEdgeComment:
@@ -2571,13 +2584,22 @@ void Document::decode(const String& buffer,
 		flags = CYBERIADA_FLAG_SKIP_GEOMETRY;
 		break;
 	case geometryFormatLegacyYED:
-		flags |= CYBERIADA_FLAG_ABSOLUTE_GEOMETRY | CYBERIADA_FLAG_CENTER_EDGE_GEOMETRY;
+		flags |= (CYBERIADA_FLAG_NODES_ABSOLUTE_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_CENTER_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_PL_ABSOLUTE_GEOMETRY |
+				  CYBERIADA_FLAG_CENTER_EDGE_GEOMETRY);
 		break;
 	case geometryFormatCyberiada10:
-		flags |= CYBERIADA_FLAG_LEFTTOP_LOCAL_GEOMETRY | CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY;
+		flags |= (CYBERIADA_FLAG_NODES_LEFTTOP_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_LEFTTOP_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_PL_LEFTTOP_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY);
 		break;
 	case geometryFormatQt:
-		flags |= CYBERIADA_FLAG_CENTER_LOCAL_GEOMETRY | CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY;
+		flags |= (CYBERIADA_FLAG_NODES_CENTER_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_CENTER_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_EDGES_PL_CENTER_LOCAL_GEOMETRY |
+				  CYBERIADA_FLAG_BORDER_EDGE_GEOMETRY);
 		break;
 	default:
 		throw ParametersException("Bad geometry format " + std::to_string(int(gf)));
@@ -2669,7 +2691,7 @@ void Document::decode(const String& buffer,
 		throw AssertException("Internal load error: " + e.str());
 	}
 	
-	if (doc.geometry_format == cybCoordNone) {
+	if (doc.node_coord_format == coordNone) {
 		geometry_format = geometryFormatNone;
 	} else {
 		geometry_format = gf;
@@ -2857,20 +2879,22 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round)
 
 	switch (geometry_format) {
 	case geometryFormatNone:
-		doc.geometry_format = cybCoordNone;
-		doc.edge_geom_format = cybEdgeNone;
+		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordNone;
+		doc.edge_geom_format = edgeNone;
 		break;
 	case geometryFormatLegacyYED:
-		doc.geometry_format = cybCoordAbsolute;
-		doc.edge_geom_format = cybEdgeCenter;
+		doc.node_coord_format = coordAbsolute;
+		doc.edge_coord_format = coordLocalCenter;
+		doc.edge_pl_coord_format = coordAbsolute;
+		doc.edge_geom_format = edgeCenter;
 		break;
 	case geometryFormatCyberiada10:
-		doc.geometry_format = cybCoordLeftTop;
-		doc.edge_geom_format = cybEdgeBorder;
+		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordLeftTop;
+		doc.edge_geom_format = edgeBorder;
 		break;
 	case geometryFormatQt:
-		doc.geometry_format = cybCoordLocalCenter;
-		doc.edge_geom_format = cybEdgeBorder;
+		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordLocalCenter;
+		doc.edge_geom_format = edgeBorder;
 		break;
 	default:
 		throw ParametersException("Bad geometry format");
