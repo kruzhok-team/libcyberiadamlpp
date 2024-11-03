@@ -38,7 +38,7 @@ eventPropagation/ block
     <node id="n0">
       <data key="dName">First state</data>
       <data key="dGeometry">
-        <rect x="-50.000000" y="37.500000" width="100.000000" height="25.000000"/>
+        <rect x="0.000000" y="37.500000" width="100.000000" height="25.000000"/>
       </data>
     </node>
   </graph>

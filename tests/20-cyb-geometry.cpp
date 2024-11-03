@@ -21,20 +21,26 @@
 
 #include <iostream>
 #include "cyberiadamlpp.h"
-#include "testutils.h"
 
 using namespace Cyberiada;
 using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
-	StateMachine* sm = d.new_state_machine("SM");
-	d.new_state(sm, "First state", Action(), Rect(50, 50, 100, 25));
 	try {
+		LocalDocument d;
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone);
+		cout << d << endl;		
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatLegacyYED);
 		cout << d << endl;
-		LocalDocument(d, string(argv[0]) + ".graphml").save(true);
-	} catch (const Cyberiada::Exception&) {
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatCyberiada10);
+		cout << d << endl;
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatQt);
+		d.round_geometry();
+		cout << d << endl;
+		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
+	} catch (const Cyberiada::Exception& e) {
+		cerr << e.str() << endl;
 		return 1;
 	}
 	return 0;

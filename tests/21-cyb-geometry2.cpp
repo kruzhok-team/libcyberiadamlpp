@@ -27,11 +27,18 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	Document d;
+	LocalDocument d;
 	try {
-//		d.open(string(argv[0]) + "-input.graphml");
-//		cout << d << endl;
-//		d.save();
+		LocalDocument d;
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone);
+		cout << d << endl;		
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatLegacyYED);
+		cout << d << endl;
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatCyberiada10);
+		cout << d << endl;		
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatQt);
+		cout << d << endl;		
+		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
 		return 1;
