@@ -107,8 +107,9 @@ namespace Cyberiada {
 		Rect round() const;		
 		CyberiadaRect* c_rect() const;
 
-		bool operator==(const Rect& r);
-		bool operator!=(const Rect& r);
+		bool operator==(const Rect& r) const;
+		bool operator!=(const Rect& r) const;
+		bool almost_equal(const Rect& r) const;
 		
 		bool   valid;
 		float  x, y;

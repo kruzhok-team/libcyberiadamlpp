@@ -31,6 +31,7 @@
 #define CYB_ASSERT(q)   if (!(q)) {                                      \
 							throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
 	                    }
+#define EQUAL_DIFF  0.001
 
 namespace Cyberiada {
 
@@ -274,16 +275,26 @@ CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
 	return result;
 }
 
-bool Rect::operator==(const Rect& r)
+bool Rect::operator==(const Rect& r) const
 {
 	if (!valid && !r.valid) return true;
 	if (!valid || !r.valid) return false;
 	return x == r.x && y == r.y && width == r.width && height == r.height;
 }
 
-bool Rect::operator!=(const Rect& r)
+bool Rect::operator!=(const Rect& r) const
 {
 	return !(*this == r);
+}
+
+bool Rect::almost_equal(const Rect& r) const
+{
+	if (!valid && !r.valid) return true;
+	if (!valid || !r.valid) return false;
+	return (abs(x - r.x) < EQUAL_DIFF &&
+			abs(y - r.y) < EQUAL_DIFF &&
+			abs(width - r.width) < EQUAL_DIFF &&
+			abs(height - r.height) < EQUAL_DIFF);
 }
 
 Rect Rect::round() const
@@ -2643,9 +2654,11 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 
 	Rect r1 = Rect(doc->bounding_rect);
 	Rect r2 = get_bound_rect(); 
-	if (r1 == r2) {
+	if (r1.almost_equal(r2)) {
 		center_point = Point(0.0, 0.0);
-	} else if (geometry_format == geometryFormatQt && r1.width == r2.width && r1.height == r2.height) {
+	} else if (geometry_format == geometryFormatQt &&
+			   abs(r1.width - r2.width) < EQUAL_DIFF &&
+			   abs(r1.height - r2.height) < EQUAL_DIFF) {
 		center_point = Point(r1.x, r1.y);
 	} else {
 		std::ostringstream s;
