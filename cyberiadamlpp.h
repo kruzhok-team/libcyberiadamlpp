@@ -135,6 +135,7 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Element {
 	public:
+		Element(): type(elementRoot), name_is_set(false), parent(NULL) {}
 		Element(Element* parent, ElementType type, const ID& id);
 		Element(Element* parent, ElementType type, const ID& id, const Name& name);
 		Element(const Element& e);
@@ -167,7 +168,7 @@ namespace Cyberiada {
 		friend std::ostream&   operator<<(std::ostream& os, const Element& e);
 		virtual CyberiadaNode* to_node() const;
 
-		virtual std::string    dump_to_str() const;
+		std::string            dump_to_str() const;
 		virtual Element*       copy(Element* parent) const = 0;
 
 	protected:		
