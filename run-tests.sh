@@ -13,11 +13,17 @@ echo "tests ready!"
 echo
 
 limit=$1
+
+if [ "$limit" == "" ]
+then
+    limit="99"
+fi
+
 i=-1
 
 for t in $(ls tests/*.test); do
     i=$((i + 1))
-    if [ $i == $limit ]
+    if [ "$i" == "$limit" ]
     then
 	break
     fi
