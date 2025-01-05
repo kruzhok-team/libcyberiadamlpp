@@ -219,7 +219,7 @@ namespace Cyberiada {
 		const Point&           get_geometry_source_point() const { return source_point; }
 		const Point&           get_geometry_target_point() const { return target_point; }
 		const Polyline&        get_geometry_polyline() const { return polyline; }
-        virtual Rect           get_bound_rect(const Document& d) const;
+        Rect                   get_bound_rect(const Document& d) const;
 		void                   clean_geometry();
 		void                   round_geometry();
 
@@ -260,13 +260,13 @@ namespace Cyberiada {
 	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 
-		virtual bool                     has_geometry() const { return geometry_rect.valid; }
+		bool                             has_geometry() const override { return geometry_rect.valid; }
 		const Rect&                      get_geometry_rect() const { return geometry_rect; }
-		virtual Rect                     get_bound_rect(const Document& d) const;
-		virtual void                     clean_geometry();
-		virtual void                     round_geometry();
+		Rect                             get_bound_rect(const Document& d) const override;
+		void                             clean_geometry() override;
+		void                             round_geometry() override;
 		
-		virtual bool                     has_children() const { return false; }
+		bool                             has_children() const override { return false; }
 
         bool                             has_color() const { return !color.empty(); }
 		const Color&                     get_color() const { return color; }
@@ -274,12 +274,12 @@ namespace Cyberiada {
 		bool                             has_markup() const { return !markup.empty(); }
 		const String&                    get_markup() const { return markup; }
 
-		virtual CyberiadaNode*           to_node() const;
-		virtual CyberiadaEdge*           subjects_to_edges() const;
-		Element*                         copy(Element* parent) const;
+		CyberiadaNode*                   to_node() const override;
+		CyberiadaEdge*                   subjects_to_edges() const;
+		Element*                         copy(Element* parent) const override;
 
 	protected:
-	    virtual std::ostream&            dump(std::ostream& os) const;
+	    std::ostream&                    dump(std::ostream& os) const override;
 	
 	private:
 		void                             update_comment_type();
@@ -301,18 +301,18 @@ namespace Cyberiada {
 		Vertex(Element* parent, ElementType type, const ID& id, const Name& name, const Point& pos = Point());
 		Vertex(const Vertex& v);
 
-		virtual bool           has_geometry() const { return geometry_point.valid; }
+		bool                   has_geometry() const override { return geometry_point.valid; }
 		const Point&           get_geometry_point() const { return geometry_point; }
-		virtual Rect           get_bound_rect(const Document& d) const;
-		virtual void           clean_geometry();
-		virtual void           round_geometry();
+		Rect                   get_bound_rect(const Document& d) const override;
+		void                   clean_geometry() override;
+		void                   round_geometry() override;
 		
-		virtual bool           has_children() const { return false; }
+		bool                   has_children() const override { return false; }
 
-		virtual CyberiadaNode* to_node() const;
+		CyberiadaNode*         to_node() const override;
 		
 	protected:
-	    virtual std::ostream&  dump(std::ostream& os) const;
+	    std::ostream&          dump(std::ostream& os) const override;
 		
 	private:
 		Point                  geometry_point;
@@ -336,9 +336,9 @@ namespace Cyberiada {
 		bool                     has_qualified_name(const ID& element_id) const;
 		QualifiedName            qualified_name(const ID& element_id) const;
 
-		virtual bool             has_children() const { return !children.empty(); }
-		virtual size_t           children_count() const { return children.size(); }
-		virtual size_t           elements_count() const;
+		bool                     has_children() const override { return !children.empty(); } 
+		size_t                   children_count() const override { return children.size(); }
+		virtual size_t           elements_count() const override;
 		ConstElementList         get_children() const;
 		const ElementList&       get_children() { return children; };
 		const Element*           first_element() const;
@@ -352,7 +352,7 @@ namespace Cyberiada {
 		ElementList              find_elements_by_type(ElementType type);
 		ElementList              find_elements_by_types(const ElementTypes& types);
 		bool                     has_initial() const;
-		virtual int              element_index(const Element* e) const;
+		int                      element_index(const Element* e) const;
 
 		virtual void             add_element(Element* e);
 		virtual void             add_first_element(Element* e);
@@ -362,19 +362,19 @@ namespace Cyberiada {
 		std::list<const Vertex*> get_vertexes() const;
 		std::list<Vertex*>       get_vertexes();
 
-		virtual bool             has_geometry() const { return geometry_rect.valid; }
+		bool                     has_geometry() const override { return geometry_rect.valid; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
-		virtual Rect             get_bound_rect(const Document& d) const;
-		virtual void             clean_geometry();
-		virtual void             round_geometry();
+		Rect                     get_bound_rect(const Document& d) const override;
+		void                     clean_geometry() override;
+		void                     round_geometry() override;
 		
         bool                     has_color() const { return !color.empty(); }
 		const Color&             get_color() const { return color; }
 
-		virtual CyberiadaNode*   to_node() const;
+		CyberiadaNode*           to_node() const override;
 		
 	protected:
-		virtual std::ostream&    dump(std::ostream& os) const;
+		std::ostream&            dump(std::ostream& os) const override;
 		void                     copy_elements(const ElementCollection& source);
 
 		ElementList              children;
@@ -401,7 +401,7 @@ namespace Cyberiada {
 		InitialPseudostate(Element* parent, const ID& id, const Point& p = Point());
 		InitialPseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
 
-		virtual Element*       copy(Element* parent) const;
+		Element*       copy(Element* parent) const override;
 	};
 
 // -----------------------------------------------------------------------------
@@ -415,20 +415,20 @@ namespace Cyberiada {
 						  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate(const ChoicePseudostate& cp);
 
-		virtual bool           has_geometry() const { return geometry_rect.valid; }
+		bool                   has_geometry() const override { return geometry_rect.valid; }
 		const Rect&            get_geometry_rect() const { return geometry_rect; }
-		virtual Rect           get_bound_rect(const Document& d) const;
-		virtual void           clean_geometry();
-		virtual void           round_geometry();
+		Rect                   get_bound_rect(const Document& d) const override;
+		void                   clean_geometry() override;
+		void                   round_geometry() override;
 		
         bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
 
-		virtual CyberiadaNode* to_node() const;
-		virtual Element*       copy(Element* parent) const;
+		CyberiadaNode*         to_node() const override;
+		Element*               copy(Element* parent) const override;
 		
 	protected:
-	    virtual std::ostream&  dump(std::ostream& os) const;
+	    std::ostream&          dump(std::ostream& os) const override;
 
 		Rect                   geometry_rect;
 		Color                  color;
@@ -442,7 +442,7 @@ namespace Cyberiada {
 		TerminatePseudostate(Element* parent, const ID& id, const Point& p = Point());
 		TerminatePseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
 
-		virtual Element*       copy(Element* parent) const;
+		Element*               copy(Element* parent) const override;
 	};
 	
 // -----------------------------------------------------------------------------
@@ -453,7 +453,7 @@ namespace Cyberiada {
 		FinalState(Element* parent, const ID& id, const Point& point = Point());
 		FinalState(Element* parent, const ID& id, const Name& name, const Point& point = Point());
 
-		virtual Element*       copy(Element* parent) const;
+		Element*       copy(Element* parent) const override;
 	};
 
 // -----------------------------------------------------------------------------
@@ -508,8 +508,8 @@ namespace Cyberiada {
 			  const Rect& r = Rect(), const Color& color = Color());
 		State(const State& s);
 
-		virtual void             add_element(Element* e);
-		virtual void             remove_element(const ID& id);
+		void                     add_element(Element* e) override;
+		void                     remove_element(const ID& id) override;
 		
 		bool                     is_simple_state() const { return get_type() == elementSimpleState; }
 		bool                     is_composite_state() const { return get_type() == elementCompositeState; }
@@ -522,11 +522,11 @@ namespace Cyberiada {
 		std::list<Action>&       get_actions() { return actions; }
 		void                     add_action(const Action& a);
 		
-		virtual CyberiadaNode*   to_node() const;
-		virtual Element*         copy(Element* parent) const;
+		CyberiadaNode*           to_node() const override;
+		Element*                 copy(Element* parent) const override;
 		
 	protected:
-		virtual std::ostream&    dump(std::ostream& os) const;
+		std::ostream&            dump(std::ostream& os) const override;
 		void                     update_state_type();
 		
 		std::list<Action>        actions;
@@ -551,11 +551,11 @@ namespace Cyberiada {
 		const Action&          get_action() const { return action; }
 		Action&                get_action() { return action; }
 		
-		bool                   has_geometry() const { return (source_point.valid ||
-															  target_point.valid ||
-															  label_point.valid ||
-															  label_rect.valid ||
-															  has_polyline()); }
+		bool                   has_geometry() const override { return (source_point.valid ||
+																	   target_point.valid ||
+																	   label_point.valid ||
+																	   label_rect.valid ||
+																	   has_polyline()); }
 		bool                   has_polyline() const { return !polyline.empty(); }
 		bool                   has_geometry_source_point() const { return source_point.valid; }
 		bool                   has_geometry_target_point() const { return target_point.valid; }
@@ -566,18 +566,18 @@ namespace Cyberiada {
 		const Point&           get_target_point() const { return target_point; }
 		const Point&           get_label_point() const { return label_point; }
 		const Rect&            get_label_rect() const { return label_rect; }
-		virtual Rect           get_bound_rect(const Document& d) const;
-		virtual void           clean_geometry();
-		virtual void           round_geometry();
+		Rect                   get_bound_rect(const Document& d) const override;
+		void                   clean_geometry() override;
+		void                   round_geometry() override;
 		
 		bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
 
 		virtual CyberiadaEdge* to_edge() const;
-		virtual Element*       copy(Element* parent) const;
+		Element*       copy(Element* parent) const override;
 		
 	protected:
-		virtual std::ostream&  dump(std::ostream& os) const;
+		std::ostream&  dump(std::ostream& os) const override;
 
 	private:
 		ID                     source_id;
@@ -608,10 +608,10 @@ namespace Cyberiada {
 
 		CyberiadaNode*               to_node(const Point& center) const;
 		
-		virtual Element*             copy(Element* parent) const;
+		Element*                     copy(Element* parent) const override;
 		
 	protected:
-		virtual std::ostream&        dump(std::ostream& os) const;
+		std::ostream&                dump(std::ostream& os) const override;
 	};
 
 // -----------------------------------------------------------------------------
@@ -718,7 +718,7 @@ namespace Cyberiada {
 											  DocumentFormat f = formatCyberiada10,
 											  bool round = false) const;
 
-		virtual void                   set_name(const Name& name);
+		void                           set_name(const Name& name) override;
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
@@ -728,17 +728,17 @@ namespace Cyberiada {
 		const StateMachine*            get_parent_sm(const Element* element) const;
 		StateMachine*                  get_parent_sm(const Element* element);
 
-		virtual bool                   has_geometry() const { return geometry_format != geometryFormatNone; }
+		bool                           has_geometry() const override { return geometry_format != geometryFormatNone; }
 		Rect                           get_bound_rect() const;
-		virtual Rect                   get_bound_rect(const Document& d) const;
+		Rect                           get_bound_rect(const Document& d) const override;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
 		void                           reconstruct_geometry();
-		virtual void                   clean_geometry();
+		void                           clean_geometry() override;
 		
-		virtual Element*               copy(Element* parent) const;
+		Element*                       copy(Element* parent) const override;
 		
 	protected:
-		virtual std::ostream&          dump(std::ostream& os) const;
+		std::ostream&                  dump(std::ostream& os) const override;
 		void                           update_from_document(DocumentGeometryFormat gf,
 															CyberiadaDocument* doc);
 		void                           to_document(CyberiadaDocument* doc) const;
@@ -794,10 +794,10 @@ namespace Cyberiada {
 		DocumentFormat                 get_file_format() const { return file_format; }
 		String                         get_file_format_str() const;
 
-		virtual Element*               copy(Element* parent) const;
+		Element*                       copy(Element* parent) const override;
 		
 	protected:
-		virtual std::ostream&          dump(std::ostream& os) const;
+		std::ostream&                  dump(std::ostream& os) const override;
 		
 	private:
 		String                         file_path;
