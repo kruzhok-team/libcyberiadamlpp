@@ -2861,12 +2861,10 @@ CyberiadaMetainformation* Document::export_meta() const
 	return meta_info;
 }
 
-CyberiadaDocument* Document::to_document() const
+void Document::to_document(CyberiadaDocument* doc) const
 {
-	CyberiadaDocument* doc = NULL;
-	
-	doc = cyberiada_new_sm_document();
 	CYB_ASSERT(doc);
+	cyberiada_init_sm_document(doc);
 
 	switch (geometry_format) {
 	case geometryFormatNone:
@@ -2926,13 +2924,11 @@ CyberiadaDocument* Document::to_document() const
 	if (geometry_format == geometryFormatQt) {
 		doc->bounding_rect = get_bound_rect().c_rect();
 	}
-
-	return doc;
 }
 
 void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 {
-	CyberiadaDocument* doc = NULL;
+	CyberiadaDocument doc;
 	int res;
 	char* buffer = NULL;
 	size_t buffer_size;
@@ -2945,10 +2941,11 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 		}
 	}
 
-	doc = to_document();
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
 
 	if (f == formatCyberiada10) {
-		cyberiada_copy_string(&(doc->format), &(doc->format_len),
+		cyberiada_copy_string(&(doc.format), &(doc.format_len),
 							  DEFAULT_GRAPHML_FORMAT.c_str());
 	}
 	
@@ -2960,16 +2957,16 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 		flags |= CYBERIADA_FLAG_ROUND_GEOMETRY;
 	}
 
-	res = cyberiada_encode_sm_document(doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
+	res = cyberiada_encode_sm_document(&doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
 	if (res != CYBERIADA_NO_ERROR) {
-		cyberiada_destroy_sm_document(doc);
+		cyberiada_cleanup_sm_document(&doc);
 		if (buffer) free(buffer);
 		CYB_CHECK_RESULT(res);
 	}
 
 	res_buffer = buffer;
 	
-	cyberiada_destroy_sm_document(doc);
+	cyberiada_cleanup_sm_document(&doc);
 	if (buffer) free(buffer);
 }
 
@@ -3154,7 +3151,7 @@ void Document::clean_geometry()
 
 void Document::convert_geometry(DocumentGeometryFormat geom_format)
 {
-	CyberiadaDocument* doc = NULL; 
+	CyberiadaDocument doc;
 
 	CyberiadaGeometryCoordFormat new_node_coord_format, new_edge_coord_format, new_edge_pl_coord_format;
 	CyberiadaGeometryEdgeFormat new_edge_geom_format;
@@ -3182,36 +3179,37 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 		throw ParametersException("Bad geometry format");
 	}
 
-	doc = to_document();
-	CYB_ASSERT(doc);
-	
-	int res = cyberiada_convert_document_geometry(doc, new_node_coord_format, new_edge_coord_format,
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
+
+	int res = cyberiada_convert_document_geometry(&doc, new_node_coord_format, new_edge_coord_format,
 												  new_edge_pl_coord_format, new_edge_geom_format);
 	if (res != CYBERIADA_NO_ERROR) {
-		cyberiada_destroy_sm_document(doc);
+		cyberiada_cleanup_sm_document(&doc);
 		CYB_CHECK_RESULT(res);
 	}
 	
-	update_from_document(geom_format, doc);
-	
-	cyberiada_destroy_sm_document(doc);
+	update_from_document(geom_format, &doc);
+
+	cyberiada_cleanup_sm_document(&doc);
 }
 
 void Document::reconstruct_geometry()
 {
-	CyberiadaDocument* doc = to_document();
-	CYB_ASSERT(doc);
+	CyberiadaDocument doc;
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
 
-	int res = cyberiada_reconstruct_document_geometry(doc);
+	int res = cyberiada_reconstruct_document_geometry(&doc);
 	CYB_CHECK_RESULT(res);
 
 	if (geometry_format == geometryFormatNone) {
 		geometry_format = geometryFormatQt;
 	}
 
-	update_from_document(geometry_format, doc);
+	update_from_document(geometry_format, &doc);
 	
-	cyberiada_destroy_sm_document(doc);
+	cyberiada_cleanup_sm_document(&doc);
 }
 
 Element* Document::copy(Element*) const

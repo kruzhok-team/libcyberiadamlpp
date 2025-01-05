@@ -733,7 +733,7 @@ namespace Cyberiada {
 		virtual std::ostream&          dump(std::ostream& os) const;
 		void                           update_from_document(DocumentGeometryFormat gf,
 															CyberiadaDocument* doc);
-		CyberiadaDocument*             to_document() const;
+		void                           to_document(CyberiadaDocument* doc) const;
 		
 	private:
 		void                           update_metainfo_element();
