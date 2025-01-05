@@ -157,7 +157,7 @@ namespace Cyberiada {
 		virtual bool           has_children() const { return false; }
 		virtual size_t         children_count() const { return 0; }
 		virtual size_t         elements_count() const { return 1; }
-		virtual int            index() const;
+		int                    index() const;
 
 		virtual bool           has_geometry() const = 0;
 		virtual Rect           get_bound_rect(const Document& d) const = 0;
