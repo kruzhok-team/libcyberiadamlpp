@@ -88,12 +88,21 @@ namespace Cyberiada {
 		CyberiadaPoint* c_point() const;
 		void  round();
 		Point round() const;
-		
+		String to_str() const;
+
 		bool   valid;
 		float  x, y;
 	};
-	typedef std::list<Point> Polyline;
-	
+
+	class Polyline: public std::list<Point> {
+	public:
+		Polyline(): std::list<Point>() {}
+		
+		CyberiadaPolyline* c_polyline() const;
+		void round();
+		String to_str();
+	};
+
 	struct Rect {
 		Rect(): valid(false), x(0.0), y(0.0), width(0.0), height(0.0) {}
 		Rect(float _x, float _y, float _width, float _height):
@@ -106,6 +115,7 @@ namespace Cyberiada {
 		void round();
 		Rect round() const;		
 		CyberiadaRect* c_rect() const;
+		String to_str() const;
 
 		bool operator==(const Rect& r) const;
 		bool operator!=(const Rect& r) const;
@@ -119,9 +129,6 @@ namespace Cyberiada {
 	std::ostream& operator<<(std::ostream& os, const Point& p);
 	std::ostream& operator<<(std::ostream& os, const Rect& r);
 	std::ostream& operator<<(std::ostream& os, const Polyline& pl);
-
-	CyberiadaPolyline* c_polyline(const Polyline& polyline);
-	void round_polyline(Polyline& polyline);
 	
 // -----------------------------------------------------------------------------
 // Base Element

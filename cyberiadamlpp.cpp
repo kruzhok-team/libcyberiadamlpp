@@ -229,6 +229,13 @@ Point Point::round() const
 	return p;
 }
 
+String Point::to_str() const
+{
+	std::ostringstream s;
+	s << *this;
+	return s.str();
+}
+
 Rect::Rect(CyberiadaRect* r)
 {
 	if (r) {
@@ -256,10 +263,17 @@ CyberiadaRect* Rect::c_rect() const
 	}
 }
 
-CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
+String Rect::to_str() const
+{
+	std::ostringstream s;
+	s << *this;
+	return s.str();
+}
+
+CyberiadaPolyline* Polyline::c_polyline() const
 {
 	CyberiadaPolyline* result = NULL;
-	for (Polyline::const_iterator i = polyline.begin(); i != polyline.end(); i++) {
+	for (Polyline::const_iterator i = begin(); i != end(); i++) {
 		const Point& point = *i;
 		CyberiadaPolyline* pl = htree_new_polyline();
 		pl->point.x = point.x;
@@ -273,6 +287,13 @@ CyberiadaPolyline* Cyberiada::c_polyline(const Polyline& polyline)
 		}
 	}
 	return result;
+}
+
+String Polyline::to_str()
+{
+	std::ostringstream s;
+	s << *this;
+	return s.str();	
 }
 
 bool Rect::operator==(const Rect& r) const
@@ -320,9 +341,9 @@ void Rect::round()
 	}
 }
 
-void Cyberiada::round_polyline(Polyline& pl)
+void Polyline::round()
 {
-	for (Polyline::iterator i = pl.begin(); i != pl.end(); i++) {
+	for (Polyline::iterator i = begin(); i != end(); i++) {
 		i->round();
 	}
 }
@@ -539,7 +560,7 @@ void CommentSubject::round_geometry()
 	if (has_geometry()) {
 		source_point.round();
 		target_point.round();
-		round_polyline(polyline);
+		polyline.round();
 	}
 }
 
@@ -690,7 +711,7 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 					edge->geometry_target_point = i->get_geometry_target_point().c_point();
 				}
 				if (i->has_polyline()) {
-					edge->geometry_polyline = c_polyline(i->get_geometry_polyline());
+					edge->geometry_polyline = i->get_geometry_polyline().c_polyline();
 				}
 			}
 
@@ -1606,7 +1627,7 @@ CyberiadaEdge* Transition::to_edge() const
 			edge->geometry_label_rect = label_rect.c_rect();
 		}
 		if (has_polyline()) {
-			edge->geometry_polyline = c_polyline(polyline);
+			edge->geometry_polyline = polyline.c_polyline();
 		}
 		if (has_color()) {
 			cyberiada_copy_string(&(edge->color), &(edge->color_len), color.c_str());
@@ -1641,7 +1662,7 @@ void Transition::round_geometry()
 		target_point.round();
 		label_point.round();
 		label_rect.round();
-		round_polyline(polyline);
+		polyline.round();
 	}
 }
 
