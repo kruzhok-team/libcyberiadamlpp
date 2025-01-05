@@ -708,7 +708,7 @@ namespace Cyberiada {
 											  bool reconstruct = false);
 		void                           encode(String& buffer,
 											  DocumentFormat f = formatCyberiada10,
-											  bool round = false);
+											  bool round = false) const;
 
 		virtual void                   set_name(const Name& name);
 		const DocumentMetainformation& meta() const { return metainfo; }
@@ -724,12 +724,16 @@ namespace Cyberiada {
 		Rect                           get_bound_rect() const;
 		virtual Rect                   get_bound_rect(const Document& d) const;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
+		void                           reconstruct_geometry();
 		virtual void                   clean_geometry();
 		
 		virtual Element*               copy(Element* parent) const;
 		
 	protected:
 		virtual std::ostream&          dump(std::ostream& os) const;
+		void                           update_from_document(DocumentGeometryFormat gf,
+															CyberiadaDocument* doc);
+		CyberiadaDocument*             to_document() const;
 		
 	private:
 		void                           update_metainfo_element();

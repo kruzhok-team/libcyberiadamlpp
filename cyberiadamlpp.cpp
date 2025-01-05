@@ -2562,6 +2562,99 @@ void Document::set_name(const Name& _name)
 	update_metainfo_element();
 }
 
+void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument* doc)
+{
+	reset();
+	
+	try {		
+
+		CYB_ASSERT(doc->meta_info);
+		CYB_ASSERT(doc->meta_info->standard_version);
+		metainfo.standard_version = doc->meta_info->standard_version;
+		if (doc->meta_info->platform_name) {
+			metainfo.platform_name = doc->meta_info->platform_name;
+		}
+		if (doc->meta_info->platform_version) {
+			metainfo.platform_version = doc->meta_info->platform_version;
+		}
+		if (doc->meta_info->platform_language) {
+			metainfo.platform_language = doc->meta_info->platform_language;
+		}
+		if (doc->meta_info->target_system) {
+			metainfo.target_system = doc->meta_info->target_system;
+		}
+		if (doc->meta_info->name) {
+			set_name(doc->meta_info->name);
+		}
+		if (doc->meta_info->author) {
+			metainfo.author = doc->meta_info->author;
+		}
+		if (doc->meta_info->contact) {
+			metainfo.contact = doc->meta_info->contact;
+		}
+		if (doc->meta_info->description) {
+			metainfo.description = doc->meta_info->description;
+		}
+		if (doc->meta_info->version) {
+			metainfo.version = doc->meta_info->version;
+		}
+		if (doc->meta_info->date) {
+			metainfo.date = doc->meta_info->date;
+		}
+		if (doc->meta_info->markup_language) {
+			metainfo.markup_language = doc->meta_info->markup_language;
+		}
+		metainfo.transition_order_flag = doc->meta_info->transition_order_flag == 2;
+		metainfo.event_propagation_flag = doc->meta_info->event_propagation_flag == 2;
+		
+		for (CyberiadaSM* sm = doc->state_machines; sm; sm = sm->next) {
+			CyberiadaNode* root = sm->nodes;
+			CYB_ASSERT(root);
+			CYB_ASSERT(root->type == cybNodeSM);
+			CYB_ASSERT(!root->next);
+			CYB_ASSERT(root->id);
+			StateMachine* new_sm;
+			if (root->title) {
+				new_sm = new_state_machine(root->id, root->title, root->geometry_rect);
+			} else {
+				new_sm = new_state_machine(root->id, "", root->geometry_rect);
+			}
+			CYB_ASSERT(new_sm);
+			if (root->children) {
+				import_nodes_recursively(new_sm, root->children);
+			}
+			if (sm->edges) { 
+				import_edges(new_sm, sm->edges);
+			}
+		}		
+	} catch (const CybMLException& e) {
+		cyberiada_cleanup_sm_document(doc);
+		throw CybMLException(e.str());		
+	} catch (const Exception& e) {
+		cyberiada_cleanup_sm_document(doc);
+		throw AssertException("Internal load error: " + e.str());
+	}
+	
+	if (doc->node_coord_format == coordNone) {
+		geometry_format = geometryFormatNone;
+	} else {
+		geometry_format = gf;
+	}
+
+	Rect r1 = Rect(doc->bounding_rect);
+	Rect r2 = get_bound_rect(); 
+	if (r1 == r2) {
+		center_point = Point(0.0, 0.0);
+	} else if (geometry_format == geometryFormatQt && r1.width == r2.width && r1.height == r2.height) {
+		center_point = Point(r1.x, r1.y);
+	} else {
+		std::ostringstream s;
+		s << "lib " << r1 << " lib++ " << r2 << " doc: " << *this;
+		cyberiada_cleanup_sm_document(doc);
+		throw AssertException("Bounding rectangles mismatch: " + s.str());
+	}	
+}
+
 void Document::decode(const String& buffer,
 					  DocumentFormat& format,
 					  String& format_str,
@@ -2612,103 +2705,17 @@ void Document::decode(const String& buffer,
 		CYB_CHECK_RESULT(res);
 	}
 
-	try {		
-
-		CYB_ASSERT(doc.format);
-		format_str = doc.format;
-		if (format == formatDetect) {
-			if (format_str == DEFAULT_GRAPHML_FORMAT) {
-				format = formatCyberiada10;
-			} else {
-				format = formatLegacyYED;
-			}
+	CYB_ASSERT(doc.format);
+	format_str = doc.format;
+	if (format == formatDetect) {
+		if (format_str == DEFAULT_GRAPHML_FORMAT) {
+			format = formatCyberiada10;
+		} else {
+			format = formatLegacyYED;
 		}
-
-		CYB_ASSERT(doc.meta_info);
-		CYB_ASSERT(doc.meta_info->standard_version);
-		metainfo.standard_version = doc.meta_info->standard_version;
-		if (doc.meta_info->platform_name) {
-			metainfo.platform_name = doc.meta_info->platform_name;
-		}
-		if (doc.meta_info->platform_version) {
-			metainfo.platform_version = doc.meta_info->platform_version;
-		}
-		if (doc.meta_info->platform_language) {
-			metainfo.platform_language = doc.meta_info->platform_language;
-		}
-		if (doc.meta_info->target_system) {
-			metainfo.target_system = doc.meta_info->target_system;
-		}
-		if (doc.meta_info->name) {
-			set_name(doc.meta_info->name);
-		}
-		if (doc.meta_info->author) {
-			metainfo.author = doc.meta_info->author;
-		}
-		if (doc.meta_info->contact) {
-			metainfo.contact = doc.meta_info->contact;
-		}
-		if (doc.meta_info->description) {
-			metainfo.description = doc.meta_info->description;
-		}
-		if (doc.meta_info->version) {
-			metainfo.version = doc.meta_info->version;
-		}
-		if (doc.meta_info->date) {
-			metainfo.date = doc.meta_info->date;
-		}
-		if (doc.meta_info->markup_language) {
-			metainfo.markup_language = doc.meta_info->markup_language;
-		}
-		metainfo.transition_order_flag = doc.meta_info->transition_order_flag == 2;
-		metainfo.event_propagation_flag = doc.meta_info->event_propagation_flag == 2;
-		
-		for (CyberiadaSM* sm = doc.state_machines; sm; sm = sm->next) {
-			CyberiadaNode* root = sm->nodes;
-			CYB_ASSERT(root);
-			CYB_ASSERT(root->type == cybNodeSM);
-			CYB_ASSERT(!root->next);
-			CYB_ASSERT(root->id);
-			StateMachine* new_sm;
-			if (root->title) {
-				new_sm = new_state_machine(root->id, root->title, root->geometry_rect);
-			} else {
-				new_sm = new_state_machine(root->id, "", root->geometry_rect);
-			}
-			CYB_ASSERT(new_sm);
-			if (root->children) {
-				import_nodes_recursively(new_sm, root->children);
-			}
-			if (sm->edges) { 
-				import_edges(new_sm, sm->edges);
-			}
-		}		
-	} catch (const CybMLException& e) {
-		cyberiada_cleanup_sm_document(&doc);
-		throw CybMLException(e.str());		
-	} catch (const Exception& e) {
-		cyberiada_cleanup_sm_document(&doc);
-		throw AssertException("Internal load error: " + e.str());
 	}
 	
-	if (doc.node_coord_format == coordNone) {
-		geometry_format = geometryFormatNone;
-	} else {
-		geometry_format = gf;
-	}
-
-	Rect r1 = Rect(doc.bounding_rect);
-	Rect r2 = get_bound_rect(); 
-	if (r1 == r2) {
-		center_point = Point(0.0, 0.0);
-	} else if (geometry_format == geometryFormatQt && r1.width == r2.width && r1.height == r2.height) {
-		center_point = Point(r1.x, r1.y);
-	} else {
-		std::ostringstream s;
-		s << "lib " << r1 << " lib++ " << r2 << " doc: " << *this;
-		cyberiada_cleanup_sm_document(&doc);
-		throw AssertException("Bounding rectangles mismatch: " + s.str());
-	}
+	update_from_document(gf, &doc);
 
 	cyberiada_cleanup_sm_document(&doc);
 }
@@ -2854,9 +2861,78 @@ CyberiadaMetainformation* Document::export_meta() const
 	return meta_info;
 }
 
-void Document::encode(String& res_buffer, DocumentFormat f, bool round)
+CyberiadaDocument* Document::to_document() const
 {
-	CyberiadaDocument doc;
+	CyberiadaDocument* doc = NULL;
+	
+	doc = cyberiada_new_sm_document();
+	CYB_ASSERT(doc);
+
+	switch (geometry_format) {
+	case geometryFormatNone:
+		doc->node_coord_format = doc->edge_coord_format = doc->edge_pl_coord_format = coordNone;
+		doc->edge_geom_format = edgeNone;
+		break;
+	case geometryFormatLegacyYED:
+		doc->node_coord_format = coordAbsolute;
+		doc->edge_coord_format = coordLocalCenter;
+		doc->edge_pl_coord_format = coordAbsolute;
+		doc->edge_geom_format = edgeCenter;
+		break;
+	case geometryFormatCyberiada10:
+		doc->node_coord_format = doc->edge_coord_format = doc->edge_pl_coord_format = coordLeftTop;
+		doc->edge_geom_format = edgeBorder;
+		break;
+	case geometryFormatQt:
+		doc->node_coord_format = doc->edge_coord_format = doc->edge_pl_coord_format = coordLocalCenter;
+		doc->edge_geom_format = edgeBorder;
+		break;
+	default:
+		throw ParametersException("Bad geometry format");
+	}
+
+	std::list<const StateMachine*> state_machines = get_state_machines();
+	if (state_machines.empty()) {
+		throw ParametersException("At least one state machine required");
+	}
+	
+	try {
+		
+		doc->meta_info = export_meta();
+
+		for (std::list<const StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
+			const StateMachine* orig_sm = *i;
+			CYB_ASSERT(orig_sm);
+			CyberiadaSM* new_sm = cyberiada_new_sm();
+/*			if (geometry_format == geometryFormatQt) {
+				new_sm->nodes = orig_sm->to_node(center_point);
+				} else {*/
+				new_sm->nodes = orig_sm->to_node(Point(0.0, 0.0));
+/*			}*/
+			export_edges(&(new_sm->edges), orig_sm, new_sm);
+			if (doc->state_machines) {
+				CyberiadaSM* sm = doc->state_machines;
+				while(sm->next) sm = sm->next;
+				sm->next = new_sm;
+			} else {
+				doc->state_machines = new_sm;
+			}
+		}	
+	} catch (const Exception& e) {
+		cyberiada_cleanup_sm_document(doc);
+		throw AssertException("Internal convertion to SM document error: " + e.str());
+	}
+
+	if (geometry_format == geometryFormatQt) {
+		doc->bounding_rect = get_bound_rect().c_rect();
+	}
+
+	return doc;
+}
+
+void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
+{
+	CyberiadaDocument* doc = NULL;
 	int res;
 	char* buffer = NULL;
 	size_t buffer_size;
@@ -2869,66 +2945,11 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round)
 		}
 	}
 
-	std::list<StateMachine*> state_machines = get_state_machines();
-	if (state_machines.empty()) {
-		throw ParametersException("At least one state machine required");
-	}
-	
-	res = cyberiada_init_sm_document(&doc);
-	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
+	doc = to_document();
 
-	switch (geometry_format) {
-	case geometryFormatNone:
-		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordNone;
-		doc.edge_geom_format = edgeNone;
-		break;
-	case geometryFormatLegacyYED:
-		doc.node_coord_format = coordAbsolute;
-		doc.edge_coord_format = coordLocalCenter;
-		doc.edge_pl_coord_format = coordAbsolute;
-		doc.edge_geom_format = edgeCenter;
-		break;
-	case geometryFormatCyberiada10:
-		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordLeftTop;
-		doc.edge_geom_format = edgeBorder;
-		break;
-	case geometryFormatQt:
-		doc.node_coord_format = doc.edge_coord_format = doc.edge_pl_coord_format = coordLocalCenter;
-		doc.edge_geom_format = edgeBorder;
-		break;
-	default:
-		throw ParametersException("Bad geometry format");
-	}
-	
-	try {
-		if (f == formatCyberiada10) {
-			cyberiada_copy_string(&(doc.format), &(doc.format_len),
-								  DEFAULT_GRAPHML_FORMAT.c_str());
-		}
-		
-		doc.meta_info = export_meta();
-
-		for (std::list<StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
-			const StateMachine* orig_sm = *i;
-			CYB_ASSERT(orig_sm);
-			CyberiadaSM* new_sm = cyberiada_new_sm();
-/*			if (geometry_format == geometryFormatQt) {
-				new_sm->nodes = orig_sm->to_node(center_point);
-				} else {*/
-				new_sm->nodes = orig_sm->to_node(Point(0.0, 0.0));
-/*			}*/
-			export_edges(&(new_sm->edges), orig_sm, new_sm);
-			if (doc.state_machines) {
-				CyberiadaSM* sm = doc.state_machines;
-				while(sm->next) sm = sm->next;
-				sm->next = new_sm;
-			} else {
-				doc.state_machines = new_sm;
-			}
-		}	
-	} catch (const Exception& e) {
-		cyberiada_cleanup_sm_document(&doc);
-		throw AssertException("Internal save error: " + e.str());
+	if (f == formatCyberiada10) {
+		cyberiada_copy_string(&(doc->format), &(doc->format_len),
+							  DEFAULT_GRAPHML_FORMAT.c_str());
 	}
 	
 	int flags = 0;
@@ -2939,20 +2960,16 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round)
 		flags |= CYBERIADA_FLAG_ROUND_GEOMETRY;
 	}
 
-	if (geometry_format == geometryFormatQt) {
-		doc.bounding_rect = get_bound_rect().c_rect();
-	}
-
-	res = cyberiada_encode_sm_document(&doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
+	res = cyberiada_encode_sm_document(doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
 	if (res != CYBERIADA_NO_ERROR) {
-		cyberiada_cleanup_sm_document(&doc);
+		cyberiada_destroy_sm_document(doc);
 		if (buffer) free(buffer);
 		CYB_CHECK_RESULT(res);
 	}
 
 	res_buffer = buffer;
 	
-	cyberiada_cleanup_sm_document(&doc);
+	cyberiada_destroy_sm_document(doc);
 	if (buffer) free(buffer);
 }
 
@@ -3137,6 +3154,64 @@ void Document::clean_geometry()
 
 void Document::convert_geometry(DocumentGeometryFormat geom_format)
 {
+	CyberiadaDocument* doc = NULL; 
+
+	CyberiadaGeometryCoordFormat new_node_coord_format, new_edge_coord_format, new_edge_pl_coord_format;
+	CyberiadaGeometryEdgeFormat new_edge_geom_format;
+
+	switch (geom_format) {
+	case geometryFormatNone:
+		new_node_coord_format = new_edge_coord_format = new_edge_pl_coord_format = coordNone;
+		new_edge_geom_format = edgeNone;
+		break;
+	case geometryFormatLegacyYED:
+		new_node_coord_format = coordAbsolute;
+		new_edge_coord_format = coordLocalCenter;
+		new_edge_pl_coord_format = coordAbsolute;
+		new_edge_geom_format = edgeCenter;
+		break;
+	case geometryFormatCyberiada10:
+		new_node_coord_format = new_edge_coord_format = new_edge_pl_coord_format = coordLeftTop;
+		new_edge_geom_format = edgeBorder;
+		break;
+	case geometryFormatQt:
+		new_node_coord_format = new_edge_coord_format = new_edge_pl_coord_format = coordLocalCenter;
+		new_edge_geom_format = edgeBorder;
+		break;
+	default:
+		throw ParametersException("Bad geometry format");
+	}
+
+	doc = to_document();
+	CYB_ASSERT(doc);
+	
+	int res = cyberiada_convert_document_geometry(doc, new_node_coord_format, new_edge_coord_format,
+												  new_edge_pl_coord_format, new_edge_geom_format);
+	if (res != CYBERIADA_NO_ERROR) {
+		cyberiada_destroy_sm_document(doc);
+		CYB_CHECK_RESULT(res);
+	}
+	
+	update_from_document(geom_format, doc);
+	
+	cyberiada_destroy_sm_document(doc);
+}
+
+void Document::reconstruct_geometry()
+{
+	CyberiadaDocument* doc = to_document();
+	CYB_ASSERT(doc);
+
+	int res = cyberiada_reconstruct_document_geometry(doc);
+	CYB_CHECK_RESULT(res);
+
+	if (geometry_format == geometryFormatNone) {
+		geometry_format = geometryFormatQt;
+	}
+
+	update_from_document(geometry_format, doc);
+	
+	cyberiada_destroy_sm_document(doc);
 }
 
 Element* Document::copy(Element*) const
