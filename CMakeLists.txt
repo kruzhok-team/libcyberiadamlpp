@@ -72,6 +72,10 @@ file(COPY_FILE
   ${PROJECT_SOURCE_DIR}/run-tests.sh
   ${PROJECT_BINARY_DIR}/run-tests.sh ONLY_IF_DIFFERENT)
 
+file(COPY_FILE
+  ${PROJECT_SOURCE_DIR}/run-mem-tests.sh
+  ${PROJECT_BINARY_DIR}/run-mem-tests.sh ONLY_IF_DIFFERENT)
+
 install(TARGETS cyberiadamlpp DESTINATION lib EXPORT cyberiadamlpp)
 install(FILES cyberiadamlpp.h
   ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
