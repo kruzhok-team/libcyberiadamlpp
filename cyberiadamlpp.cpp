@@ -470,6 +470,13 @@ Action::Action(const Event& _trigger, const Guard& _guard, const Behavior& _beha
 {
 }
 
+String Action::to_str() const
+{
+	std::ostringstream s;
+	s << *this;
+	return s.str();	
+}
+
 std::ostream& Action::dump(std::ostream& os) const
 {
 	if (type != actionTransition) {
@@ -545,6 +552,13 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const CommentSubject& cs)
 {
 	cs.dump(os);
 	return os;
+}
+
+String CommentSubject::to_str() const
+{
+	std::ostringstream s;
+	s << *this;
+	return s.str();	
 }
 
 void CommentSubject::clean_geometry()
@@ -3189,6 +3203,8 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 
 	CyberiadaGeometryCoordFormat new_node_coord_format, new_edge_coord_format, new_edge_pl_coord_format;
 	CyberiadaGeometryEdgeFormat new_edge_geom_format;
+
+	if (geometry_format == geom_format) return ;
 
 	switch (geom_format) {
 	case geometryFormatNone:

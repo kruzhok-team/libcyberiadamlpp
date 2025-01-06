@@ -223,6 +223,7 @@ namespace Cyberiada {
         Rect                   get_bound_rect(const Document& d) const;
 		void                   clean_geometry();
 		void                   round_geometry();
+		String                 to_str() const;
 
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
@@ -356,7 +357,7 @@ namespace Cyberiada {
 		int                      element_index(const Element* e) const;
 
 		virtual void             add_element(Element* e);
-		virtual void             add_first_element(Element* e);
+		void                     add_first_element(Element* e);
 		virtual void             remove_element(const ID& id);
 		void                     clear();
 
@@ -486,6 +487,7 @@ namespace Cyberiada {
 		const Guard&           get_guard() const { return guard; }
 		bool                   has_behavior() const { return !behavior.empty(); }
 		const Behavior&        get_behavior() const { return behavior; }
+		String                 to_str() const;
 
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
