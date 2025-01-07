@@ -665,7 +665,7 @@ const CommentSubject& Comment::add_subject(const CommentSubject& s)
 
 void Comment::remove_subject(CommentSubjectType _type, const String& fragment)
 {
-	for (std::list<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+	for (std::vector<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
 		if (i->get_type() == _type &&
 			i->has_fragment()
 			&& i->get_fragment() == fragment) {
@@ -709,7 +709,7 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 {
 	CyberiadaEdge* result = NULL;
 	if (has_subjects()) {
-		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
+		for (std::vector<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
 			CyberiadaEdge *edge = cyberiada_new_edge(i->get_id().c_str(),
 													 get_id().c_str(),
 													 i->get_element()->get_id().c_str());
@@ -761,7 +761,7 @@ Rect Comment::get_bound_rect(const Document& d) const
 		parent = r = geometry_rect;
 	}
 	if (has_geometry() && has_subjects()) {
-		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
+		for (std::vector<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
 			if (!i->get_element() || !i->get_element()->has_geometry()) {
 				continue;
 			}
@@ -781,7 +781,7 @@ void Comment::clean_geometry()
 {
 	geometry_rect = Rect();
 	if (has_subjects()) {
-		for (std::list<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+		for (std::vector<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
 			i->clean_geometry();
 		}
 	}	
@@ -793,7 +793,7 @@ void Comment::round_geometry()
 	if (has_geometry()) {
 		geometry_rect.round();
 		if (has_subjects()) {
-			for (std::list<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+			for (std::vector<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
 				i->round_geometry();
 			}
 		}
@@ -809,7 +809,7 @@ std::ostream& Comment::dump(std::ostream& os) const
 	}
 	if (has_subjects()) {
 		os << ", subjects: {";
-		for (std::list<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
+		for (std::vector<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
 			os << *i;
 			if(std::next(i) != subjects.end()) {
 				os << ", ";
@@ -1080,14 +1080,14 @@ void ElementCollection::add_first_element(Element* e)
 {
 	CYB_ASSERT(e);
 	CYB_ASSERT(e->get_parent() == this);
-	children.push_front(e);
+	children.insert(children.begin(), e);
 }
 
 void ElementCollection::remove_element(const ID& _id)
 {
 	for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
 		if ((*i)->get_id() == _id) {
-			children.remove(*i);
+			children.erase(i);
 			break;
 		}
 	}
@@ -1102,7 +1102,7 @@ void ElementCollection::clear()
 	children.clear();
 }
 
-std::list<const Vertex*> ElementCollection::get_vertexes() const
+std::vector<const Vertex*> ElementCollection::get_vertexes() const
 {
 	ElementTypes types = { elementSimpleState,
 						   elementCompositeState,
@@ -1110,7 +1110,7 @@ std::list<const Vertex*> ElementCollection::get_vertexes() const
 						   elementFinal,
 						   elementChoice,
 						   elementTerminate};
-	std::list<const Vertex*> result;
+	std::vector<const Vertex*> result;
 	ConstElementList vertexes = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = vertexes.begin(); i != vertexes.end(); i++) {
 		result.push_back(static_cast<const Vertex*>(*i));
@@ -1118,7 +1118,7 @@ std::list<const Vertex*> ElementCollection::get_vertexes() const
 	return result;
 }
 
-std::list<Vertex*> ElementCollection::get_vertexes()
+std::vector<Vertex*> ElementCollection::get_vertexes()
 {
 	ElementTypes types = { elementComment,
 						   elementFormalComment,
@@ -1128,7 +1128,7 @@ std::list<Vertex*> ElementCollection::get_vertexes()
 						   elementFinal,
 						   elementChoice,
 						   elementTerminate};
-	std::list<Vertex*> result;
+	std::vector<Vertex*> result;
 	ElementList vertexes = find_elements_by_types(types);
 	for (ElementList::const_iterator i =  vertexes.begin(); i != vertexes.end(); i++) {
 		result.push_back(static_cast<Vertex*>(*i));
@@ -1516,11 +1516,11 @@ void State::add_action(const Action& a)
 	actions.push_back(a);
 }
 
-std::list<const State*> State::get_substates() const
+std::vector<const State*> State::get_substates() const
 {
 	ElementTypes types = { elementSimpleState,
 						   elementCompositeState };
-	std::list<const State*> result;
+	std::vector<const State*> result;
 	ConstElementList states = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = states.begin(); i != states.end(); i++) {
 		result.push_back(static_cast<const State*>(*i));
@@ -1528,11 +1528,11 @@ std::list<const State*> State::get_substates() const
 	return result;
 }
 
-std::list<State*> State::get_substates()
+std::vector<State*> State::get_substates()
 {
 	ElementTypes types = { elementSimpleState,
 						   elementCompositeState };
-	std::list<State*> result;
+	std::vector<State*> result;
 	ElementList states = find_elements_by_types(types);
 	for (ElementList::const_iterator i = states.begin(); i != states.end(); i++) {
 		result.push_back(static_cast<State*>(*i));
@@ -1553,7 +1553,7 @@ CyberiadaNode* State::to_node() const
 {
 	CyberiadaNode* node = ElementCollection::to_node();
 	if (has_actions()) {
-		for (std::list<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
+		for (std::vector<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
 			const Action& a = *i;
 			CyberiadaActionType at;
 			if (a.get_type() == actionEntry) {
@@ -1594,7 +1594,7 @@ std::ostream& State::dump(std::ostream& os) const
 	Element::dump(os);
 	if (has_actions()) {
 		os << ", actions: {";
-		for (std::list<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
+		for (std::vector<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
 			os << "a {" << *i << "}";
 			if (std::next(i) != actions.end()) {
 				os << ", ";
@@ -1746,11 +1746,11 @@ StateMachine::StateMachine(const StateMachine& sm):
 {
 }
 
-std::list<const Comment*> StateMachine::get_comments() const
+std::vector<const Comment*> StateMachine::get_comments() const
 {
 	ElementTypes types = { elementComment,
 						   elementFormalComment };
-	std::list<const Comment*> result;
+	std::vector<const Comment*> result;
 	ConstElementList comments = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = comments.begin(); i != comments.end(); i++) {
 		result.push_back(static_cast<const Comment*>(*i));
@@ -1758,11 +1758,11 @@ std::list<const Comment*> StateMachine::get_comments() const
 	return result;
 }
 
-std::list<Comment*> StateMachine::get_comments()
+std::vector<Comment*> StateMachine::get_comments()
 {
 	ElementTypes types = { elementComment,
 						   elementFormalComment };
-	std::list<Comment*> result;
+	std::vector<Comment*> result;
 	ElementList comments = find_elements_by_types(types);
 	for (ElementList::iterator i = comments.begin(); i != comments.end(); i++) {
 		result.push_back(static_cast<Comment*>(*i));
@@ -1770,9 +1770,9 @@ std::list<Comment*> StateMachine::get_comments()
 	return result;
 }
 
-std::list<const Transition*> StateMachine::get_transitions() const
+std::vector<const Transition*> StateMachine::get_transitions() const
 {
-	std::list<const Transition*> result;
+	std::vector<const Transition*> result;
 	ConstElementList transitions = find_elements_by_type(elementTransition);
 	for (ConstElementList::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
 		result.push_back(static_cast<const Transition*>(*i));
@@ -1780,9 +1780,9 @@ std::list<const Transition*> StateMachine::get_transitions() const
 	return result;
 }
 
-std::list<Transition*> StateMachine::get_transitions()
+std::vector<Transition*> StateMachine::get_transitions()
 {
-	std::list<Transition*> result;
+	std::vector<Transition*> result;
 	ElementList transitions = find_elements_by_type(elementTransition);
 	for (ElementList::iterator i = transitions.begin(); i != transitions.end(); i++) {
 		result.push_back(static_cast<Transition*>(*i));
@@ -2783,7 +2783,7 @@ void Document::decode(const String& buffer,
 
 void Document::update_metainfo_element()
 {
-	std::list<StateMachine*> sms = get_state_machines();
+	StateMachineList sms = get_state_machines();
 	if (sms.size() == 0) {
 		return ;
 	}
@@ -2823,8 +2823,8 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm, const
 {
 	CyberiadaEdge* edge;
 	size_t c = 0;
-	std::list<const Transition*> transitions = sm->get_transitions();
-	for (std::list<const Transition*>::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
+	std::vector<const Transition*> transitions = sm->get_transitions();
+	for (std::vector<const Transition*>::const_iterator i = transitions.begin(); i != transitions.end(); i++) {
 		const Transition* t = *i;
 		edge = t->to_edge();
 		if (*edges) {
@@ -2836,8 +2836,8 @@ void Document::export_edges(CyberiadaEdge** edges, const StateMachine* sm, const
 		}
 		c++;
 	}
-	std::list<const Comment*> comments = sm->get_comments();
-	for (std::list<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
+	std::vector<const Comment*> comments = sm->get_comments();
+	for (std::vector<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
 		const Comment* c = *j;
 		edge = c->subjects_to_edges();
 		if (*edges) {
@@ -2950,7 +2950,7 @@ void Document::to_document(CyberiadaDocument* doc) const
 		throw ParametersException("Bad geometry format");
 	}
 
-	std::list<const StateMachine*> state_machines = get_state_machines();
+	ConstStateMachineList state_machines = get_state_machines();
 	if (state_machines.empty()) {
 		throw ParametersException("At least one state machine required");
 	}
@@ -2959,7 +2959,7 @@ void Document::to_document(CyberiadaDocument* doc) const
 		
 		doc->meta_info = export_meta();
 
-		for (std::list<const StateMachine*>::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
+		for (ConstStateMachineList::const_iterator i = state_machines.begin(); i != state_machines.end(); i++) {
 			const StateMachine* orig_sm = *i;
 			CYB_ASSERT(orig_sm);
 			CyberiadaSM* new_sm = cyberiada_new_sm();
@@ -3031,9 +3031,9 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 	if (buffer) free(buffer);
 }
 
-std::list<const StateMachine*> Document::get_state_machines() const
+ConstStateMachineList Document::get_state_machines() const
 {
-	std::list<const StateMachine*> result;
+	ConstStateMachineList result;
 	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
 		CYB_ASSERT2((*i)->get_type() == elementSM, "Bad element type " + std::to_string(int((*i)->get_type())));
 		result.push_back(static_cast<const StateMachine*>(*i));
@@ -3041,9 +3041,9 @@ std::list<const StateMachine*> Document::get_state_machines() const
 	return result;
 }
 
-std::list<StateMachine*> Document::get_state_machines()
+StateMachineList Document::get_state_machines()
 {
-	std::list<StateMachine*> result;
+	StateMachineList result;
 	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
 		CYB_ASSERT2((*i)->get_type() == elementSM, "Bad element type " + std::to_string(int((*i)->get_type())));
 		result.push_back(static_cast<StateMachine*>(*i));
@@ -3096,7 +3096,7 @@ std::ostream& Document::dump(std::ostream& os) const
 	case geometryFormatQt:          os << "qt"; break;
 	}
 	os << ", meta: {";
-	std::list<String> params;
+	std::vector<String> params;
 	if (!metainfo.standard_version.empty()) {
 		params.push_back("standard version: '" + metainfo.standard_version + "'");
 	}
@@ -3135,7 +3135,7 @@ std::ostream& Document::dump(std::ostream& os) const
 	}
 	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "exit first": "transition first"));
 	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "propagate events": "block events"));
-	for (std::list<String>::const_iterator i = params.begin(); i != params.end(); i++) {
+	for (std::vector<String>::const_iterator i = params.begin(); i != params.end(); i++) {
 		os << *i;
 		if (std::next(i) != params.end()) {
 			os << ", ";
@@ -3152,7 +3152,7 @@ std::ostream& Document::dump(std::ostream& os) const
 
 ID Document::generate_sm_id() const
 {
-	std::list<const StateMachine*> sm = get_state_machines();
+	ConstStateMachineList sm = get_state_machines();
 	size_t id_num = sm.size();
 	ID result;
 	do {

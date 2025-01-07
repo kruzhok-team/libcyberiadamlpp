@@ -24,7 +24,6 @@
 #define __CYBERIADA_ML_CPP_H
 
 #include <string>
-#include <list>
 #include <vector>
 #include <ostream>
 #include <cyberiada/cyberiadaml.h>
@@ -94,9 +93,9 @@ namespace Cyberiada {
 		float  x, y;
 	};
 
-	class Polyline: public std::list<Point> {
+	class Polyline: public std::vector<Point> {
 	public:
-		Polyline(): std::list<Point>() {}
+		Polyline(): std::vector<Point>() {}
 		
 		CyberiadaPolyline* c_polyline() const;
 		void round();
@@ -258,7 +257,7 @@ namespace Cyberiada {
 		void                             set_body(const String& b) { body = b; }
 		
 		bool                             has_subjects() const { return !subjects.empty(); }
-		const std::list<CommentSubject>& get_subjects() const { return subjects; }
+		const std::vector<CommentSubject>& get_subjects() const { return subjects; }
 	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 
@@ -290,7 +289,7 @@ namespace Cyberiada {
 		String                           markup;
 		bool                             human_readable;
 		Rect                             geometry_rect;
-		std::list<CommentSubject>        subjects;
+		std::vector<CommentSubject>      subjects;
 		Color                            color;
 	};
 
@@ -324,9 +323,9 @@ namespace Cyberiada {
 // Collection of Elements
 // (the combination of Namespace and Region from the PRIMS standard)
 // -----------------------------------------------------------------------------
-	typedef std::list<const Element*> ConstElementList;
-	typedef std::list<Element*>       ElementList;
-	typedef std::vector<ElementType>  ElementTypes;
+	typedef std::vector<const Element*> ConstElementList;
+	typedef std::vector<Element*>       ElementList;
+	typedef std::vector<ElementType>    ElementTypes;
 	
 	class ElementCollection: public Element {
 	public:
@@ -361,8 +360,8 @@ namespace Cyberiada {
 		virtual void             remove_element(const ID& id);
 		void                     clear();
 
-		std::list<const Vertex*> get_vertexes() const;
-		std::list<Vertex*>       get_vertexes();
+		std::vector<const Vertex*> get_vertexes() const;
+		std::vector<Vertex*>       get_vertexes();
 
 		bool                     has_geometry() const override { return geometry_rect.valid; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
@@ -517,12 +516,12 @@ namespace Cyberiada {
 		bool                     is_simple_state() const { return get_type() == elementSimpleState; }
 		bool                     is_composite_state() const { return get_type() == elementCompositeState; }
 
-		std::list<const State*>  get_substates() const;
-		std::list<State*>        get_substates();
+		std::vector<const State*>  get_substates() const;
+		std::vector<State*>        get_substates();
 
 		bool                     has_actions() const { return !actions.empty(); }
-		const std::list<Action>& get_actions() const { return actions; }
-		std::list<Action>&       get_actions() { return actions; }
+		const std::vector<Action>& get_actions() const { return actions; }
+		std::vector<Action>&       get_actions() { return actions; }
 		void                     add_action(const Action& a);
 		
 		CyberiadaNode*           to_node() const override;
@@ -532,7 +531,7 @@ namespace Cyberiada {
 		std::ostream&            dump(std::ostream& os) const override;
 		void                     update_state_type();
 		
-		std::list<Action>        actions;
+		std::vector<Action>        actions;
 	};
 
 // -----------------------------------------------------------------------------
@@ -602,10 +601,10 @@ namespace Cyberiada {
 		StateMachine(Element* parent, const ID& id, const Name& name = "", const Rect& r = Rect());
 		StateMachine(const StateMachine& sm);
 
-		std::list<const Comment*>    get_comments() const;
-		std::list<Comment*>          get_comments();
-		std::list<const Transition*> get_transitions() const;
-		std::list<Transition*>       get_transitions();
+		std::vector<const Comment*>    get_comments() const;
+		std::vector<Comment*>          get_comments();
+		std::vector<const Transition*> get_transitions() const;
+		std::vector<Transition*>       get_transitions();
 
 		//virtual Rect                 get_bound_rect(const Document& d) const;
 
@@ -616,6 +615,9 @@ namespace Cyberiada {
 	protected:
 		std::ostream&                dump(std::ostream& os) const override;
 	};
+
+	typedef std::vector<StateMachine*>       StateMachineList;
+	typedef std::vector<const StateMachine*> ConstStateMachineList;	
 
 // -----------------------------------------------------------------------------
 // Cyberiada-GraphML document
@@ -726,8 +728,8 @@ namespace Cyberiada {
 		DocumentMetainformation&       meta() { return metainfo; }
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		
-		std::list<const StateMachine*> get_state_machines() const;
-		std::list<StateMachine*>       get_state_machines();
+		ConstStateMachineList          get_state_machines() const;
+		StateMachineList               get_state_machines();
 		const StateMachine*            get_parent_sm(const Element* element) const;
 		StateMachine*                  get_parent_sm(const Element* element);
 
