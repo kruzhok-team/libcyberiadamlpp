@@ -796,6 +796,7 @@ namespace Cyberiada {
 
 		DocumentFormat                 get_file_format() const { return file_format; }
 		String                         get_file_format_str() const;
+		String                         get_file_path() const { return file_path; }
 
 		Element*                       copy(Element* parent) const override;
 		
@@ -811,12 +812,13 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // Exceptions
 // -----------------------------------------------------------------------------
-	class Exception {
+	class Exception: std::exception {
 	public:
 		Exception(const String& msg = "", const String& e = "Generic Error"):
 			error_type(e), message(msg) {}
 
 		String        str() const { return error_type + ": " + message; }
+		const char*   what() const noexcept override { return str().c_str(); }
 
 	private:
 		String        error_type;

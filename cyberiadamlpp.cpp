@@ -23,14 +23,29 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 #include <math.h>
 #include "cyberiadamlpp.h"
 
 #define CYB_CHECK_RESULT(r) this->check_cyberiada_error((r), std::string(__FILE__) + ":" + std::to_string(__LINE__))
 
-#define CYB_ASSERT(q)   if (!(q)) {                                      \
-							throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
+#ifdef __DEBUG__
+#define CYB_ASSERT(q)   if (!(q)) {										\
+                            std::cerr << "ASSERT FAILED AT " << __FILE__ << ":" << __LINE__ << std::endl; \
+                            throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
 	                    }
+#define CYB_ASSERT2(q, msg)  if (!(q)) {									\
+		                         std::cerr << "ASSERT FAILED AT " << __FILE__ << ":" << __LINE__ << ":" << (msg) << std::endl; \
+							     throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__) + ":" + std::string(msg)); \
+	                         }
+#else
+#define CYB_ASSERT(q)   if (!(q)) {										\
+                            throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__)); \
+	                    }
+#define CYB_ASSERT2(q, msg)  if (!(q)) {									\
+							     throw AssertException(std::string(__FILE__) + ":" + std::to_string(__LINE__) + ":" + std::string(msg)); \
+	                         }
+#endif
 #define EQUAL_DIFF  0.001
 
 namespace Cyberiada {
@@ -113,8 +128,6 @@ Element* Element::find_root()
 		return parent->find_root();
 	}
 }
-
-#include <iostream>
 
 CyberiadaNode* Element::to_node() const
 {
@@ -3022,7 +3035,7 @@ std::list<const StateMachine*> Document::get_state_machines() const
 {
 	std::list<const StateMachine*> result;
 	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
-		CYB_ASSERT((*i)->get_type() == elementSM);
+		CYB_ASSERT2((*i)->get_type() == elementSM, "Bad element type " + std::to_string(int((*i)->get_type())));
 		result.push_back(static_cast<const StateMachine*>(*i));
 	}
 	return result;
@@ -3032,7 +3045,7 @@ std::list<StateMachine*> Document::get_state_machines()
 {
 	std::list<StateMachine*> result;
 	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
-		CYB_ASSERT((*i)->get_type() == elementSM);
+		CYB_ASSERT2((*i)->get_type() == elementSM, "Bad element type " + std::to_string(int((*i)->get_type())));
 		result.push_back(static_cast<StateMachine*>(*i));
 	}
 	return result;
