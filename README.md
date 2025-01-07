@@ -10,9 +10,9 @@ the GNU Free Documentation License (version 1.3).
 
 ## Requirements
 
-* libcyberidaml
+* libcyberidaml (and its dependencies)
 * libstdc++
-* cmake (version 3.12+)
+* cmake (version 3.21+)
 
 ## Installation
 
