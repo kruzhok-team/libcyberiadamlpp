@@ -96,7 +96,8 @@ namespace Cyberiada {
 	class Polyline: public std::vector<Point> {
 	public:
 		Polyline(): std::vector<Point>() {}
-		
+		Polyline(const std::vector<Point>& v): std::vector<Point>(v) {}
+
 		CyberiadaPolyline* c_polyline() const;
 		void round();
 		String to_str();
