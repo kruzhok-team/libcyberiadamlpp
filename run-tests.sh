@@ -23,7 +23,7 @@ i=-1
 
 for t in $(ls tests/*.test); do
     i=$((i + 1))
-    if [ "$i" == "$limit" ]
+    if [ "$i" > "$limit" ]
     then
 	break
     fi
