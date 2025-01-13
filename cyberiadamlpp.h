@@ -828,6 +828,12 @@ namespace Cyberiada {
 		String        message;
 	};
 // -----------------------------------------------------------------------------
+	class FileException: public Exception {
+	public:
+		FileException(const String& msg = "", const String& e = "Format Exception"):
+			Exception(e, msg) {}
+	};
+// -----------------------------------------------------------------------------
 	class FormatException: public Exception {
 	public:
 		FormatException(const String& msg = "", const String& e = "Format Exception"):

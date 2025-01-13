@@ -3361,7 +3361,7 @@ void LocalDocument::open(const String& path,
 {
 	std::ifstream file(path);
 	if (!file.is_open()) {
-		throw Exception("Cannot open file " + path);
+		throw FileException("Cannot open file " + path);
 	}
 	std::string content((std::istreambuf_iterator<char>(file)), 
 						std::istreambuf_iterator<char>());
@@ -3381,7 +3381,7 @@ void LocalDocument::save(bool round)
 
 	std::ofstream file(file_path);
 	if (!file.is_open()) {
-		throw Exception("Cannot open file " + file_path);
+		throw FileException("Cannot open file " + file_path);
 	}
 	file << buffer.c_str();
 	file.close();
