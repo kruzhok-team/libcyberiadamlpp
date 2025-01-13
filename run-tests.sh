@@ -16,18 +16,22 @@ limit=$1
 
 if [ "$limit" == "" ]
 then
-    limit="99"
+    limit=99
+else
+    limit=$(($limit + 0))
+    echo "tests number: $limit"
+    echo
 fi
 
-i=-1
+i=0
 
 for t in $(ls tests/*.test); do
     i=$((i + 1))
-    if [ "$i" > "$limit" ]
+    num=$(echo $t | grep -Poe '\d\d')
+    if [ "$num" -gt "$limit" ]
     then
 	break
     fi
-    num=$(echo $t | grep -Poe '\d\d')
     echo -n "$num $t... "
     if [ -f "$t-input.graphml" -o -f "tests/$num-output.txt" ]
     then
