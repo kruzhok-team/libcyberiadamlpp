@@ -1,9 +1,9 @@
 /* -----------------------------------------------------------------------------
  * The Cyberiada GraphML C++ library implemention
  *
- * The test
+ * The initial pseudostate test
  *
- * Copyright (C) 2024 Alexey Fedoseev <aleksey@fedoseev.net>
+ * Copyright (C) 2024-25 Alexey Fedoseev <aleksey@fedoseev.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,12 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	try {
+		// check wrong graph with two initial pseudostates on the same level
+		LocalDocument().open(string(argv[0]) + "-input.graphml", formatDetect);
+	} catch (const Cyberiada::CybMLException&){
+	}
+	
 	Document d;
 
 	StateMachine* sm = d.new_state_machine("SM");
