@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <data key="gFormat">Cyberiada-GraphML-1.0</data>
+  <graph id="a5a75a7c-1c33-40e6-9f6f-da42e32929b8" edgedefault="directed">
+    <data key="dStateMachine" />
+    <data key="dName">graph-1</data>
+    <node id="coreMeta">
+      <data key="dNote">formal</data>
+      <data key="dName">CGML_META</data>
+      <data key="dData">standardVersion/ 1.0
+
+platform/ StandaloneGraphEditor
+
+platformVersion/ 1.0
+</data>
+    </node>
+    <node id="1edde58c-000a-4158-a69e-3a5469f69f08">
+      <data key="dName">State0</data>
+      <data key="dGeometry">
+        <point x="843.087463" y="-101.513771" />
+      </data>
+      <data key="dData">exit/
+ВоспроизведениеЗвука.УстановитьРадиусСлышимости(10)
+</data>
+      <graph id="79c8572a-29ee-441d-8d12-6f94f9e2585d" edgedefault="directed">
+        <node id="f5e3c096-87bb-4eec-bdcd-3ba03df4763d">
+          <data key="dName">State0-0</data>
+          <data key="dGeometry">
+            <point x="-368.839417" y="143.138458" />
+          </data>
+          <data key="dData">Таймер.ТаймерВыполнен/
+Счётчик1.ПрибавитьЗначение(1)
+</data>
+        </node>
+        <node id="bb9ccda4-0dba-467d-8969-0a967c42863b">
+          <data key="dName">State0-1</data>
+          <data key="dGeometry">
+            <point x="118.911194" y="-149.138519" />
+          </data>
+        </node>
+      </graph>
+    </node>
+    <node id="initial">
+      <data key="dVertex">initial</data>
+      <data key="dName">INIT</data>
+      <data key="dGeometry">
+        <point x="-82.00004" y="0" />
+      </data>
+    </node>
+    <node id="cd9e3727-1596-4393-b959-550df4f4739f">
+      <data key="dName">State1</data>
+      <data key="dGeometry">
+        <point x="1882.0011" y="-108.000053" />
+      </data>
+      <data key="dData">entry/
+МодульОбнаружения.ПоискИгрокаВРадиусе(10)
+</data>
+    </node>
+    <edge id="1a811bd5-a925-41b3-98d6-32962ac0c32d" source="initial" target="1edde58c-000a-4158-a69e-3a5469f69f08">
+      <data key="dLabelGeometry">
+        <point x="0" y="0" />
+      </data>
+    </edge>
+    <edge id="00f93b09-b32d-4b24-a689-82ebb7bf952b" source="f5e3c096-87bb-4eec-bdcd-3ba03df4763d" target="bb9ccda4-0dba-467d-8969-0a967c42863b">
+      <data key="dLabelGeometry">
+        <point x="-5.91156" y="160.932037" />
+      </data>
+      <data key="dData">МодульОбнаружения.ИгрокОбнаружен/
+</data>
+    </edge>
+    <edge id="d27092ed-1247-45a6-9dc0-8df8e68d2e6a" source="bb9ccda4-0dba-467d-8969-0a967c42863b" target="cd9e3727-1596-4393-b959-550df4f4739f">
+      <data key="dLabelGeometry">
+        <point x="481.839539" y="-131.344849" />
+      </data>
+      <data key="dData">МодульОбнаружения.ОбъектОбнаружен/
+</data>
+    </edge>
+    <edge id="7c6e23b1-1840-426e-b3b1-0445232c4a77" source="cd9e3727-1596-4393-b959-550df4f4739f" target="1edde58c-000a-4158-a69e-3a5469f69f08">
+      <data key="dLabelGeometry">
+        <point x="1882.0011" y="123.999962" />
+      </data>
+      <data key="dData">МодульОбнаружения.ВзаимодействиеИгрока/
+</data>
+    </edge>
+  </graph>
+</graphml>

@@ -29,7 +29,9 @@ int main(int argc, char** argv)
 {
 	LocalDocument d;
 	try {
-		d.open(string(argv[0]) + "-input.graphml", formatLegacyYED);
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone);
+		cout << d << endl;
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatCyberiada10);
 		cout << d << endl;
 		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
 	} catch (const Cyberiada::Exception& e) {
