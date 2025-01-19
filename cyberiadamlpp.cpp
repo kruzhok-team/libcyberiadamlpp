@@ -2134,16 +2134,22 @@ void StateMachine::export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm
 }
 
 SMIsomorphismResult StateMachine::check_isomorphism(const StateMachine& sm,
-													bool ignore_comments, bool require_initial,
-													ID* new_initial,
-													std::vector<ID>* diff_nodes,
-													std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags,
-													std::vector<ID>* new_nodes,
-													std::vector<ID>* missing_nodes,
-													std::vector<ID>* diff_edges,
-													std::vector<SMIsomorphismFlagsResult>* diff_edges_flags,
-													std::vector<ID>* new_edges,
-													std::vector<ID>* missing_edges) const
+													bool ignore_comments, bool require_initial) const
+{
+	return check_isomorphism_details(sm, ignore_comments, require_initial);
+}
+
+SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& sm,
+															bool ignore_comments, bool require_initial,
+															ID* new_initial,
+															std::vector<ID>* diff_nodes,
+															std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags,
+															std::vector<ID>* new_nodes,
+															std::vector<ID>* missing_nodes,
+															std::vector<ID>* diff_edges,
+															std::vector<SMIsomorphismFlagsResult>* diff_edges_flags,
+															std::vector<ID>* new_edges,
+															std::vector<ID>* missing_edges) const
 {
 	int res;
 

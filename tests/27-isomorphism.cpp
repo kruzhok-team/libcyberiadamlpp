@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 		
 		const StateMachine* sm4 = d4.get_state_machines().front();
 		const StateMachine* sm5 = d5.get_state_machines().front();
-		CYB_ASSERT(sm4->check_isomorphism(*sm5, true, false, NULL, &diff_nodes, &diff_nodes_flags) == smiIsomorphic);
+		CYB_ASSERT(sm4->check_isomorphism_details(*sm5, true, false, NULL, &diff_nodes, &diff_nodes_flags) == smiIsomorphic);
 		CYB_ASSERT(diff_nodes.size() == 6);
 		CYB_ASSERT(diff_nodes[2] == "n0::n0::n0");
 		CYB_ASSERT(diff_nodes_flags.size() == 6);

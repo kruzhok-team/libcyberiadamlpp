@@ -634,16 +634,18 @@ namespace Cyberiada {
 		std::vector<Transition*>       get_transitions();
 
 		SMIsomorphismResult            check_isomorphism(const StateMachine& sm,
-														 bool ignore_comments = true, bool require_initial = false,
-														 ID* new_initial = NULL,
-														 std::vector<ID>* diff_nodes = NULL,
-														 std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags = NULL,
-														 std::vector<ID>* new_nodes = NULL,
-														 std::vector<ID>* missing_nodes = NULL,
-														 std::vector<ID>* diff_edges = NULL,
-														 std::vector<SMIsomorphismFlagsResult>* diff_edges_flags = NULL,
-														 std::vector<ID>* new_edges = NULL,
-														 std::vector<ID>* missing_edges = NULL) const;
+														 bool ignore_comments = true, bool require_initial = false) const;
+		SMIsomorphismResult            check_isomorphism_details(const StateMachine& sm,
+																 bool ignore_comments = true, bool require_initial = false,
+																 ID* new_initial = NULL,
+																 std::vector<ID>* diff_nodes = NULL,
+																 std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags = NULL,
+																 std::vector<ID>* new_nodes = NULL,
+																 std::vector<ID>* missing_nodes = NULL,
+																 std::vector<ID>* diff_edges = NULL,
+																 std::vector<SMIsomorphismFlagsResult>* diff_edges_flags = NULL,
+																 std::vector<ID>* new_edges = NULL,
+																 std::vector<ID>* missing_edges = NULL) const;
 
 		//virtual Rect                 get_bound_rect(const Document& d) const;
 
