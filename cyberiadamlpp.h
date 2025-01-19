@@ -175,6 +175,7 @@ namespace Cyberiada {
 		Element*               find_root();
 		void                   set_type(ElementType t) { type = t; };
 		virtual std::ostream&  dump(std::ostream& os) const;
+		void                   check_cyberiada_error(int res, const String& msg = "") const;
 
 	private:		
 		ElementType            type;
@@ -376,6 +377,8 @@ namespace Cyberiada {
 		CyberiadaNode*           to_node() const override;
 		
 	protected:
+		void                     import_nodes_recursively(CyberiadaNode* nodes, Element** metainfo_element = NULL);
+
 		std::ostream&            dump(std::ostream& os) const override;
 		void                     copy_elements(const ElementCollection& source);
 
@@ -597,6 +600,29 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // State Machine
 // -----------------------------------------------------------------------------
+	typedef enum {
+		smiIdentical = CYBERIADA_ISOMORPH_FLAG_IDENTICAL,
+		smiEqual = CYBERIADA_ISOMORPH_FLAG_EQUAL,
+		smiIsomorphic = CYBERIADA_ISOMORPH_FLAG_ISOMORPHIC,
+		smiDiffStates = CYBERIADA_ISOMORPH_FLAG_DIFF_STATES,
+		smiDiffInitial = CYBERIADA_ISOMORPH_FLAG_DIFF_INITIAL,
+		smiDiffEdges = CYBERIADA_ISOMORPH_FLAG_DIFF_EDGES
+	} SMIsomorphismTypes;
+	typedef unsigned int SMIsomorphismResult;
+
+	typedef enum {
+		smiNodeDiffFlagId = CYBERIADA_NODE_DIFF_ID,
+		smiNodeDiffFlagType = CYBERIADA_NODE_DIFF_TYPE,
+		smiNodeDiffFlagTitle = CYBERIADA_NODE_DIFF_TITLE,
+		smiNodeDiffFlagActions = CYBERIADA_NODE_DIFF_ACTIONS,
+		smiNodeDiffFlagSMLink = CYBERIADA_NODE_DIFF_SM_LINK,
+		smiNodeDiffFlagChildren = CYBERIADA_NODE_DIFF_CHILDREN,
+		smiNodeDiffFlagEdges = CYBERIADA_NODE_DIFF_EDGES,
+		smiEdgeDiffFlagID = CYBERIADA_EDGE_DIFF_ID,
+		smiEdgeDiffFlagAction = CYBERIADA_EDGE_DIFF_ACTION
+	} SMIsomorphismFlags;
+	typedef unsigned int SMIsomorphismFlagsResult;
+
 	class StateMachine: public ElementCollection {
 	public:
 		StateMachine(Element* parent, const ID& id, const Name& name = "", const Rect& r = Rect());
@@ -607,13 +633,30 @@ namespace Cyberiada {
 		std::vector<const Transition*> get_transitions() const;
 		std::vector<Transition*>       get_transitions();
 
+		SMIsomorphismResult            check_isomorphism(const StateMachine& sm,
+														 bool ignore_comments = true, bool require_initial = false,
+														 ID* new_initial = NULL,
+														 std::vector<ID>* diff_nodes = NULL,
+														 std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags = NULL,
+														 std::vector<ID>* new_nodes = NULL,
+														 std::vector<ID>* missing_nodes = NULL,
+														 std::vector<ID>* diff_edges = NULL,
+														 std::vector<SMIsomorphismFlagsResult>* diff_edges_flags = NULL,
+														 std::vector<ID>* new_edges = NULL,
+														 std::vector<ID>* missing_edges = NULL) const;
+
 		//virtual Rect                 get_bound_rect(const Document& d) const;
 
-		CyberiadaNode*               to_node(const Point& center) const;
+		void                           from_sm(const CyberiadaSM* sm, Element** metainfo_element = NULL);
+		CyberiadaSM*                   to_sm() const;
+		CyberiadaNode*                 to_node(const Point& center) const;
 		
-		Element*                     copy(Element* parent) const override;
+		Element*                       copy(Element* parent) const override;
 		
 	protected:
+		void                           import_edges(CyberiadaEdge* edges);
+		void                           export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm) const;
+
 		std::ostream&                dump(std::ostream& os) const override;
 	};
 
@@ -754,15 +797,9 @@ namespace Cyberiada {
 		ID                             generate_sm_id() const;
 		ID                             generate_vertex_id(const Element* parent) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
-		void                           import_nodes_recursively(ElementCollection* collection, CyberiadaNode* nodes);
-		void                           import_edges(ElementCollection* collection, CyberiadaEdge* edges);
-		void                           export_edges(CyberiadaEdge** edges,
-													const StateMachine* sm,
-													const CyberiadaSM* new_sm) const;
 		CyberiadaMetainformation*      export_meta() const;
 		void                           set_geometry(DocumentGeometryFormat format);
 
-		void                           check_cyberiada_error(int res, const String& msg = "") const;
 		void                           check_nonempty_string(const String& s) const;
 		void                           check_parent_element(const Element* parent) const;
 		void                           check_id_uniqueness(const ID& id) const;
