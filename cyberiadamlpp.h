@@ -611,7 +611,7 @@ namespace Cyberiada {
 	typedef unsigned int SMIsomorphismResult;
 
 	typedef enum {
-		smiNodeDiffFlagId = CYBERIADA_NODE_DIFF_ID,
+		smiNodeDiffFlagID = CYBERIADA_NODE_DIFF_ID,
 		smiNodeDiffFlagType = CYBERIADA_NODE_DIFF_TYPE,
 		smiNodeDiffFlagTitle = CYBERIADA_NODE_DIFF_TITLE,
 		smiNodeDiffFlagActions = CYBERIADA_NODE_DIFF_ACTIONS,
