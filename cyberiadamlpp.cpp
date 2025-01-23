@@ -2214,7 +2214,7 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 		if (missing_nodes) {
 			missing_nodes->clear();
 			for (size_t i = 0; i < sm1_missing_nodes_size; i++) {
-				new_nodes->push_back(sm1_missing_nodes[i]->id);
+				missing_nodes->push_back(sm1_missing_nodes[i]->id);
 			}
 		}
 
@@ -2241,7 +2241,7 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 		if (missing_edges) {
 			missing_edges->clear();
 			for (size_t i = 0; i < sm1_missing_edges_size; i++) {
-				new_edges->push_back(sm1_missing_edges[i]->id);
+				missing_edges->push_back(sm1_missing_edges[i]->id);
 			}
 		}		
 	}
