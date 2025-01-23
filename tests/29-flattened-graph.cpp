@@ -1,9 +1,9 @@
 /* -----------------------------------------------------------------------------
  * The Cyberiada GraphML C++ library implemention
  *
- * The test
+ * The flattened xml test
  *
- * Copyright (C) 2024 Alexey Fedoseev <aleksey@fedoseev.net>
+ * Copyright (C) 2025 Alexey Fedoseev <aleksey@fedoseev.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,8 @@ int main(int argc, char** argv)
 {
 	LocalDocument d;
 	try {
-/*		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone);
+		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone);
 		cout << d << endl;
-		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatCyberiada10);
-		cout << d << endl;
-		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);*/
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
 		return 1;
