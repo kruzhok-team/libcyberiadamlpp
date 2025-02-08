@@ -2907,7 +2907,8 @@ void Document::decode(const String& buffer,
 					  DocumentFormat& format,
 					  String& format_str,
 					  DocumentGeometryFormat gf,
-					  bool reconstruct)
+					  bool reconstruct,
+					  bool reconstruct_sm)
 {
 	reset();
 	CyberiadaDocument doc;
@@ -2918,8 +2919,11 @@ void Document::decode(const String& buffer,
 
 	if (reconstruct) {
 		flags |= CYBERIADA_FLAG_RECONSTRUCT_GEOMETRY;
+		if (reconstruct_sm) {
+			flags |= CYBERIADA_FLAG_RECONSTRUCT_SM_GEOMETRY;
+		}
 	}
-	
+
 	switch(gf) {
 	case geometryFormatNone:
 		flags = CYBERIADA_FLAG_SKIP_GEOMETRY;
@@ -3401,13 +3405,13 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
-void Document::reconstruct_geometry()
+void Document::reconstruct_geometry(bool reconstruct_sm)
 {
 	CyberiadaDocument doc;
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_reconstruct_document_geometry(&doc);
+	int res = cyberiada_reconstruct_document_geometry(&doc, int(reconstruct_sm));
 	CYB_CHECK_RESULT(res);
 
 	if (geometry_format == geometryFormatNone) {
@@ -3501,7 +3505,8 @@ std::ostream& LocalDocument::dump(std::ostream& os) const
 void LocalDocument::open(const String& path,
 						 DocumentFormat f,
 						 DocumentGeometryFormat gf,
-						 bool reconstruct)
+						 bool reconstruct,
+						 bool reconstruct_sm)
 {
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -3514,7 +3519,7 @@ void LocalDocument::open(const String& path,
 
 	reset();	
 	file_format = f;
-	decode(content, file_format, file_format_str, gf, reconstruct);
+	decode(content, file_format, file_format_str, gf, reconstruct, reconstruct_sm);
 	file_path = path;
 }
 

@@ -773,7 +773,8 @@ namespace Cyberiada {
 											  DocumentFormat& format,
 											  String& format_str,
 											  DocumentGeometryFormat gf = geometryFormatQt,
-											  bool reconstruct = false);
+											  bool reconstruct = false,
+											  bool reconstruct_sm = false);
 		void                           encode(String& buffer,
 											  DocumentFormat f = formatCyberiada10,
 											  bool round = false) const;
@@ -792,7 +793,7 @@ namespace Cyberiada {
 		Rect                           get_bound_rect() const;
 		Rect                           get_bound_rect(const Document& d) const override;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
-		void                           reconstruct_geometry();
+		void                           reconstruct_geometry(bool reconstruct_sm);
 		void                           clean_geometry() override;
 		
 		Element*                       copy(Element* parent) const override;
@@ -839,7 +840,8 @@ namespace Cyberiada {
 		void                           open(const String& path,
 											DocumentFormat f = formatDetect,
 											DocumentGeometryFormat gf = geometryFormatQt,
-											bool reconstruct = false);
+											bool reconstruct = false,
+											bool reconstruct_sm = false);
 		void                           save(bool round = false);
 		void                           save_as(const String& path,
 											   DocumentFormat f = formatDetect,
