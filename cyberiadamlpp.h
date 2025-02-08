@@ -52,6 +52,11 @@ namespace Cyberiada {
 		elementTransition            // transition
 	};
 
+	enum TransitionType {
+		transitionExternal = 0,      // external transition
+		transitionLocal              // local transition
+	};
+
 	typedef std::string String;
 	typedef String ID;
 	typedef String Name;
@@ -543,11 +548,14 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Transition: public Element {
 	public:
-		Transition(Element* parent, const ID& id, const ID& source, const ID& target, const Action& action,
+		Transition(Element* parent, TransitionType ttype,
+				   const ID& id, const ID& source, const ID& target, const Action& action,
 				   const Polyline& pl = Polyline(), const Point& sp = Point(), const Point& tp = Point(),
 				   const Point& label_point = Point(), const Rect& label_rect = Rect(), const Color& color = Color());
 		Transition(const Transition& t);
 
+		TransitionType         get_transition_type() const { return transition_type; }
+		
 		const ID&              source_element_id() const { return source_id; }
 		const ID&              target_element_id() const { return target_id; }
 
@@ -586,6 +594,7 @@ namespace Cyberiada {
 		std::ostream&  dump(std::ostream& os) const override;
 
 	private:
+		TransitionType         transition_type;
 		ID                     source_id;
 		ID                     target_id;
 		Action                 action;
@@ -713,12 +722,12 @@ namespace Cyberiada {
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Point& p = Point());
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Name& name, const Point& p = Point());
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
-		Transition*                    new_transition(StateMachine* sm, Element* source, Element* target,
+		Transition*                    new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
 													  const Point& label_point = Point(), const Rect& label_rect = Rect(),
 													  const Color& color = Color());
-		Transition*                    new_transition(StateMachine* sm, const ID& id, Element* source, Element* target,
+		Transition*                    new_transition(StateMachine* sm, TransitionType ttype, const ID& id, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
 													  const Point& label_point = Point(), const Rect& label_rect = Rect(),

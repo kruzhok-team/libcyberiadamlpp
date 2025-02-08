@@ -3,7 +3,7 @@
  *
  * The C++ library implementation
  *
- * Copyright (C) 2024 Alexey Fedoseev <aleksey@fedoseev.net>
+ * Copyright (C) 2024-2025 Alexey Fedoseev <aleksey@fedoseev.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -728,7 +728,7 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 		for (std::vector<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
 			CyberiadaEdge *edge = cyberiada_new_edge(i->get_id().c_str(),
 													 get_id().c_str(),
-													 i->get_element()->get_id().c_str());
+													 i->get_element()->get_id().c_str(), 0);
 			edge->type = cybEdgeComment;
 			CyberiadaCommentSubjectType t;
 			if (i->get_type() == commentSubjectElement) {
@@ -1766,16 +1766,17 @@ std::ostream& State::dump(std::ostream& os) const
 // Transition
 // -----------------------------------------------------------------------------
 
-Transition::Transition(Element* _parent, const ID& _id, const ID& _source_id, const ID& _target_id,
+Transition::Transition(Element* _parent, TransitionType ttype,
+					   const ID& _id, const ID& _source_id, const ID& _target_id,
 					   const Action& _action, const Polyline& pl, const Point& sp, const Point& tp,
 					   const Point& label_p, const Rect& label_r, const Color& c):
-	Element(_parent, elementTransition, _id), source_id(_source_id), target_id(_target_id), action(_action),
+	Element(_parent, elementTransition, _id), transition_type(ttype), source_id(_source_id), target_id(_target_id), action(_action),
 	source_point(sp), target_point(tp), label_point(label_p), label_rect(label_r), polyline(pl), color(c)
 {
 }
 
 Transition::Transition(const Transition& t):
-	Element(t), source_id(t.source_id), target_id(t.target_id), action(t.action),
+	Element(t), transition_type(t.transition_type), source_id(t.source_id), target_id(t.target_id), action(t.action),
 	source_point(t.source_point), target_point(t.target_point), label_point(t.label_point),
 	label_rect(t.label_rect), polyline(t.polyline), color(t.color)
 {
@@ -1787,7 +1788,8 @@ CyberiadaEdge* Transition::to_edge() const
 	CYB_ASSERT(!target_id.empty());
 	CyberiadaEdge* edge = cyberiada_new_edge(get_id().c_str(),
 											 source_id.c_str(),
-											 target_id.c_str());
+											 target_id.c_str(),
+											 transition_type == transitionExternal);
 	edge->type = cybEdgeTransition;
 	if (has_action()) {
 		edge->action = cyberiada_new_action(cybActionTransition,
@@ -1850,7 +1852,7 @@ void Transition::round_geometry()
 
 Element* Transition::copy(Element* parent) const
 {
-	return new Transition(parent, get_id(), source_id, target_id, action,
+	return new Transition(parent, transition_type, get_id(), source_id, target_id, action,
 						  polyline, source_point, target_point, label_point,
 						  label_rect, get_color());
 }
@@ -1858,6 +1860,7 @@ Element* Transition::copy(Element* parent) const
 std::ostream& Transition::dump(std::ostream& os) const
 {
 	Element::dump(os);
+	os << ", type: " << (transition_type == transitionExternal ? "ext" : "loc");
 	os << ", source: '" << source_id << "'";
 	os << ", target: '" << target_id << "'";
 	if (has_action()) {
@@ -2055,11 +2058,13 @@ void StateMachine::import_edges(CyberiadaEdge* edges)
 		
 		switch (e->type) {
 		case cybEdgeTransition:
+		case cybEdgeLocalTransition:
 			if (e->action) {
 				action = Action(e->action->trigger, e->action->guard, e->action->behavior);
 			}
-			
-			element = new Transition(this, e->id, e->source_id, e->target_id,
+	
+			element = new Transition(this, e->type == cybEdgeTransition ? transitionExternal: transitionLocal, 
+									 e->id, e->source_id, e->target_id,
 									 action, polyline, source_point, target_point, label_point,
 									 label_rect, _color);
 			break;
@@ -2478,7 +2483,7 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 	return term;
 }
 
-Transition* Document::new_transition(StateMachine* sm, Element* source, Element* target,
+Transition* Document::new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
 									 const Point& label_p, const Rect& label_r, const Color& c)
@@ -2488,7 +2493,7 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 	check_transition_target(target);
 	check_transition_action(action);
 	
-	Transition* t = new Transition(sm, generate_transition_id(source->get_id(), target->get_id()),
+	Transition* t = new Transition(sm, ttype, generate_transition_id(source->get_id(), target->get_id()),
 								   source->get_id(), target->get_id(), action, pl, sp, tp, label_p, label_r, c);
 	sm->add_element(t);
 	check_geometry_update(sp);
@@ -2499,7 +2504,7 @@ Transition* Document::new_transition(StateMachine* sm, Element* source, Element*
 	return t;
 }
 
-Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* source, Element* target,
+Transition* Document::new_transition(StateMachine* sm, TransitionType ttype, const ID& _id, Element* source, Element* target,
 									 const Action& action, const Polyline& pl,
 									 const Point& sp, const Point& tp,
 									 const Point& label_p, const Rect& label_r, const Color& c)
@@ -2510,7 +2515,7 @@ Transition* Document::new_transition(StateMachine* sm, const ID& _id, Element* s
 	check_id_uniqueness(_id);
 	check_transition_action(action);
 
-	Transition* t = new Transition(sm, _id, source->get_id(), target->get_id(), action, pl, sp, tp, label_p, label_r, c);
+	Transition* t = new Transition(sm, ttype, _id, source->get_id(), target->get_id(), action, pl, sp, tp, label_p, label_r, c);
 	sm->add_element(t);
 	check_geometry_update(sp);
 	check_geometry_update(tp);
