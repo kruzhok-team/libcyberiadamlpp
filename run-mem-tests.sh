@@ -21,7 +21,7 @@ fi
 
 i=-1
 
-MEMTEST="valgrind --tool=memcheck"
+MEMTEST="valgrind --tool=memcheck -s --leak-check=full"
 
 for t in $(ls tests/*.test); do
     i=$((i + 1))
