@@ -1790,7 +1790,7 @@ CyberiadaEdge* Transition::to_edge() const
 											 source_id.c_str(),
 											 target_id.c_str(),
 											 transition_type == transitionExternal);
-	edge->type = cybEdgeTransition;
+	edge->type = cybEdgeLocalTransition;
 	if (has_action()) {
 		edge->action = cyberiada_new_action(cybActionTransition,
 											action.get_trigger().c_str(),
@@ -2057,13 +2057,13 @@ void StateMachine::import_edges(CyberiadaEdge* edges)
 		Comment* comment = NULL;
 		
 		switch (e->type) {
-		case cybEdgeTransition:
+		case cybEdgeExternalTransition:
 		case cybEdgeLocalTransition:
 			if (e->action) {
 				action = Action(e->action->trigger, e->action->guard, e->action->behavior);
 			}
 	
-			element = new Transition(this, e->type == cybEdgeTransition ? transitionExternal: transitionLocal, 
+			element = new Transition(this, e->type == cybEdgeExternalTransition ? transitionExternal: transitionLocal, 
 									 e->id, e->source_id, e->target_id,
 									 action, polyline, source_point, target_point, label_point,
 									 label_rect, _color);
