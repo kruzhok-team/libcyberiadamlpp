@@ -102,6 +102,11 @@ void Element::set_name(const Name& n)
 	name_is_set = true;
 }
 
+void Element::set_id(const ID& _id)
+{
+	id = _id;
+}
+
 bool Element::has_qualified_name() const
 {
 	return is_root() || name_is_set || parent->has_qualified_name();

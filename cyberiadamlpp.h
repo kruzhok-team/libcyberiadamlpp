@@ -149,6 +149,7 @@ namespace Cyberiada {
 		ElementType            get_type() const { return type; }
 
 		const ID&              get_id() const { return id; }
+		void                   set_id(const ID& id);
 
 		bool                   has_name() const { return name_is_set; }
 		const Name&            get_name() const { return name; }
