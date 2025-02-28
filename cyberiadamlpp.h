@@ -64,6 +64,8 @@ namespace Cyberiada {
 	typedef String Color;
 
 	const String QUALIFIED_NAME_SEPARATOR = "::";
+	const String ACTION_ENTRY_TRIGGER = "entry";
+	const String ACTION_EXIT_TRIGGER = "exit";
 
 	enum DocumentFormat {
 		formatCyberiada10 = 0,                      // Cyberiada 1.0 format
@@ -497,6 +499,9 @@ namespace Cyberiada {
 		bool                   has_behavior() const { return !behavior.empty(); }
 		const Behavior&        get_behavior() const { return behavior; }
 		String                 to_str() const;
+		void                   update(const Behavior& behavior);
+		void                   update(const Event& trigger, const Guard& guard, const Behavior& behavior);
+		void                   clear();
 
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
@@ -769,6 +774,8 @@ namespace Cyberiada {
 		const CommentSubject&          add_comment_to_element_body(Comment* comment, Element* element, const String& fragment, const ID& id,
 																   const Point& source = Point(), const Point& target = Point(),
 																   const Polyline& pl = Polyline());
+		void                           update_metainfo_element();
+		bool                           update_metainfo_from_comment(const String& new_body);
 		
 		void                           decode(const String& buffer,
 											  DocumentFormat& format,
@@ -783,6 +790,7 @@ namespace Cyberiada {
 		void                           set_name(const Name& name) override;
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
+		const Comment*                 get_meta_element() const { return metainfo_element; }
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		
 		ConstStateMachineList          get_state_machines() const;
@@ -806,7 +814,6 @@ namespace Cyberiada {
 		void                           to_document(CyberiadaDocument* doc) const;
 		
 	private:
-		void                           update_metainfo_element();
 		ID                             generate_sm_id() const;
 		ID                             generate_vertex_id(const Element* parent) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;

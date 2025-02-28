@@ -504,6 +504,30 @@ Action::Action(const Event& _trigger, const Guard& _guard, const Behavior& _beha
 {
 }
 
+void Action::update(const Behavior& _behavior)
+{
+	behavior = _behavior;
+}
+
+void Action::update(const Event& _trigger, const Guard& _guard, const Behavior& _behavior)
+{
+	if (type == actionTransition && _trigger.size() == 0) {
+		return ;
+	}
+	trigger = _trigger;
+	guard = _guard;
+	behavior = _behavior;
+}
+
+void Action::clear()
+{
+	if (type == actionTransition) {
+		trigger = guard = behavior = "";
+	} else {
+		guard = behavior = "";
+	}
+}
+
 String Action::to_str() const
 {
 	std::ostringstream s;
@@ -515,10 +539,10 @@ std::ostream& Action::dump(std::ostream& os) const
 {
 	if (type != actionTransition) {
 		if (type == actionEntry) {
-			os << "entry";
+			os << ACTION_ENTRY_TRIGGER;
 		} else {
 			CYB_ASSERT(type == actionExit);
-			os << "exit";
+			os << ACTION_EXIT_TRIGGER;
 		}
 	} else if (!trigger.empty()) {
 		os << "trigger: '" << trigger << "'";
@@ -2688,6 +2712,11 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 											   commentSubjectData, fragment, source, target, pl));
 }
 
+bool Document::update_metainfo_from_comment(const String& body)
+{
+	return false;
+}
+
 void Document::check_parent_element(const Element* _parent) const
 {
 	if (!_parent) {
@@ -2983,7 +3012,6 @@ void Document::update_metainfo_element()
 	if (sms.size() == 0) {
 		return ;
 	}
-
 	String new_meta_comment;
 	CyberiadaMetainformation* meta = export_meta();
 	char* buffer = NULL;
@@ -3002,13 +3030,13 @@ void Document::update_metainfo_element()
 			if (first->get_type() == elementFormalComment &&
 				first->has_name() &&
 				first->get_name() == META_NODE_NAME) {
-				
+
 				metainfo_element = static_cast<Comment*>(first);
 				CYB_ASSERT(metainfo_element);
 				metainfo_element->set_body(new_meta_comment);
 				return ;
 			}
-		}	
+		}
 //		Comment* comment = new Comment(sm, META_NODE_ID, new_meta_comment, META_NODE_NAME, false);
 //		sm->add_first_element(comment);
 //		metainfo_element = comment;
