@@ -3549,6 +3549,9 @@ void LocalDocument::open(const String& path,
 						std::istreambuf_iterator<char>());
 
 	file.close();
+	if (content.length() == 0) {
+		throw FileException("File " + file_path + " is empty");
+	}
 
 	reset();	
 	file_format = f;
