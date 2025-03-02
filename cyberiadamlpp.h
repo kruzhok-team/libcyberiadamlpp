@@ -875,14 +875,13 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Exception: std::exception {
 	public:
-		Exception(const String& msg = "", const String& e = "Generic Error"):
-			error_type(e), message(msg) {}
+		Exception(const String& msg = "", const String& error = "Generic Error"):
+			message(error + ": " + msg) {}
 
-		String        str() const { return error_type + ": " + message; }
-		const char*   what() const noexcept override { return str().c_str(); }
+		String        str() const { return message; }
+		const char*   what() const noexcept override { return message.c_str(); }
 
 	private:
-		String        error_type;
 		String        message;
 	};
 // -----------------------------------------------------------------------------
