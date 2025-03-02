@@ -2944,11 +2944,6 @@ void Document::decode(const String& buffer,
 					  bool reconstruct,
 					  bool reconstruct_sm)
 {
-	reset();
-	CyberiadaDocument doc;
-	int res = cyberiada_init_sm_document(&doc);
-	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
-	
 	int flags = 0;
 
 	if (reconstruct) {
@@ -2983,7 +2978,16 @@ void Document::decode(const String& buffer,
 	default:
 		throw ParametersException("Bad geometry format " + std::to_string(int(gf)));
 	}
-
+	
+	if (buffer.length() == 0) {
+		throw ParametersException("Empty buffer to decode");
+	}
+	
+	reset();
+	CyberiadaDocument doc;
+	int res = cyberiada_init_sm_document(&doc);
+	CYB_ASSERT(res == CYBERIADA_NO_ERROR);
+	
 	res = cyberiada_decode_sm_document(&doc, buffer.c_str(), buffer.length(),
 									   CyberiadaXMLFormat(format), flags);
 	if (res != CYBERIADA_NO_ERROR) {
