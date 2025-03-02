@@ -3554,7 +3554,7 @@ void LocalDocument::open(const String& path,
 
 	file.close();
 	if (content.length() == 0) {
-		throw FileException("File " + file_path + " is empty");
+		throw FileException("File " + path + " is empty");
 	}
 
 	reset();	
