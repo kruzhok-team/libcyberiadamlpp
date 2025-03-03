@@ -278,6 +278,7 @@ namespace Cyberiada {
 		bool                             has_rect_geometry() const override { return true; }
 		const Rect&                      get_geometry_rect() const { return geometry_rect; }
 		Rect                             get_bound_rect(const Document& d) const override;
+		void                             update_geometry(const Rect& rect) { geometry_rect = rect; }
 		void                             clean_geometry() override;
 		void                             round_geometry() override;
 		
@@ -321,6 +322,7 @@ namespace Cyberiada {
 		bool                   has_rect_geometry() const override { return false; }
 		const Point&           get_geometry_point() const { return geometry_point; }
 		Rect                   get_bound_rect(const Document& d) const override;
+		void                   update_geometry(const Point& point) { geometry_point = point; }
 		void                   clean_geometry() override;
 		void                   round_geometry() override;
 		
@@ -384,6 +386,7 @@ namespace Cyberiada {
 		bool                     has_rect_geometry() const override { return true; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
 		Rect                     get_bound_rect(const Document& d) const override;
+		void                     update_geometry(const Rect& rect) { geometry_rect = rect; }
 		void                     clean_geometry() override;
 		void                     round_geometry() override;
 		
