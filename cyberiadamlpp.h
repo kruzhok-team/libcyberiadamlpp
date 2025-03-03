@@ -169,6 +169,8 @@ namespace Cyberiada {
 		int                    index() const;
 
 		virtual bool           has_geometry() const = 0;
+		virtual bool           has_point_geometry() const = 0;
+		virtual bool           has_rect_geometry() const = 0;
 		virtual Rect           get_bound_rect(const Document& d) const = 0;
 		virtual void           clean_geometry() = 0;
 		virtual void           round_geometry() = 0;
@@ -272,6 +274,8 @@ namespace Cyberiada {
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 
 		bool                             has_geometry() const override { return geometry_rect.valid; }
+		bool                             has_point_geometry() const override { return false; }
+		bool                             has_rect_geometry() const override { return true; }
 		const Rect&                      get_geometry_rect() const { return geometry_rect; }
 		Rect                             get_bound_rect(const Document& d) const override;
 		void                             clean_geometry() override;
@@ -313,6 +317,8 @@ namespace Cyberiada {
 		Vertex(const Vertex& v);
 
 		bool                   has_geometry() const override { return geometry_point.valid; }
+		bool                   has_point_geometry() const override { return true; }
+		bool                   has_rect_geometry() const override { return false; }
 		const Point&           get_geometry_point() const { return geometry_point; }
 		Rect                   get_bound_rect(const Document& d) const override;
 		void                   clean_geometry() override;
@@ -374,6 +380,8 @@ namespace Cyberiada {
 		std::vector<Vertex*>       get_vertexes();
 
 		bool                     has_geometry() const override { return geometry_rect.valid; }
+		bool                     has_point_geometry() const override { return false; }
+		bool                     has_rect_geometry() const override { return true; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
 		Rect                     get_bound_rect(const Document& d) const override;
 		void                     clean_geometry() override;
@@ -429,6 +437,8 @@ namespace Cyberiada {
 		ChoicePseudostate(const ChoicePseudostate& cp);
 
 		bool                   has_geometry() const override { return geometry_rect.valid; }
+		bool                   has_point_geometry() const override { return false; }
+		bool                   has_rect_geometry() const override { return true; }
 		const Rect&            get_geometry_rect() const { return geometry_rect; }
 		Rect                   get_bound_rect(const Document& d) const override;
 		void                   clean_geometry() override;
@@ -576,6 +586,8 @@ namespace Cyberiada {
 																	   label_point.valid ||
 																	   label_rect.valid ||
 																	   has_polyline()); }
+		bool                   has_point_geometry() const override { return false; }
+		bool                   has_rect_geometry() const override { return false; }
 		bool                   has_polyline() const { return !polyline.empty(); }
 		bool                   has_geometry_source_point() const { return source_point.valid; }
 		bool                   has_geometry_target_point() const { return target_point.valid; }
