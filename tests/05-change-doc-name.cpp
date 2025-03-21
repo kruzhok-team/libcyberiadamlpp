@@ -32,9 +32,9 @@ int main(int argc, char** argv)
 	try {
 		ld.open(string(argv[0]) + "-input.graphml", formatCyberiada10);
 		Document d(ld);
-		CYB_ASSERT(d.meta().name == "Test document");
+		CYB_ASSERT(d.meta().get_string("name") == "Test document");
 		d.set_name("Test document 2");
-		CYB_ASSERT(d.meta().name == "Test document 2");
+		CYB_ASSERT(d.meta().get_string("name") == "Test document 2");
 		cout << d << endl;
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;

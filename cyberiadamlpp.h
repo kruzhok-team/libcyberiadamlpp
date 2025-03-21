@@ -698,24 +698,20 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // Cyberiada-GraphML document
 // -----------------------------------------------------------------------------
-
-	struct DocumentMetainformation {
-		String                         standard_version;      // PRIMS standard version
-		String                         platform_name;         // target platform name
-		String                         platform_version;      // target platform version
-		String                         platform_language;     // target platform language
-		String                         target_system;         // target system controlled by the SM
-		String                         name;                  // document name
-		String                         author;                // document author
-		String                         contact;               // document author's contact
-		String                         description;           // document description 
-		String                         version;               // document version
-		String                         date;                  // document date
-		String                         markup_language;       // default comments' markup language
-		bool                           transition_order_flag; // false = transition first; true = exit first
-		bool                           event_propagation_flag;// false = block events; true = propagate events
-	};
 	
+	struct DocumentMetainformation {
+		String                                 standard_version;      // PRIMS standard version
+		bool                                   transition_order_flag; // false = transition first; true = exit first
+		bool                                   event_propagation_flag;// false = block events; true = propagate events
+		std::vector<std::pair<String, String>> strings;
+
+		const String&                          get_string(const String& name) const;
+		void                                   set_string(const String& name, const String& value);
+
+	private:
+		static String                          empty_string;
+	};
+
 	class Document: public ElementCollection {
 	public: 
 		Document(DocumentGeometryFormat format = geometryFormatNone);
@@ -867,7 +863,7 @@ namespace Cyberiada {
 											bool reconstruct_sm = false);
 		void                           save(bool round = false);
 		void                           save_as(const String& path,
-											   DocumentFormat f = formatDetect,
+											   DocumentFormat f,
 											   bool round = false);
 
 		DocumentFormat                 get_file_format() const { return file_format; }

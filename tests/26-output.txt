@@ -1,6 +1,5 @@
-LocalDocument: {Document: {id: '', name: 'Стандартный пылесос', geometry format: cyb, meta: {standard version: '1.0', platform name: 'BearsAcademyHoover', target system: 'Hoover
-    ', name: 'Стандартный пылесос', author: 'Матросов В.М.', contact: 'matrosov@mail.ru', description: 'Пример описания схемы, 
-который может быть многострочным, потому что так удобнее', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'G', name: '', elements: {Formal Comment: {id: 'nMeta', name: 'CGML_META', body: 'platform/ BearsAcademyHoover
+LocalDocument: {Document: {id: '', name: 'Стандартный пылесос', geometry format: cyb, meta: {standard version: '1.0', platform: 'BearsAcademyHoover', name: 'Стандартный пылесос', author: 'Матросов В.М.', contact: 'matrosov@mail.ru', description: 'Пример описания схемы, 
+который может быть многострочным, потому что так удобнее', target: 'Hoover', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'G', name: '', elements: {Formal Comment: {id: 'nMeta', name: 'CGML_META', body: 'platform/ BearsAcademyHoover
 
 standardVersion/ 1.0
 

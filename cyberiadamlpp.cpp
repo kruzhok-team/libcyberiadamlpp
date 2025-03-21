@@ -1400,7 +1400,7 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 				throw CybMLException("No comment data in Comment element");
 			}
 	
-			if (n->comment_data->body) {
+			if (n->comment_data->body) { 
 				comment_body = n->comment_data->body;
 			}
 			if (n->comment_data->markup) {
@@ -2838,10 +2838,34 @@ void Document::set_geometry(DocumentGeometryFormat format)
 	}
 }
 
+String DocumentMetainformation::empty_string;
+
+const String& DocumentMetainformation::get_string(const String& name) const
+{
+	for (std::vector<std::pair<String, String>>::const_iterator i = strings.begin(); i != strings.end(); i++) {
+		if (i->first == name) {
+			return i->second;
+		}
+	}
+	return empty_string;
+}
+
+void DocumentMetainformation::set_string(const String& name, const String& value)
+{
+	bool found = false;
+	for (std::vector<std::pair<String, String>>::iterator i = strings.begin(); i != strings.end(); i++) {
+		if (i->first == name) {
+			i->second = value;
+			return ;
+		}
+	}
+	strings.push_back(std::pair<String, String>(name, value));
+}
+
 void Document::set_name(const Name& _name)
 {
 	Element::set_name(_name);
-	metainfo.name = _name;
+	metainfo.set_string(CYBERIADA_META_NAME, _name);
 	update_metainfo_element();
 }
 
@@ -2854,38 +2878,15 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 		CYB_ASSERT(doc->meta_info);
 		CYB_ASSERT(doc->meta_info->standard_version);
 		metainfo.standard_version = doc->meta_info->standard_version;
-		if (doc->meta_info->platform_name) {
-			metainfo.platform_name = doc->meta_info->platform_name;
-		}
-		if (doc->meta_info->platform_version) {
-			metainfo.platform_version = doc->meta_info->platform_version;
-		}
-		if (doc->meta_info->platform_language) {
-			metainfo.platform_language = doc->meta_info->platform_language;
-		}
-		if (doc->meta_info->target_system) {
-			metainfo.target_system = doc->meta_info->target_system;
-		}
-		if (doc->meta_info->name) {
-			set_name(doc->meta_info->name);
-		}
-		if (doc->meta_info->author) {
-			metainfo.author = doc->meta_info->author;
-		}
-		if (doc->meta_info->contact) {
-			metainfo.contact = doc->meta_info->contact;
-		}
-		if (doc->meta_info->description) {
-			metainfo.description = doc->meta_info->description;
-		}
-		if (doc->meta_info->version) {
-			metainfo.version = doc->meta_info->version;
-		}
-		if (doc->meta_info->date) {
-			metainfo.date = doc->meta_info->date;
-		}
-		if (doc->meta_info->markup_language) {
-			metainfo.markup_language = doc->meta_info->markup_language;
+		metainfo.strings.clear();
+		for (CyberiadaMetaStringList* sl = doc->meta_info->strings; sl; sl = sl->next) {
+			if (sl->name && sl->value) {
+				if (String(sl->name) == CYBERIADA_META_NAME) {
+					set_name(sl->value);
+				} else {
+					metainfo.set_string(sl->name, sl->value);
+				}
+			}
 		}
 		metainfo.transition_order_flag = doc->meta_info->transition_order_flag == 2;
 		metainfo.event_propagation_flag = doc->meta_info->event_propagation_flag == 2;
@@ -3050,63 +3051,24 @@ void Document::update_metainfo_element()
 CyberiadaMetainformation* Document::export_meta() const
 {
 	CyberiadaMetainformation* meta_info = cyberiada_new_meta();
-	CYB_ASSERT(metainfo.standard_version == String(meta_info->standard_version));
-	if (!metainfo.platform_name.empty()) {
-		cyberiada_copy_string(&(meta_info->platform_name),
-							  &(meta_info->platform_name_len),
-							  metainfo.platform_name.c_str());
-	}
-	if (!metainfo.platform_version.empty()) {
-		cyberiada_copy_string(&(meta_info->platform_version),
-							  &(meta_info->platform_version_len),
-							  metainfo.platform_version.c_str());
-	}
-	if (!metainfo.platform_language.empty()) {
-		cyberiada_copy_string(&(meta_info->platform_language),
-							  &(meta_info->platform_language_len),
-							  metainfo.platform_language.c_str());
-	}
-	if (!metainfo.target_system.empty()) {
-		cyberiada_copy_string(&(meta_info->target_system),
-							  &(meta_info->target_system_len),
-							  metainfo.target_system.c_str());
-	}
-	if (!metainfo.name.empty()) {
-		cyberiada_copy_string(&(meta_info->name),
-							  &(meta_info->name_len),
-								  metainfo.name.c_str());
-	}
-	if (!metainfo.author.empty()) {
-		cyberiada_copy_string(&(meta_info->author),
-							  &(meta_info->author_len),
-							  metainfo.author.c_str());
-	}
-	if (!metainfo.contact.empty()) {
-		cyberiada_copy_string(&(meta_info->contact),
-							  &(meta_info->contact_len),
-							  metainfo.contact.c_str());
-	}
-	if (!metainfo.description.empty()) {
-		cyberiada_copy_string(&(meta_info->description),
-							  &(meta_info->description_len),
-							  metainfo.description.c_str());
-	}
-	if (!metainfo.version.empty()) {
-		cyberiada_copy_string(&(meta_info->version),
-							  &(meta_info->version_len),
-							  metainfo.version.c_str());
-	}
-	if (!metainfo.date.empty()) {
-		cyberiada_copy_string(&(meta_info->date),
-							  &(meta_info->date_len),
-							  metainfo.date.c_str());
-	}
-	if (!metainfo.markup_language.empty()) {
-		cyberiada_copy_string(&(meta_info->markup_language),
-							  &(meta_info->markup_language_len),
-							  metainfo.markup_language.c_str());
-	}
 	
+	cyberiada_copy_string(&(meta_info->standard_version),
+						  &(meta_info->standard_version_len),
+						  metainfo.standard_version.c_str());
+
+	CyberiadaMetaStringList* last = NULL;	
+	
+	for (std::vector<std::pair<String, String>>::const_iterator i = metainfo.strings.begin();
+		 i != metainfo.strings.end();
+		 i++) {
+		CyberiadaMetaStringList* new_sl = cyberiada_new_meta_string(i->first.c_str(), i->second.c_str());
+		if (last) {
+			last->next = new_sl;
+		} else {
+			meta_info->strings = new_sl;
+		}
+		last = new_sl;
+	}
 	meta_info->transition_order_flag = metainfo.transition_order_flag ? 2: 1;
 	meta_info->event_propagation_flag = metainfo.event_propagation_flag ? 2: 1;
 
@@ -3285,38 +3247,10 @@ std::ostream& Document::dump(std::ostream& os) const
 	if (!metainfo.standard_version.empty()) {
 		params.push_back("standard version: '" + metainfo.standard_version + "'");
 	}
-	if (!metainfo.platform_name.empty()) {
-		params.push_back("platform name: '" + metainfo.platform_name + "'");
-	}
-	if (!metainfo.platform_version.empty()) {
-		params.push_back("platform version: '" + metainfo.platform_version + "'");
-	}
-	if (!metainfo.platform_language.empty()) {
-		params.push_back("platform language: '" + metainfo.platform_language + "'");
-	}
-	if (!metainfo.target_system.empty()) {
-		params.push_back("target system: '" + metainfo.target_system + "'");
-	}
-	if (!metainfo.name.empty()) {
-		params.push_back("name: '" + metainfo.name + "'");
-	}
-	if (!metainfo.author.empty()) {
-		params.push_back("author: '" + metainfo.author + "'");
-	}
-	if (!metainfo.contact.empty()) {
-		params.push_back("contact: '" + metainfo.contact + "'");
-	}
-	if (!metainfo.description.empty()) {
-		params.push_back("description: '" + metainfo.description + "'");
-	}
-	if (!metainfo.version.empty()) {
-		params.push_back("version: '" + metainfo.version + "'");
-	}
-	if (!metainfo.date.empty()) {
-		params.push_back("date: '" + metainfo.date + "'");
-	}
-	if (!metainfo.markup_language.empty()) {
-		params.push_back("markup language: '" + metainfo.markup_language + "'");
+	for (std::vector<std::pair<String, String>>::const_iterator i = metainfo.strings.begin();
+		 i != metainfo.strings.end();
+		 i++) {
+		params.push_back(i->first + ": '" + i->second + "'");	
 	}
 	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "exit first": "transition first"));
 	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "propagate events": "block events"));

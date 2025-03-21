@@ -29,17 +29,17 @@ int main(int argc, char** argv)
 {
 	LocalDocument d;
 	d.new_state_machine("SM");
-	d.meta().platform_name = "Berloga";
-	d.meta().platform_version = "1.4";
-	d.meta().platform_language = "script";
-	d.meta().target_system = "Unit";
-	d.meta().name = "Test document";
-	d.meta().author = "Author";
-	d.meta().contact = "platform@kruzhok.org";
-	d.meta().description = "1\n2\n3"; 
-	d.meta().version = "0.1";
-	d.meta().date = "2024-04-14T11:22:00";
-	d.meta().markup_language = "html";
+	d.meta().set_string("platform", "Berloga");
+	d.meta().set_string("platformVersion", "1.4");
+	d.meta().set_string("platformLanguage", "script");
+	d.meta().set_string("target", "Unit");
+	d.meta().set_string("name", "Test document");
+	d.meta().set_string("author", "Author");
+	d.meta().set_string("contact", "platform@kruzhok.org");
+	d.meta().set_string("description", "1\n2\n3"); 
+	d.meta().set_string("version", "0.1");
+	d.meta().set_string("date", "2024-04-14T11:22:00");
+	d.meta().set_string("markupLanguage", "html");
 	d.meta().transition_order_flag = true; // exit first
 	d.meta().event_propagation_flag = true; // propagate
 	try {

@@ -33,17 +33,17 @@ int main(int argc, char** argv)
 		ld.open(string(argv[0]) + "-input.graphml", formatCyberiada10);
 		Document d(ld);
 		CYB_ASSERT(d.get_state_machines().front()->get_name() == "SM");
-		CYB_ASSERT(d.meta().platform_name == "Berloga");
-		CYB_ASSERT(d.meta().platform_version == "1.4");
-		CYB_ASSERT(d.meta().platform_language == "script");
-		CYB_ASSERT(d.meta().target_system == "Unit");
-		CYB_ASSERT(d.meta().name == "Test document");
-		CYB_ASSERT(d.meta().author == "Author");
-		CYB_ASSERT(d.meta().contact == "platform@kruzhok.org");
-		CYB_ASSERT(d.meta().description == "1\n2\n3"); 
-		CYB_ASSERT(d.meta().version == "0.1");
-		CYB_ASSERT(d.meta().date == "2024-04-14T11:22:00");
-		CYB_ASSERT(d.meta().markup_language == "html");
+		CYB_ASSERT(d.meta().get_string("platform") == "Berloga");
+		CYB_ASSERT(d.meta().get_string("platformVersion") == "1.4");
+		CYB_ASSERT(d.meta().get_string("platformLanguage") == "script");
+		CYB_ASSERT(d.meta().get_string("target") == "Unit");
+		CYB_ASSERT(d.meta().get_string("name") == "Test document");
+		CYB_ASSERT(d.meta().get_string("author") == "Author");
+		CYB_ASSERT(d.meta().get_string("contact") == "platform@kruzhok.org");
+		CYB_ASSERT(d.meta().get_string("description") == "1\n2\n3"); 
+		CYB_ASSERT(d.meta().get_string("version") == "0.1");
+		CYB_ASSERT(d.meta().get_string("date") == "2024-04-14T11:22:00");
+		CYB_ASSERT(d.meta().get_string("markupLanguage") == "html");
 		CYB_ASSERT(d.meta().transition_order_flag); // exit first
 		CYB_ASSERT(d.meta().event_propagation_flag); // propagate
 		cout << d << endl;
