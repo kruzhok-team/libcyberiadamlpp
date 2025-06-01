@@ -70,18 +70,19 @@ using namespace Cyberiada;
 // -----------------------------------------------------------------------------	
 
 Element::Element(Element* _parent, ElementType _type, const ID& _id):
-	type(_type), id(_id), name_is_set(false), parent(_parent)
+	type(_type), id(_id), name_is_set(false), formal_name_is_set(false), parent(_parent)
 {
 }
 
 Element::Element(Element* _parent, ElementType _type, const ID& _id, const Name& _name):
-	type(_type), id(_id), parent(_parent)
+	type(_type), id(_id), formal_name_is_set(false), parent(_parent)
 {
 	set_name(_name);
 }
 
 Element::Element(const Element& e):
-	type(e.type), id(e.id), name(e.name), name_is_set(e.name_is_set), parent(e.parent)
+	type(e.type), id(e.id), name(e.name), name_is_set(e.name_is_set),
+	formal_name(e.formal_name), formal_name_is_set(e.formal_name_is_set), parent(e.parent)
 {
 }
 
@@ -100,6 +101,15 @@ void Element::set_name(const Name& n)
 {
 	name = n;
 	name_is_set = true;
+}
+
+void Element::set_formal_name(const Name& n)
+{
+	formal_name = n;
+	formal_name_is_set = true;
+	if (!has_name()) {
+		set_name(formal_name);
+	}
 }
 
 void Element::set_id(const ID& _id)
@@ -155,6 +165,10 @@ CyberiadaNode* Element::to_node() const
 		cyberiada_copy_string(&(node->title), &(node->title_len),
 							  get_name().c_str());
 	}
+	if (has_formal_name()) {
+		cyberiada_copy_string(&(node->formal_title), &(node->formal_title_len),
+							  get_formal_name().c_str());
+	}
 	return node;
 }
 
@@ -186,6 +200,9 @@ std::ostream& Element::dump(std::ostream& os) const
 	os << type_str << ": {id: '" << id << "'";
 	if (name_is_set) {
 		os << ", name: '" << name << "'";
+	}
+	if (formal_name_is_set) {
+		os << ", formal name: '" << formal_name << "'";
 	}
 	return os;
 }
@@ -1339,6 +1356,8 @@ void ElementCollection::copy_elements(const ElementCollection& source)
 
 void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element** metainfo_element)
 {
+	ElementType t = get_type();
+
 	for (CyberiadaNode* n = nodes; n; n = n->next) {
 		Element* element = NULL;
 		State* state = NULL;
@@ -1362,13 +1381,31 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 		}
 		
 		switch (n->type) {
+		case cybNodeRegion:
+			if (t != elementSimpleState &&
+				t != elementCompositeState) {
+					
+				throw CybMLException("Children region node " + std::string(n->id) +
+									 " inside element with type " +
+									 std::to_string(t));
+			}
+			if (n->next) {
+				throw CybMLException("More than one region node for node " + get_id() + " are not supported");
+			}
+			// no new element actually			
+			break;
+			
 		case cybNodeSimpleState:
 		case cybNodeCompositeState:
 			if (!n->title) {
 				throw CybMLException("State element w/o title");
 			}
-			state = new State(this, n->id, n->title, rect, _color);
+			state = new State(this, n->id, n->title, rect, Rect(), _color);
 			CYB_ASSERT(state);
+
+			if (n->collapsed_flag) {
+				state->set_collapsed(true);
+			}
 			
 			for (CyberiadaAction* a = n->actions; a; a = a->next) {
 				if (a->type == cybActionTransition) {
@@ -1460,18 +1497,33 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 			throw CybMLException("Unsupported node type " + std::to_string(n->type));
 		}
 
-		add_element(element);
-			
-		if (n->children) {
-			if (get_type() != elementSM &&
-				get_type() != elementSimpleState &&
-				get_type() != elementCompositeState) {
-
-				throw CybMLException("Children nodes inside element with type " +
-									 std::to_string(get_type()));
+		if (element != NULL) {
+			if (n->formal_title) {
+				element->set_formal_name(n->formal_title);
 			}
 			
-			static_cast<ElementCollection*>(element)->import_nodes_recursively(n->children, metainfo_element);
+			add_element(element);
+			
+			if (n->children) {
+				t = get_type();
+				if (t != elementSM &&
+					t != elementSimpleState &&
+					t != elementCompositeState) {
+					
+					throw CybMLException("Children nodes inside element with type " + std::to_string(t));
+				}
+			
+				static_cast<ElementCollection*>(element)->import_nodes_recursively(n->children, metainfo_element);
+			}
+		} else {
+			// region node
+			if (rect.valid) {
+				(static_cast<State*>(this))->update_region_geometry_rect(rect);
+			}
+
+			if (n->children) {
+				import_nodes_recursively(n->children, metainfo_element);
+			}
 		}
 	}
 }
@@ -1667,13 +1719,13 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const Action& a)
 	return os;
 }
 
-State::State(Element* _parent, const ID& _id, const Name& _name, const Rect& r, const Color& c):
-	ElementCollection(_parent, elementSimpleState, _id, _name, r, c)
+State::State(Element* _parent, const ID& _id, const Name& _name, const Rect& r, const Rect& region, const Color& c):
+	ElementCollection(_parent, elementSimpleState, _id, _name, r, c), collapsed(false), region_rect(region) 
 {
 }
 
 State::State(const State& s):
-	ElementCollection(s), actions(s.actions)
+	ElementCollection(s), collapsed(s.collapsed), region_rect(s.region_rect), actions(s.actions)
 {
 }
 
@@ -1736,6 +1788,7 @@ void State::update_state_type()
 CyberiadaNode* State::to_node() const
 {
 	CyberiadaNode* node = ElementCollection::to_node();
+
 	if (has_actions()) {
 		for (std::vector<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
 			const Action& a = *i;
@@ -1761,12 +1814,32 @@ CyberiadaNode* State::to_node() const
 			}
 		}
 	}
+
+	if (is_collapsed()) {
+		node->collapsed_flag = 1;
+	}
+	
+	if (node->children) {
+		std::string region_node_id = get_id() + REGION_NAME_SUFFIX;
+		CyberiadaNode* region_node = cyberiada_new_node(region_node_id.c_str());
+		region_node->type = cybNodeRegion;
+		region_node->children = node->children;
+		region_node->parent = node;
+		if (region_rect.valid) {
+			region_node->geometry_rect = region_rect.c_rect();
+		}
+		for (CyberiadaNode* n = region_node->children; n; n = n->next) {
+			n->parent = region_node;
+		}
+		node->children = region_node;
+	}
+	
 	return node;
 }
 
 Element* State::copy(Element* parent) const
 {
-	State* s = new State(parent, get_id(), get_name(), get_geometry_rect(), get_color());
+	State* s = new State(parent, get_id(), get_name(), get_geometry_rect(), get_region_geometry_rect(), get_color());
 	s->copy_elements(*this);
 	s->actions = actions;
 	s->update_state_type();
@@ -1787,6 +1860,9 @@ std::ostream& State::dump(std::ostream& os) const
 		os << "}";
 	}
 	ElementCollection::dump(os);
+	if (region_rect.valid) {
+		os << ", region: " << region_rect;
+	}
 	os << "}";
 	return os;
 }
@@ -2348,12 +2424,12 @@ StateMachine* Document::new_state_machine(const ID& _id, const String& sm_name, 
 }
 
 State* Document::new_state(ElementCollection* _parent, const String& state_name, const Action& a,
-						   const Rect& r, const Color& _color)
+						   const Rect& r, const Rect& region, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(state_name);
 	
-	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, _color);
+	State* state = new State(_parent, generate_vertex_id(_parent), state_name, r, region, _color);
 	if (!a.is_empty_transition()) {
 		state->add_action(a);
 	}
@@ -2363,13 +2439,13 @@ State* Document::new_state(ElementCollection* _parent, const String& state_name,
 }
 
 State* Document::new_state(ElementCollection* _parent, const ID& state_id, const String& state_name, const Action& a,
-						   const Rect& r, const Color& _color)
+						   const Rect& r, const Rect& region, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(state_name);
 	check_id_uniqueness(state_id);
 
-	State* state = new State(_parent, state_id, state_name, r, _color);
+	State* state = new State(_parent, state_id, state_name, r, region, _color);
 	if (!a.is_empty_transition()) {
 		state->add_action(a);
 	}

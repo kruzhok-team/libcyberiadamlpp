@@ -66,6 +66,7 @@ namespace Cyberiada {
 	const String QUALIFIED_NAME_SEPARATOR = "::";
 	const String ACTION_ENTRY_TRIGGER = "entry";
 	const String ACTION_EXIT_TRIGGER = "exit";
+	const String REGION_NAME_SUFFIX = ":";
 
 	enum DocumentFormat {
 		formatCyberiada10 = 0,                      // Cyberiada 1.0 format
@@ -158,6 +159,9 @@ namespace Cyberiada {
 		virtual void           set_name(const Name& name);
 		bool                   has_qualified_name() const;
 		QualifiedName          qualified_name() const;
+		bool                   has_formal_name() const { return formal_name_is_set; }
+		const Name&            get_formal_name() const { return formal_name; }
+		virtual void           set_formal_name(const Name& formal_name);
 
 		bool                   is_root() const { return !parent; }
 		const Element*         get_parent() const { return parent; }
@@ -192,6 +196,8 @@ namespace Cyberiada {
 		ID                     id;
 		Name	               name;
 		bool                   name_is_set;
+		Name                   formal_name;
+		bool                   formal_name_is_set;
 		Element*               parent;
 	};
 
@@ -339,7 +345,7 @@ namespace Cyberiada {
 
 // -----------------------------------------------------------------------------
 // Collection of Elements
-// (the combination of Namespace and Region from the PRIMS standard)
+// (the abstraction of Namespace and Region from the PRIMS standard)
 // -----------------------------------------------------------------------------
 	typedef std::vector<const Element*> ConstElementList;
 	typedef std::vector<Element*>       ElementList;
@@ -535,30 +541,39 @@ namespace Cyberiada {
 	class State: public ElementCollection {
 	public:
 		State(Element* parent, const ID& id, const Name& name,
-			  const Rect& r = Rect(), const Color& color = Color());
+			  const Rect& r = Rect(), const Rect& region = Rect(), const Color& color = Color());
 		State(const State& s);
 
-		void                     add_element(Element* e) override;
-		void                     remove_element(const ID& id) override;
+		void                       add_element(Element* e) override;
+		void                       remove_element(const ID& id) override;
 		
-		bool                     is_simple_state() const { return get_type() == elementSimpleState; }
-		bool                     is_composite_state() const { return get_type() == elementCompositeState; }
+		bool                       is_simple_state() const { return get_type() == elementSimpleState; }
+		bool                       is_composite_state() const { return get_type() == elementCompositeState; }
+
+		bool                       has_region_geometry() const { return region_rect.valid; }
+		const Rect&                get_region_geometry_rect() const { return region_rect; }
+		void                       update_region_geometry_rect(const Rect& r) { region_rect = r; }
+
+		bool                       is_collapsed() const { return collapsed; }
+		void                       set_collapsed(bool flag) { collapsed = flag; }
 
 		std::vector<const State*>  get_substates() const;
 		std::vector<State*>        get_substates();
 
-		bool                     has_actions() const { return !actions.empty(); }
+		bool                       has_actions() const { return !actions.empty(); }
 		const std::vector<Action>& get_actions() const { return actions; }
 		std::vector<Action>&       get_actions() { return actions; }
-		void                     add_action(const Action& a);
+		void                       add_action(const Action& a);
 		
-		CyberiadaNode*           to_node() const override;
-		Element*                 copy(Element* parent) const override;
+		CyberiadaNode*             to_node() const override;
+		Element*                   copy(Element* parent) const override;
 		
 	protected:
-		std::ostream&            dump(std::ostream& os) const override;
-		void                     update_state_type();
-		
+		std::ostream&              dump(std::ostream& os) const override;
+		void                       update_state_type();
+
+		bool                       collapsed;
+		Rect                       region_rect;
 		std::vector<Action>        actions;
 	};
 
@@ -721,9 +736,11 @@ namespace Cyberiada {
 		StateMachine*                  new_state_machine(const String& sm_name, const Rect& r = Rect());
 		StateMachine*                  new_state_machine(const ID& id, const String& sm_name, const Rect& r = Rect());
 		State*                         new_state(ElementCollection* parent, const String& state_name, 
-												 const Action& a = Action(), const Rect& r = Rect(), const Color& color = Color());
+												 const Action& a = Action(), const Rect& r = Rect(),
+												 const Rect& region = Rect(), const Color& color = Color());
 		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
-												 const Action& a = Action(), const Rect& r = Rect(), const Color& color = Color());
+												 const Action& a = Action(), const Rect& r = Rect(),
+												 const Rect& region = Rect(), const Color& color = Color());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& name, const Point& p = Point());
 		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
