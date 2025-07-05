@@ -60,7 +60,7 @@ namespace Cyberiada {
 	static const String TRANTISION_ID_SEP = "-";
 	static const String TRANTISION_ID_NUM_SEP = "#"; 
 	static const std::string tab = "\t";
-	static DocumentGeometryFormat DEFAULT_REAL_GEOMETRY_FORMAT = geometryFormatQt;
+    static DocumentGeometryFormat DEFAULT_REAL_GEOMETRY_FORMAT = geometryFormatQt;
 };
 	
 using namespace Cyberiada;
@@ -1932,6 +1932,23 @@ Rect Transition::get_bound_rect(const Document& d) const
 		r.expand(polyline, d);
 	}
 	return r;
+}
+
+void Transition::update(const Point &source, const Point &target)
+{
+    source_point = source;
+    target_point = target;
+}
+
+void Transition::update(const Polyline &pl)
+{
+    polyline = pl;
+}
+
+void Transition::update(const ID &source, const ID &target)
+{
+    source_id = source;
+    target_id = target;
 }
 
 void Transition::clean_geometry()

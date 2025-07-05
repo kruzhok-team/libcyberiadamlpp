@@ -617,7 +617,10 @@ namespace Cyberiada {
 		const Point&           get_label_point() const { return label_point; }
 		const Rect&            get_label_rect() const { return label_rect; }
 		Rect                   get_bound_rect(const Document& d) const override;
-		void                   clean_geometry() override;
+        void                   update(const Point& source, const Point& target);
+        void                   update(const Polyline& pl);
+        void                   update(const ID& source, const ID& target);
+        void                   clean_geometry() override;
 		void                   round_geometry() override;
 		
 		bool                   has_color() const { return !color.empty(); }
