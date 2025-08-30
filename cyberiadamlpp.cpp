@@ -2290,8 +2290,10 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 	int result_flags = 0;
 	size_t sm_diff_nodes_size = 0, sm2_new_nodes_size = 0, sm1_missing_nodes_size = 0,
 		sm_diff_edges_size = 0, sm2_new_edges_size = 0, sm1_missing_edges_size = 0;
-	CyberiadaNode *sm_new_initial = NULL, **sm_diff_nodes = NULL, **sm1_missing_nodes = NULL, **sm2_new_nodes = NULL;
-	CyberiadaEdge **sm_diff_edges = NULL, **sm2_new_edges = NULL, **sm1_missing_edges = NULL;
+	CyberiadaNode *sm_new_initial = NULL, **sm1_missing_nodes = NULL, **sm2_new_nodes = NULL;
+	CyberiadaEdge **sm2_new_edges = NULL, **sm1_missing_edges = NULL;
+	CyberiadaNodePair *sm_diff_nodes = NULL;
+	CyberiadaEdgePair *sm_diff_edges = NULL;
 	size_t *sm_diff_nodes_flags = NULL, *sm_diff_edges_flags = NULL;
 	
 	res = cyberiada_check_isomorphism(sm1, sm2,
@@ -2323,7 +2325,7 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 			if (diff_nodes_flags) diff_nodes_flags->clear();
 			for (size_t i = 0; i < sm_diff_nodes_size; i++) {
 				if (diff_nodes) {
-					diff_nodes->push_back(sm_diff_nodes[i]->id);
+					diff_nodes->push_back(sm_diff_nodes[i].n2->id);
 				}
 				if (diff_nodes_flags) {
 					diff_nodes_flags->push_back(SMIsomorphismFlagsResult(sm_diff_nodes_flags[i]));
@@ -2350,7 +2352,7 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 			if (diff_edges_flags) diff_edges_flags->clear();
 			for (size_t i = 0; i < sm_diff_edges_size; i++) {
 				if (diff_edges) {
-					diff_edges->push_back(sm_diff_edges[i]->id);
+					diff_edges->push_back(sm_diff_edges[i].e2->id);
 				}
 				if (diff_edges_flags) {
 					diff_edges_flags->push_back(SMIsomorphismFlagsResult(sm_diff_edges_flags[i]));
