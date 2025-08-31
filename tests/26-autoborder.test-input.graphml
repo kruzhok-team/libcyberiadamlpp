@@ -105,7 +105,7 @@ exit/
     <data key="dData">АнализаторЦели.ЦельУстранена/
 </data>
   </edge>
-  <edge id="n0-n3" source="n0" target="n3">
+  <edge id="n0-n3-2" source="n0" target="n3">
     <data key="dData">АнализаторЦели.ЦельПотеряна/
 </data>
   </edge>
