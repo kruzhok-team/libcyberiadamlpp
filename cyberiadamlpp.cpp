@@ -3038,16 +3038,10 @@ void Document::decode(const String& buffer,
 					  String& format_str,
 					  DocumentGeometryFormat gf,
 					  bool reconstruct,
-					  bool reconstruct_sm)
+					  bool reconstruct_sm,
+					  bool skip_empty_events)
 {
 	int flags = 0;
-
-	if (reconstruct) {
-		flags |= CYBERIADA_FLAG_RECONSTRUCT_GEOMETRY;
-		if (reconstruct_sm) {
-			flags |= CYBERIADA_FLAG_RECONSTRUCT_SM_GEOMETRY;
-		}
-	}
 
 	switch(gf) {
 	case geometryFormatNone:
@@ -3073,6 +3067,16 @@ void Document::decode(const String& buffer,
 		break;
 	default:
 		throw ParametersException("Bad geometry format " + std::to_string(int(gf)));
+	}
+
+	if (reconstruct) {
+		flags |= CYBERIADA_FLAG_RECONSTRUCT_GEOMETRY;
+		if (reconstruct_sm) {
+			flags |= CYBERIADA_FLAG_RECONSTRUCT_SM_GEOMETRY;
+		}
+	}
+	if (skip_empty_events) {
+		flags |= CYBERIADA_FLAG_SKIP_EMPTY_BEHAVIOR;
 	}
 	
 	if (buffer.length() == 0) {
@@ -3572,7 +3576,8 @@ void LocalDocument::open(const String& path,
 						 DocumentFormat f,
 						 DocumentGeometryFormat gf,
 						 bool reconstruct,
-						 bool reconstruct_sm)
+						 bool reconstruct_sm,
+						 bool skip_empty_events)
 {
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -3588,7 +3593,7 @@ void LocalDocument::open(const String& path,
 
 	reset();	
 	file_format = f;
-	decode(content, file_format, file_format_str, gf, reconstruct, reconstruct_sm);
+	decode(content, file_format, file_format_str, gf, reconstruct, reconstruct_sm, skip_empty_events);
 	file_path = path;
 }
 
