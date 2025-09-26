@@ -502,6 +502,16 @@ namespace Cyberiada {
 	typedef String Event; 
 	typedef String Guard;
 	typedef String Behavior;
+
+	typedef enum {
+		adiffArguments = CYBERIADA_ACTION_DIFF_BEHAVIOR_ARG,
+		adiffOrder = CYBERIADA_ACTION_DIFF_BEHAVIOR_ORDER,
+		adiffActions = CYBERIADA_ACTION_DIFF_BEHAVIOR_ACTION,
+		adiffTypes = CYBERIADA_ACTION_DIFF_TYPES,
+		adiffGuards = CYBERIADA_ACTION_DIFF_GUARDS,
+		adiffNumber = CYBERIADA_ACTION_DIFF_NUMBER
+	} ActionDiff;
+	typedef int ActionsDiffFlags;
 	
 	class Action {
 	public:
@@ -518,6 +528,7 @@ namespace Cyberiada {
 		bool                   has_behavior() const { return !behavior.empty(); }
 		const Behavior&        get_behavior() const { return behavior; }
 		String                 to_str() const;
+		
 		void                   update(const Behavior& behavior);
 		void                   update(const Event& trigger, const Guard& guard, const Behavior& behavior);
 		void                   clear();
@@ -564,6 +575,7 @@ namespace Cyberiada {
 		const std::vector<Action>& get_actions() const { return actions; }
 		std::vector<Action>&       get_actions() { return actions; }
 		void                       add_action(const Action& a);
+		ActionsDiffFlags           compare_actions(const State& s) const;
 		
 		CyberiadaNode*             to_node() const override;
 		Element*                   copy(Element* parent) const override;
@@ -598,6 +610,7 @@ namespace Cyberiada {
 														   action.has_behavior()); }
 		const Action&          get_action() const { return action; }
 		Action&                get_action() { return action; }
+		ActionsDiffFlags       compare_actions(const Transition& t) const;
 		
 		bool                   has_geometry() const override { return (source_point.valid ||
 																	   target_point.valid ||

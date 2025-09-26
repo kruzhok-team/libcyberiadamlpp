@@ -1785,11 +1785,31 @@ void State::update_state_type()
 	}
 }
 
-CyberiadaNode* State::to_node() const
+static CyberiadaAction* to_action(const Action& a)
 {
-	CyberiadaNode* node = ElementCollection::to_node();
+	if (!a.is_empty_transition()) {
+		CyberiadaActionType at;
+		if (a.get_type() == actionEntry) {
+			at = cybActionEntry;
+		} else if (a.get_type() == actionExit) {
+			at = cybActionExit;
+		} else {
+			CYB_ASSERT(a.get_type() == actionTransition);
+			at = cybActionTransition;
+		}
+		CyberiadaAction* action = cyberiada_new_action(at,
+													   a.get_trigger().c_str(),
+													   a.get_guard().c_str(),
+													   a.get_behavior().c_str());
+		return action;
+	}
+	return NULL;
+}
 
-	if (has_actions()) {
+static CyberiadaAction* to_action(const std::vector<Action>& actions)
+{
+	CyberiadaAction* node_actions = NULL;
+	if (actions.size() > 0) {
 		for (std::vector<Action>::const_iterator i = actions.begin(); i != actions.end(); i++) {
 			const Action& a = *i;
 			CyberiadaActionType at;
@@ -1805,14 +1825,49 @@ CyberiadaNode* State::to_node() const
 														   a.get_trigger().c_str(),
 														   a.get_guard().c_str(),
 														   a.get_behavior().c_str());
-			if (node->actions) {
-				CyberiadaAction* last_a = node->actions;
+			if (node_actions) {
+				CyberiadaAction* last_a = node_actions;
 				while (last_a->next) last_a = last_a->next;
 				last_a->next = action;
 			} else {
-				node->actions = action;
+				node_actions = action;
 			}
 		}
+	}
+	return node_actions;
+}
+
+template<typename T>
+static
+ActionsDiffFlags compare_two_actions(const T& a1, const T& a2)
+{
+	CyberiadaAction* this_a = to_action(a1);
+	CyberiadaAction* comp_a = to_action(a2);
+
+	int flags = 0;
+	int result = cyberiada_compare_node_actions(this_a, comp_a, &flags);
+	if (result != CYBERIADA_NO_ERROR) {
+		if (this_a) cyberiada_destroy_action(this_a);
+		if (comp_a) cyberiada_destroy_action(comp_a);
+		throw CybMLException("Error while comparing actions, res: " +
+							 std::to_string(result));
+	}
+	if (this_a) cyberiada_destroy_action(this_a);
+	if (comp_a) cyberiada_destroy_action(comp_a);
+	return ActionsDiffFlags(flags);
+}
+
+ActionsDiffFlags State::compare_actions(const State& s) const
+{
+	return compare_two_actions(actions, s.get_actions());
+}
+
+CyberiadaNode* State::to_node() const
+{
+	CyberiadaNode* node = ElementCollection::to_node();
+
+	if (has_actions()) {
+		node->actions = to_action(actions);
 	}
 
 	if (is_collapsed()) {
@@ -1897,10 +1952,7 @@ CyberiadaEdge* Transition::to_edge() const
 											 transition_type == transitionExternal);
 	edge->type = cybEdgeLocalTransition;
 	if (has_action()) {
-		edge->action = cyberiada_new_action(cybActionTransition,
-											action.get_trigger().c_str(),
-											action.get_guard().c_str(),
-											action.get_behavior().c_str());
+		edge->action = to_action(action);
 	}
 	if (has_geometry()) {
 		if (source_point.valid) {
@@ -1970,6 +2022,11 @@ void Transition::round_geometry()
 		label_rect.round();
 		polyline.round();
 	}
+}
+
+ActionsDiffFlags Transition::compare_actions(const Transition& t) const
+{
+	return compare_two_actions(action, t.get_action());
 }
 
 Element* Transition::copy(Element* parent) const

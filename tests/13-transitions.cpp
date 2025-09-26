@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 	pl.push_back(Point(0, 0));
 	pl.push_back(Point(5, 10));
 	pl.push_back(Point(15, 20));
-	d.new_transition(sm, transitionExternal, s1, s1, Action("IDLE"), pl, Point(-1, -2), Point(3, 4));
+	Transition* t1 = d.new_transition(sm, transitionExternal, s1, s1, Action("IDLE"), pl, Point(-1, -2), Point(3, 4));
 	d.new_transition(sm, transitionExternal, parent1, s1, Action("INSIDE"), Polyline(), Point(-1, -2), Point(3, 4));
 	d.new_transition(sm, transitionExternal, s2, parent1, Action("OUTSIDE"), Polyline(), Point(-1, -2), Point(3, 4), Point(5, 6));
 
@@ -61,12 +61,21 @@ int main(int argc, char** argv)
 	}
 	
 	State* parent2 = d.new_state(sm, "Parent 1");
-	d.new_transition(sm, transitionExternal, s2, parent2, Action("EVENT", "guard()", "action();"));
+	Transition* t2 = d.new_transition(sm, transitionExternal, s2, parent2, Action("EVENT", "guard()", "action();"));
 	
 	try {
 		cout << d << endl;
 		LocalDocument ld(d, string(argv[0]) + ".graphml");
 		ld.save();
+
+		ActionsDiffFlags f = t1->compare_actions(*t2);
+		CYB_ASSERT(!(f & adiffArguments));
+		CYB_ASSERT(!(f & adiffOrder));
+		CYB_ASSERT(!(f & adiffGuards));
+		CYB_ASSERT(f & adiffActions);
+		CYB_ASSERT(!(f & adiffNumber));
+		CYB_ASSERT(!(f & adiffTypes));
+		
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}

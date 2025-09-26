@@ -47,8 +47,18 @@ int main(int argc, char** argv)
 	try {
 		cout << d << endl;
 		LocalDocument(d, string(argv[0]) + ".graphml").save();
+
+		ActionsDiffFlags f = s1->compare_actions(*s2);
+		CYB_ASSERT(!(f & adiffArguments));
+		CYB_ASSERT(!(f & adiffOrder));
+		CYB_ASSERT(!(f & adiffGuards));
+		CYB_ASSERT(f & adiffActions);
+		CYB_ASSERT(f & adiffNumber);
+		CYB_ASSERT(f & adiffTypes);
 	} catch (const Cyberiada::Exception&) {
 		return 1;
 	}
+
+	
 	return 0;
 }
