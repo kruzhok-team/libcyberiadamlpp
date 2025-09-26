@@ -45,14 +45,15 @@ int main(int argc, char** argv)
 		d4.open(string(argv[0]) + "-graph4.graphml");
 		d5.open(string(argv[0]) + "-graph5.graphml");
 		
-		vector<ID> diff_nodes;
+		vector<ID> diff_nodes_first, diff_nodes_second;
 		vector<SMIsomorphismFlagsResult> diff_nodes_flags;
 		
 		const StateMachine* sm4 = d4.get_state_machines().front();
 		const StateMachine* sm5 = d5.get_state_machines().front();
-		CYB_ASSERT(sm4->check_isomorphism_details(*sm5, true, false, NULL, &diff_nodes, &diff_nodes_flags) == smiIsomorphic);
-		CYB_ASSERT(diff_nodes.size() == 6);
-		CYB_ASSERT(diff_nodes[2] == "node-0-0-0");
+		CYB_ASSERT(sm4->check_isomorphism_details(*sm5, true, false, NULL,
+												  &diff_nodes_first, &diff_nodes_second, &diff_nodes_flags) == smiIsomorphic);
+		CYB_ASSERT(diff_nodes_second.size() == 6);
+		CYB_ASSERT(diff_nodes_second[2] == "node-0-0-0");
 		CYB_ASSERT(diff_nodes_flags.size() == 6);
 		CYB_ASSERT(diff_nodes_flags[3] | smiNodeDiffFlagTitle);
 		for (size_t i = 0; i < diff_nodes_flags.size(); i++) {

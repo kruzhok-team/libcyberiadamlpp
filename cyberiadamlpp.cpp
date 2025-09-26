@@ -2326,11 +2326,13 @@ SMIsomorphismResult StateMachine::check_isomorphism(const StateMachine& sm,
 SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& sm,
 															bool ignore_comments, bool require_initial,
 															ID* new_initial,
-															std::vector<ID>* diff_nodes,
+															std::vector<ID>* diff_nodes_first,
+															std::vector<ID>* diff_nodes_second,
 															std::vector<SMIsomorphismFlagsResult>* diff_nodes_flags,
 															std::vector<ID>* new_nodes,
 															std::vector<ID>* missing_nodes,
-															std::vector<ID>* diff_edges,
+															std::vector<ID>* diff_edges_first,
+															std::vector<ID>* diff_edges_second,
 															std::vector<SMIsomorphismFlagsResult>* diff_edges_flags,
 															std::vector<ID>* new_edges,
 															std::vector<ID>* missing_edges) const
@@ -2357,15 +2359,15 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 									  ignore_comments, require_initial,
 									  &result_flags,
 									  new_initial ? &sm_new_initial: NULL,
-									  (diff_nodes || diff_nodes_flags) ? &sm_diff_nodes_size: NULL,
-									  diff_nodes ? &sm_diff_nodes: NULL,
+									  (diff_nodes_first || diff_nodes_second || diff_nodes_flags) ? &sm_diff_nodes_size: NULL,
+									  (diff_nodes_first || diff_nodes_second) ? &sm_diff_nodes: NULL,
 									  diff_nodes_flags ? &sm_diff_nodes_flags: NULL,
 									  new_nodes ? &sm2_new_nodes_size: NULL,
 									  new_nodes ? &sm2_new_nodes: NULL,
 									  missing_nodes ? &sm1_missing_nodes_size: NULL,
 									  missing_nodes ? &sm1_missing_nodes: NULL,
-									  (diff_edges || diff_edges_flags) ? &sm_diff_edges_size: NULL,
-									  diff_edges ? &sm_diff_edges: NULL,
+									  (diff_edges_first || diff_edges_second || diff_edges_flags) ? &sm_diff_edges_size: NULL,
+									  (diff_edges_first || diff_edges_second) ? &sm_diff_edges: NULL,
 									  diff_edges_flags ? &sm_diff_edges_flags: NULL,
 									  new_edges ? &sm2_new_edges_size: NULL,
 									  new_edges ? &sm2_new_edges: NULL,
@@ -2377,12 +2379,16 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 			*new_initial = ID(sm_new_initial->id);
 		}
 
-		if (diff_nodes || diff_nodes_flags) {
-			if (diff_nodes) diff_nodes->clear();
+		if (diff_nodes_first || diff_nodes_second || diff_nodes_flags) {
+			if (diff_nodes_first) diff_nodes_first->clear();
+			if (diff_nodes_second) diff_nodes_second->clear();
 			if (diff_nodes_flags) diff_nodes_flags->clear();
 			for (size_t i = 0; i < sm_diff_nodes_size; i++) {
-				if (diff_nodes) {
-					diff_nodes->push_back(sm_diff_nodes[i].n2->id);
+				if (diff_nodes_first) {
+					diff_nodes_first->push_back(sm_diff_nodes[i].n1->id);
+				}
+				if (diff_nodes_second) {
+					diff_nodes_second->push_back(sm_diff_nodes[i].n2->id);
 				}
 				if (diff_nodes_flags) {
 					diff_nodes_flags->push_back(SMIsomorphismFlagsResult(sm_diff_nodes_flags[i]));
@@ -2404,12 +2410,16 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 			}
 		}
 
-		if (diff_edges || diff_edges_flags) {
-			if (diff_edges) diff_edges->clear();
+		if (diff_edges_first || diff_edges_second || diff_edges_flags) {
+			if (diff_edges_first) diff_edges_first->clear();
+			if (diff_edges_second) diff_edges_second->clear();
 			if (diff_edges_flags) diff_edges_flags->clear();
 			for (size_t i = 0; i < sm_diff_edges_size; i++) {
-				if (diff_edges) {
-					diff_edges->push_back(sm_diff_edges[i].e2->id);
+				if (diff_edges_first) {
+					diff_edges_first->push_back(sm_diff_edges[i].e1->id);
+				}
+				if (diff_edges_second) {
+					diff_edges_second->push_back(sm_diff_edges[i].e2->id);
 				}
 				if (diff_edges_flags) {
 					diff_edges_flags->push_back(SMIsomorphismFlagsResult(sm_diff_edges_flags[i]));
