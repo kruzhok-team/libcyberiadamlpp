@@ -54,7 +54,11 @@ int main(int argc, char** argv)
 	
 	State* parent2 = d.new_state(sm, "Parent 1");
 	d.new_state(parent2, "State 1-0");
-	d.new_state(parent2, "State 1-1");
+	State* ch = d.new_state(parent2, "State 1-1");
+
+	CYB_ASSERT(ch->qualified_name() == "Parent 1::State 1-1");
+	CYB_ASSERT(ch->full_qualified_name() == "SM::Parent 1::State 1-1");
+
 	try {
 		// check id uniqueness on the deep level
 		d.new_state(parent2, "n1::n1", "test");

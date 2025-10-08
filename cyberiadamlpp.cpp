@@ -124,13 +124,22 @@ bool Element::has_qualified_name() const
 
 QualifiedName Element::qualified_name() const
 {
+	if (is_root() || parent->is_root() || parent->parent->is_root()) {
+		return name;
+	} else {
+		return parent->qualified_name() + QUALIFIED_NAME_SEPARATOR + name;
+	}
+}
+
+QualifiedName Element::full_qualified_name() const
+{
 	if (is_root()) {
 		return name;
 	} else {
 		if (parent->is_root()) {
 			return name;
 		} else {
-			return parent->qualified_name() + QUALIFIED_NAME_SEPARATOR + name;
+			return parent->full_qualified_name() + QUALIFIED_NAME_SEPARATOR + name;
 		}
 	}
 }
@@ -962,30 +971,6 @@ ElementCollection::ElementCollection(const ElementCollection& ec):
 ElementCollection::~ElementCollection()
 {
 	clear();
-}
-
-bool ElementCollection::has_qualified_name(const ID& element_id) const
-{
-	const Element* e = find_element_by_id(element_id);
-	if (!e) {
-		return false;
-	} else {
-		return e->has_qualified_name();
-	}
-}
-
-QualifiedName ElementCollection::qualified_name(const ID& element_id) const
-{
-	const Element* e = find_element_by_id(element_id);
-	if (!e) {
-		throw NotFoundException();
-	} else {
-		if (is_root()) {
-			return e->qualified_name();
-		} else {
-			return get_name() + QUALIFIED_NAME_SEPARATOR + e->qualified_name();
-		}
-	}
 }
 
 const Element* ElementCollection::find_element_by_id(const ID& _id) const

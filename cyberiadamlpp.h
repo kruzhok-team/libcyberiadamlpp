@@ -159,6 +159,7 @@ namespace Cyberiada {
 		virtual void           set_name(const Name& name);
 		bool                   has_qualified_name() const;
 		QualifiedName          qualified_name() const;
+		QualifiedName          full_qualified_name() const;
 		bool                   has_formal_name() const { return formal_name_is_set; }
 		const Name&            get_formal_name() const { return formal_name; }
 		virtual void           set_formal_name(const Name& formal_name);
@@ -357,9 +358,6 @@ namespace Cyberiada {
 						  const Name& name, const Rect& rect = Rect(), const Color& color = Color());
 		ElementCollection(const ElementCollection& ec);
 		virtual ~ElementCollection();
-
-		bool                     has_qualified_name(const ID& element_id) const;
-		QualifiedName            qualified_name(const ID& element_id) const;
 
 		bool                     has_children() const override { return !children.empty(); } 
 		size_t                   children_count() const override { return children.size(); }
