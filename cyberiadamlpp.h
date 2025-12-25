@@ -827,7 +827,8 @@ namespace Cyberiada {
 											  DocumentGeometryFormat gf = geometryFormatQt,
 											  bool reconstruct = false,
 											  bool reconstruct_sm = false,
-											  bool skip_empty_events = false);
+											  bool skip_empty_events = false,
+											  bool simplify_ids = false);
 		void                           encode(String& buffer,
 											  DocumentFormat f = formatCyberiada10,
 											  bool round = false) const;
@@ -895,7 +896,8 @@ namespace Cyberiada {
 											DocumentGeometryFormat gf = geometryFormatQt,
 											bool reconstruct = false,
 											bool reconstruct_sm = false,
-											bool skip_empty_events = false);
+											bool skip_empty_events = false,
+											bool simplify_ids = false);
 		void                           save(bool round = false);
 		void                           save_as(const String& path,
 											   DocumentFormat f,
