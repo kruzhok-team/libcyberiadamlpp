@@ -828,7 +828,8 @@ namespace Cyberiada {
 											  bool reconstruct = false,
 											  bool reconstruct_sm = false,
 											  bool skip_empty_events = false,
-											  bool simplify_ids = false);
+											  bool simplify_ids = false,
+											  bool skip_meta_format = false);
 		void                           encode(String& buffer,
 											  DocumentFormat f = formatCyberiada10,
 											  bool round = false) const;
@@ -897,7 +898,8 @@ namespace Cyberiada {
 											bool reconstruct = false,
 											bool reconstruct_sm = false,
 											bool skip_empty_events = false,
-											bool simplify_ids = false);
+											bool simplify_ids = false,
+											bool skip_meta_format = false);
 		void                           save(bool round = false);
 		void                           save_as(const String& path,
 											   DocumentFormat f,

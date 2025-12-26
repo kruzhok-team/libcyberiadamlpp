@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * The Cyberiada GraphML C++ library implemention
  *
- * The test
+ * The meta test
  *
  * Copyright (C) 2024 Alexey Fedoseev <aleksey@fedoseev.net>
  *
@@ -47,6 +47,12 @@ int main(int argc, char** argv)
 		CYB_ASSERT(d.meta().transition_order_flag); // exit first
 		CYB_ASSERT(d.meta().event_propagation_flag); // propagate
 		cout << d << endl;
+		ld.open(string(argv[0]) + "-input2.graphml", formatCyberiada10, geometryFormatNone, false, false, false, true, true);
+		Document d2(ld);
+		CYB_ASSERT(d2.meta().standard_version == CYBERIADA_STANDARD_VERSION_CYBERIADAML);
+		CYB_ASSERT(!d2.meta().transition_order_flag); // default: transition first
+		CYB_ASSERT(!d2.meta().event_propagation_flag); // default: block events		
+		cout << d2 << endl;
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
 		return 1;
