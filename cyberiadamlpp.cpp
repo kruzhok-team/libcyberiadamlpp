@@ -1134,7 +1134,9 @@ void ElementCollection::remove_element(const ID& _id)
 {
 	for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
 		if ((*i)->get_id() == _id) {
+			Element* e = *i;
 			children.erase(i);
+			delete e;
 			break;
 		}
 	}
@@ -3237,7 +3239,6 @@ CyberiadaMetainformation* Document::export_meta() const
 void Document::to_document(CyberiadaDocument* doc) const
 {
 	CYB_ASSERT(doc);
-	cyberiada_init_sm_document(doc);
 
 	switch (geometry_format) {
 	case geometryFormatNone:
@@ -3259,11 +3260,13 @@ void Document::to_document(CyberiadaDocument* doc) const
 		doc->edge_geom_format = edgeBorder;
 		break;
 	default:
+		cyberiada_cleanup_sm_document(doc);
 		throw ParametersException("Bad geometry format");
 	}
 
 	ConstStateMachineList state_machines = get_state_machines();
 	if (state_machines.empty()) {
+		cyberiada_cleanup_sm_document(doc);
 		throw ParametersException("At least one state machine required");
 	}
 	
