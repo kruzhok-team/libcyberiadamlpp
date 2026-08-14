@@ -2236,18 +2236,14 @@ std::vector<Transition*> StateMachine::get_transitions()
 	return result;
 }
 
-// Rect StateMachine::get_bound_rect(const Document& d) const
-// {
-// 	Rect r;
-// 	if (has_geometry()) {
-// 		r = ElementCollection::get_bound_rect(d);
-// 	} else if (has_children()) {
-// 		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
-// 			r.expand((*i)->get_bound_rect(d), d);
-// 		}
-// 	}
-// 	return r;
-// }
+Rect StateMachine::get_bound_rect(const Document& d) const
+{
+	/* the explicit SM border is the bounding rect of the state machine */
+	if (has_geometry()) {
+		return get_geometry_rect();
+	}
+	return ElementCollection::get_bound_rect(d);
+}
 
 void StateMachine::from_sm(const CyberiadaSM* sm, Element** metainfo_element)
 {

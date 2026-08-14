@@ -708,7 +708,7 @@ namespace Cyberiada {
 																 std::vector<ID>* new_edges = NULL,
 																 std::vector<ID>* missing_edges = NULL) const;
 
-		//virtual Rect                 get_bound_rect(const Document& d) const;
+		virtual Rect                   get_bound_rect(const Document& d) const;
 
 		void                           from_sm(const CyberiadaSM* sm, Element** metainfo_element = NULL);
 		CyberiadaSM*                   to_sm() const;
