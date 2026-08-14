@@ -2245,6 +2245,23 @@ Rect StateMachine::get_bound_rect(const Document& d) const
 	return ElementCollection::get_bound_rect(d);
 }
 
+bool Document::check_geometry() const
+{
+	/* the content of a state machine with the explicit border must fit
+	   the border: the union of the border and the content equals the
+	   border for a well-formed diagram */
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		if ((*i)->get_type() != elementSM) continue;
+		const StateMachine* sm = static_cast<const StateMachine*>(*i);
+		if (!sm->has_geometry()) continue;
+		Rect u = sm->ElementCollection::get_bound_rect(*this);
+		if (u.valid && !u.almost_equal(sm->get_geometry_rect())) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void StateMachine::from_sm(const CyberiadaSM* sm, Element** metainfo_element)
 {
 	if (sm) {

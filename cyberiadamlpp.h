@@ -848,6 +848,7 @@ namespace Cyberiada {
 		bool                           has_geometry() const override { return geometry_format != geometryFormatNone; }
 		Rect                           get_bound_rect() const;
 		Rect                           get_bound_rect(const Document& d) const override;
+		bool                           check_geometry() const;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
 		void                           reconstruct_geometry(bool reconstruct_sm);
 		void                           clean_geometry() override;
