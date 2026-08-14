@@ -1269,6 +1269,62 @@ ConstElementList ElementCollection::get_children() const
 	return result;
 }
 
+/* The element's own stored position (and size for the rect-based elements) */
+static bool element_own_position(const Element* element, double& x, double& y,
+								 double& w, double& h)
+{
+	x = y = w = h = 0.0;
+	if (const ElementCollection* c = dynamic_cast<const ElementCollection*>(element)) {
+		const Rect& r = c->get_geometry_rect();
+		if (!r.valid) return false;
+		x = r.x; y = r.y; w = r.width; h = r.height;
+	} else if (const ChoicePseudostate* cp = dynamic_cast<const ChoicePseudostate*>(element)) {
+		const Rect& r = cp->get_geometry_rect();
+		if (!r.valid) return false;
+		x = r.x; y = r.y; w = r.width; h = r.height;
+	} else if (const Vertex* v = dynamic_cast<const Vertex*>(element)) {
+		const Point& p = v->get_geometry_point();
+		if (!p.valid) return false;
+		x = p.x; y = p.y;
+	} else if (const Comment* cm = dynamic_cast<const Comment*>(element)) {
+		const Rect& r = cm->get_geometry_rect();
+		if (!r.valid) return false;
+		x = r.x; y = r.y; w = r.width; h = r.height;
+	} else {
+		return false;
+	}
+	return true;
+}
+
+/* The node frame relative to the collection's parent frame
+   (absolute node coordinates for the legacy YED format) */
+static bool transition_node_frame(const ElementCollection* coll, const Element* node,
+								  const Document& d,
+								  double& fx, double& fy, double& w, double& h)
+{
+	if (!element_own_position(node, fx, fy, w, h)) {
+		return false;
+	}
+	if (d.get_geometry_format() == geometryFormatLegacyYED) {
+		return true;
+	}
+	const Element* stop = coll->get_parent();
+	double px, py, pw, ph;
+	for (const Element* e = node->get_parent(); e && e != stop; e = e->get_parent()) {
+		if (element_own_position(e, px, py, pw, ph)) {
+			fx += px; fy += py;
+		}
+		/* the children of a state with a region are relative to the region rect */
+		if (const State* st = dynamic_cast<const State*>(e)) {
+			if (st->has_region_geometry()) {
+				const Rect& rr = st->get_region_geometry_rect();
+				fx += rr.x; fy += rr.y;
+			}
+		}
+	}
+	return true;
+}
+
 Rect ElementCollection::get_bound_rect(const Document& d) const
 {
 	Rect r, parent;
@@ -1279,27 +1335,93 @@ Rect ElementCollection::get_bound_rect(const Document& d) const
 	if (has_children()) {
 		for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
 			CYB_ASSERT(*i);
-			Rect ch_r = (*i)->get_bound_rect(d);
 			if ((*i)->get_type() == elementTransition) {
-				continue;
 				const Transition* t = static_cast<const Transition*>(*i);
-				const Element* source = d.find_element_by_id(t->source_element_id());
-				const Element* target = d.find_element_by_id(t->target_element_id());
-				if (!source || !source->has_geometry() || !target || !target->has_geometry()) {
+				if (!t->has_geometry()) {
 					continue;
 				}
-				Rect source_rect = source->get_bound_rect(d);
-				if (d.get_geometry_format() == geometryFormatCyberiada10 ||
-					d.get_geometry_format() == geometryFormatQt) {
-					ch_r.x += source_rect.x;
-					ch_r.y += source_rect.y;
+				const Element* source = d.find_element_by_id(t->source_element_id());
+				const Element* target = d.find_element_by_id(t->target_element_id());
+				if (!source || !target) {
+					continue;
 				}
-			} else {
-				if (d.get_geometry_format() == geometryFormatCyberiada10 ||
-					d.get_geometry_format() == geometryFormatQt) {
-					ch_r.x += parent.x;
-					ch_r.y += parent.y;
+				double sfx, sfy, sw, sh, tfx, tfy, tw, th;
+				if (!transition_node_frame(this, source, d, sfx, sfy, sw, sh) ||
+					!transition_node_frame(this, target, d, tfx, tfy, tw, th)) {
+					continue;
 				}
+				DocumentGeometryFormat format = d.get_geometry_format();
+				bool yed = (format == geometryFormatLegacyYED);
+				/* the resolved edge ends: the explicit points are bound to the
+				   node centers (yed/qt) or corners (cyberiada10), the missing
+				   points fall back to the node centers */
+				Point sp, tp;
+				if (t->has_geometry_source_point()) {
+					const Point& p = t->get_source_point();
+					if (yed) {
+						sp = Point(sfx + sw / 2.0 + p.x, sfy + sh / 2.0 + p.y);
+					} else {
+						sp = Point(sfx + p.x, sfy + p.y);
+					}
+				} else if (format == geometryFormatQt) {
+					sp = Point(sfx, sfy);
+				} else {
+					sp = Point(sfx + sw / 2.0, sfy + sh / 2.0);
+				}
+				if (t->has_geometry_target_point()) {
+					const Point& p = t->get_target_point();
+					if (yed) {
+						tp = Point(tfx + tw / 2.0 + p.x, tfy + th / 2.0 + p.y);
+					} else {
+						tp = Point(tfx + p.x, tfy + p.y);
+					}
+				} else if (format == geometryFormatQt) {
+					tp = Point(tfx, tfy);
+				} else {
+					tp = Point(tfx + tw / 2.0, tfy + th / 2.0);
+				}
+				/* the edge ends and the polyline points extend the rect
+				   only when the polyline is present */
+				if (t->has_polyline()) {
+					r.expand(sp, d);
+					r.expand(tp, d);
+					const Polyline& pl = t->get_geometry_polyline();
+					for (Polyline::const_iterator p = pl.begin(); p != pl.end(); p++) {
+						if (yed) {
+							/* absolute polyline coordinates */
+							r.expand(*p, d);
+						} else {
+							r.expand(Point(sfx + p->x, sfy + p->y), d);
+						}
+					}
+				}
+				/* the labels always extend the rect: bound to the source
+				   point (yed) or to the source node frame */
+				if (t->has_geometry_label_point()) {
+					const Point& lp = t->get_label_point();
+					if (yed) {
+						r.expand(Point(sp.x + lp.x, sp.y + lp.y), d);
+					} else {
+						r.expand(Point(sfx + lp.x, sfy + lp.y), d);
+					}
+				}
+				if (t->has_geometry_label_rect()) {
+					const Rect& lr = t->get_label_rect();
+					if (yed) {
+						r.expand(Rect(sfx + sw / 2.0 + lr.x - lr.width / 2.0,
+									  sfy + sh / 2.0 + lr.y - lr.height / 2.0,
+									  lr.width, lr.height), d);
+					} else {
+						r.expand(Rect(sfx + lr.x, sfy + lr.y, lr.width, lr.height), d);
+					}
+				}
+				continue;
+			}
+			Rect ch_r = (*i)->get_bound_rect(d);
+			if (d.get_geometry_format() == geometryFormatCyberiada10 ||
+				d.get_geometry_format() == geometryFormatQt) {
+				ch_r.x += parent.x;
+				ch_r.y += parent.y;
 			}
 			r.expand(ch_r, d);
 		}
