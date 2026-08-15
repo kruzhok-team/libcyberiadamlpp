@@ -3675,16 +3675,18 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 
 void Document::reconstruct_geometry(bool reconstruct_sm)
 {
+	/* the target format must be set before the export so the
+	   reconstructed geometry comes back in this format */
+	if (geometry_format == geometryFormatNone) {
+		geometry_format = geometryFormatQt;
+	}
+
 	CyberiadaDocument doc;
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
 	int res = cyberiada_reconstruct_document_geometry(&doc, int(reconstruct_sm));
 	CYB_CHECK_RESULT(res);
-
-	if (geometry_format == geometryFormatNone) {
-		geometry_format = geometryFormatQt;
-	}
 
 	update_from_document(geometry_format, &doc);
 	
