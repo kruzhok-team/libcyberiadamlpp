@@ -3828,3 +3828,12 @@ Element* LocalDocument::copy(Element*) const
 {
 	 return new LocalDocument(*this);
 }
+
+// -----------------------------------------------------------------------------
+// Library lifecycle
+// -----------------------------------------------------------------------------
+
+void Cyberiada::cleanup_library()
+{
+	cyberiada_cleanup_library();
+}

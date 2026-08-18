@@ -922,6 +922,14 @@ namespace Cyberiada {
 	};
 
 // -----------------------------------------------------------------------------
+// Library lifecycle
+// -----------------------------------------------------------------------------
+
+	// Cleanup the global library state. Optional; call once at the process
+	// exit, after all threads finished using the library.
+	void cleanup_library();
+
+// -----------------------------------------------------------------------------
 // Exceptions
 // -----------------------------------------------------------------------------
 	class Exception: std::exception {
