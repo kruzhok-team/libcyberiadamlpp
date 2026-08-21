@@ -34,11 +34,19 @@ target_include_directories(cyberiadapp PUBLIC
 target_link_directories(cyberiadapp PUBLIC "${PROJECT_BINARY_DIR}")
 target_link_libraries(cyberiadapp PUBLIC cyberiadamlpp)
 
+enable_testing()
+
+option(MEMCHECK "Run the tests under valgrind memcheck" OFF)
+if(MEMCHECK)
+  find_program(VALGRIND valgrind REQUIRED)
+  set(MEMCHECK_COMMAND "${VALGRIND} --tool=memcheck -s --leak-check=full --error-exitcode=1")
+endif()
+
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/tests/")
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 foreach(source_path ${files})
-  get_filename_component(target_name "${source_path}" NAME_WE)
-  string(CONCAT target_name "${target_name}" ".test")
+  get_filename_component(test_name "${source_path}" NAME_WE)
+  string(CONCAT target_name "${test_name}" ".test")
   add_executable("${target_name}" "${source_path}")
   target_include_directories("${target_name}" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
   target_link_directories("${target_name}" PUBLIC "${PROJECT_BINARY_DIR}")
@@ -54,6 +62,26 @@ foreach(source_path ${files})
       COMMAND ln -sf "${PROJECT_BINARY_DIR}/${target_name}" "${PROJECT_BINARY_DIR}/tests/"
       )
   endif()
+  # the binary path is relative to the build directory: the tests
+  # resolve their input/output files and print the paths via argv[0]
+  string(SUBSTRING "${test_name}" 0 2 test_num)
+  set(test_args "-DBINARY=tests/${target_name}")
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${target_name}-input.graphml" OR
+      EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_num}-output.txt")
+    list(APPEND test_args "-DCAPTURE=1")
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_num}-output.txt")
+    list(APPEND test_args "-DPATTERN_TXT=${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_num}-output.txt")
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_num}-output.graphml")
+    list(APPEND test_args "-DPATTERN_GRAPHML=${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_num}-output.graphml")
+  endif()
+  if(MEMCHECK)
+    list(APPEND test_args "-DMEMCHECK=${MEMCHECK_COMMAND}")
+  endif()
+  add_test(NAME "${test_name}"
+    COMMAND ${CMAKE_COMMAND} ${test_args} -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/runtest.cmake")
+  set_tests_properties("${test_name}" PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 endforeach()
 
 file(GLOB test_files

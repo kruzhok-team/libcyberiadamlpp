@@ -26,6 +26,13 @@ Use CMake parameters to change the build type / installation prefix / etc.
 
 ## Testing
 
-`cd build`
+The tests are run by CTest. From the `build` directory:
 
-Run `run-tests.sh` to build and process the tests.
+`cmake .. && make && ctest`
+
+Configure with `-DMEMCHECK=ON` to run the tests under valgrind memcheck.
+
+The wrapper scripts build the library and run the tests in one step
+(from the `build` directory): `run-tests.sh` for the plain suite,
+`run-mem-tests.sh` for the memcheck suite. The optional argument of both
+scripts is a regular expression to filter the tests.

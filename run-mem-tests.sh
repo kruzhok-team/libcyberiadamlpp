@@ -1,6 +1,10 @@
 #!/bin/bash
+#
+# Build the library and run the test suite under valgrind memcheck.
+# The optional argument is a regular expression to filter the tests
+# (ctest -R). Memory errors and leaks fail the tests.
 
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DMEMCHECK=ON ..
 make
 if [ $? != 0 ]
 then
@@ -9,42 +13,12 @@ then
 fi
 
 echo
-echo "tests ready!"
+echo "memcheck tests ready!"
 echo
 
-limit=$1
-
-if [ "$limit" == "" ]
+if [ -n "$1" ]
 then
-    limit="99"
+    ctest --output-on-failure -R "$1"
+else
+    ctest --output-on-failure
 fi
-
-i=-1
-
-MEMTEST="valgrind --tool=memcheck -s --leak-check=full"
-
-for t in $(ls tests/*.test); do
-    i=$((i + 1))
-    if [ "$i" == "$limit" ]
-    then
-	break
-    fi
-    num=$(echo $t | grep -Poe '\d\d')
-    echo -n "$num $t... "
-    cmd="$MEMTEST $t"
-    if [ -f "$t-input.graphml" -o -f "tests/$num-output.txt" ]
-    then
-	$cmd > "$t.txt" 2>/dev/null
-    else
-	$cmd 2>/dev/null
-    fi
-    if [ $? != 0 ]
-    then
-	echo "memcheck test $num run failed!"
-	#continue
-	exit 1
-    fi
-    echo "ok"
-done
-
-exit 0
