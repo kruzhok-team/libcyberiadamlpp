@@ -3347,7 +3347,11 @@ void Document::update_metainfo_element()
 CyberiadaMetainformation* Document::export_meta() const
 {
 	CyberiadaMetainformation* meta_info = cyberiada_new_meta();
-	
+
+	// cyberiada_new_meta() allocates the default version string
+	if (meta_info->standard_version) {
+		free(meta_info->standard_version);
+	}
 	cyberiada_copy_string(&(meta_info->standard_version),
 						  &(meta_info->standard_version_len),
 						  metainfo.standard_version.c_str());
