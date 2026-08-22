@@ -515,7 +515,8 @@ namespace Cyberiada {
 		adiffActions = CYBERIADA_ACTION_DIFF_BEHAVIOR_ACTION,
 		adiffTypes = CYBERIADA_ACTION_DIFF_TYPES,
 		adiffGuards = CYBERIADA_ACTION_DIFF_GUARDS,
-		adiffNumber = CYBERIADA_ACTION_DIFF_NUMBER
+		adiffNumber = CYBERIADA_ACTION_DIFF_NUMBER,
+		adiffPropagation = CYBERIADA_ACTION_DIFF_PROPAGATION
 	} ActionDiff;
 	typedef int ActionsDiffFlags;
 	
