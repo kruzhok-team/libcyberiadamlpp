@@ -2755,7 +2755,7 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 	
-	ChoicePseudostate* choice = new ChoicePseudostate(_parent, generate_vertex_id(_parent), _name, r, c);
+	ChoicePseudostate* choice = new ChoicePseudostate(_parent, _id, _name, r, c);
 	_parent->add_element(choice);
 	check_geometry_update(r);
 	return choice;
