@@ -1871,6 +1871,12 @@ void State::remove_element(const ID& _id)
 	update_state_type();
 }
 
+void State::clean_geometry()
+{
+	region_rect = Rect();
+	ElementCollection::clean_geometry();
+}
+
 void State::add_action(const Action& a)
 {
 	if (a.is_empty_transition()) {
@@ -3621,8 +3627,8 @@ ID Document::generate_transition_id(const String& source_id, const String& targe
 
 void Document::clean_geometry()
 {
-	ElementCollection::clean_geometry();
 	geometry_format = geometryFormatNone;
+	ElementCollection::clean_geometry();
 	CYB_ASSERT(!has_geometry());
 }
 

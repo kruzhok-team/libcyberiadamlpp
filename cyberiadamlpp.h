@@ -589,6 +589,8 @@ namespace Cyberiada {
 		void                       add_action(const Action& a);
 		ActionsDiffFlags           compare_actions(const State& s) const;
 		
+		void                       clean_geometry() override;
+
 		CyberiadaNode*             to_node() const override;
 		Element*                   copy(Element* parent) const override;
 		
