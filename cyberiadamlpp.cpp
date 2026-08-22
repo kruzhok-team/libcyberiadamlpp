@@ -2493,68 +2493,47 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 
 	CyberiadaSM* sm1 = to_sm();
 	CyberiadaSM* sm2 = sm.to_sm();
-	
+
+	CyberiadaIsomorphismResult iso;
 	int result_flags = 0;
-	size_t sm_diff_nodes_size = 0, sm2_new_nodes_size = 0, sm1_missing_nodes_size = 0,
-		sm_diff_edges_size = 0, sm2_new_edges_size = 0, sm1_missing_edges_size = 0;
-	CyberiadaNode *sm_new_initial = NULL, **sm1_missing_nodes = NULL, **sm2_new_nodes = NULL;
-	CyberiadaEdge **sm2_new_edges = NULL, **sm1_missing_edges = NULL;
-	CyberiadaNodePair *sm_diff_nodes = NULL;
-	CyberiadaEdgePair *sm_diff_edges = NULL;
-	size_t *sm_diff_nodes_flags = NULL, *sm_diff_edges_flags = NULL;
-	
-	res = cyberiada_check_isomorphism(sm1, sm2,
-									  ignore_comments, require_initial,
-									  &result_flags,
-									  new_initial ? &sm_new_initial: NULL,
-									  (diff_nodes_first || diff_nodes_second || diff_nodes_flags) ? &sm_diff_nodes_size: NULL,
-									  (diff_nodes_first || diff_nodes_second) ? &sm_diff_nodes: NULL,
-									  diff_nodes_flags ? &sm_diff_nodes_flags: NULL,
-									  new_nodes ? &sm2_new_nodes_size: NULL,
-									  new_nodes ? &sm2_new_nodes: NULL,
-									  missing_nodes ? &sm1_missing_nodes_size: NULL,
-									  missing_nodes ? &sm1_missing_nodes: NULL,
-									  (diff_edges_first || diff_edges_second || diff_edges_flags) ? &sm_diff_edges_size: NULL,
-									  (diff_edges_first || diff_edges_second) ? &sm_diff_edges: NULL,
-									  diff_edges_flags ? &sm_diff_edges_flags: NULL,
-									  new_edges ? &sm2_new_edges_size: NULL,
-									  new_edges ? &sm2_new_edges: NULL,
-									  missing_edges ? &sm1_missing_edges_size: NULL,
-									  missing_edges ? &sm1_missing_edges: NULL);
+
+	res = cyberiada_check_sm_isomorphism(sm1, sm2, ignore_comments, require_initial, &iso);
 	if (res == CYBERIADA_NO_ERROR) {
 
-		if (new_initial && sm_new_initial) {
-			*new_initial = ID(sm_new_initial->id);
+		result_flags = iso.flags;
+
+		if (new_initial && iso.new_initial) {
+			*new_initial = ID(iso.new_initial->id);
 		}
 
 		if (diff_nodes_first || diff_nodes_second || diff_nodes_flags) {
 			if (diff_nodes_first) diff_nodes_first->clear();
 			if (diff_nodes_second) diff_nodes_second->clear();
 			if (diff_nodes_flags) diff_nodes_flags->clear();
-			for (size_t i = 0; i < sm_diff_nodes_size; i++) {
+			for (size_t i = 0; i < iso.diff_nodes_size; i++) {
 				if (diff_nodes_first) {
-					diff_nodes_first->push_back(sm_diff_nodes[i].n1->id);
+					diff_nodes_first->push_back(iso.diff_nodes[i].n1->id);
 				}
 				if (diff_nodes_second) {
-					diff_nodes_second->push_back(sm_diff_nodes[i].n2->id);
+					diff_nodes_second->push_back(iso.diff_nodes[i].n2->id);
 				}
 				if (diff_nodes_flags) {
-					diff_nodes_flags->push_back(SMIsomorphismFlagsResult(sm_diff_nodes_flags[i]));
+					diff_nodes_flags->push_back(SMIsomorphismFlagsResult(iso.diff_nodes_flags[i]));
 				}
 			}
 		}
 
 		if (new_nodes) {
 			new_nodes->clear();
-			for (size_t i = 0; i < sm2_new_nodes_size; i++) {
-				new_nodes->push_back(sm2_new_nodes[i]->id);
+			for (size_t i = 0; i < iso.new_nodes_size; i++) {
+				new_nodes->push_back(iso.new_nodes[i]->id);
 			}
 		}
 
 		if (missing_nodes) {
 			missing_nodes->clear();
-			for (size_t i = 0; i < sm1_missing_nodes_size; i++) {
-				missing_nodes->push_back(sm1_missing_nodes[i]->id);
+			for (size_t i = 0; i < iso.missing_nodes_size; i++) {
+				missing_nodes->push_back(iso.missing_nodes[i]->id);
 			}
 		}
 
@@ -2562,43 +2541,36 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 			if (diff_edges_first) diff_edges_first->clear();
 			if (diff_edges_second) diff_edges_second->clear();
 			if (diff_edges_flags) diff_edges_flags->clear();
-			for (size_t i = 0; i < sm_diff_edges_size; i++) {
+			for (size_t i = 0; i < iso.diff_edges_size; i++) {
 				if (diff_edges_first) {
-					diff_edges_first->push_back(sm_diff_edges[i].e1->id);
+					diff_edges_first->push_back(iso.diff_edges[i].e1->id);
 				}
 				if (diff_edges_second) {
-					diff_edges_second->push_back(sm_diff_edges[i].e2->id);
+					diff_edges_second->push_back(iso.diff_edges[i].e2->id);
 				}
 				if (diff_edges_flags) {
-					diff_edges_flags->push_back(SMIsomorphismFlagsResult(sm_diff_edges_flags[i]));
+					diff_edges_flags->push_back(SMIsomorphismFlagsResult(iso.diff_edges_flags[i]));
 				}
 			}
 		}
 
 		if (new_edges) {
 			new_edges->clear();
-			for (size_t i = 0; i < sm2_new_edges_size; i++) {
-				new_edges->push_back(sm2_new_edges[i]->id);
+			for (size_t i = 0; i < iso.new_edges_size; i++) {
+				new_edges->push_back(iso.new_edges[i]->id);
 			}
 		}
 
 		if (missing_edges) {
 			missing_edges->clear();
-			for (size_t i = 0; i < sm1_missing_edges_size; i++) {
-				missing_edges->push_back(sm1_missing_edges[i]->id);
+			for (size_t i = 0; i < iso.missing_edges_size; i++) {
+				missing_edges->push_back(iso.missing_edges[i]->id);
 			}
-		}		
+		}
+
+		cyberiada_cleanup_isomorphism_result(&iso);
 	}
-	
-	if (sm_diff_nodes) free(sm_diff_nodes);
-	if (sm_diff_nodes_flags) free(sm_diff_nodes_flags);
-	if (sm1_missing_nodes) free(sm1_missing_nodes);
-	if (sm2_new_nodes) free(sm2_new_nodes);
-	if (sm_diff_edges) free(sm_diff_edges);
-	if (sm_diff_edges_flags) free(sm_diff_edges_flags);
-	if (sm2_new_edges) free(sm2_new_edges);
-	if (sm1_missing_edges) free(sm1_missing_edges);
-	
+
 	cyberiada_destroy_sm(sm1);
 	cyberiada_destroy_sm(sm2);
 
