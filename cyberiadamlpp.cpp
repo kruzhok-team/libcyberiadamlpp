@@ -521,12 +521,14 @@ std::ostream& Cyberiada::operator<<(std::ostream& os, const Polyline& pl)
 // -----------------------------------------------------------------------------	
 
 Action::Action(ActionType _type, const Behavior& _behavior):
-	type(_type), behavior(_behavior)
+	type(_type), behavior(_behavior), propagation(eventPropagationNone)
 {
 }
 
-Action::Action(const Event& _trigger, const Guard& _guard, const Behavior& _behavior):
-	type(actionTransition), trigger(_trigger), guard(_guard), behavior(_behavior)
+Action::Action(const Event& _trigger, const Guard& _guard, const Behavior& _behavior,
+			   EventPropagation _propagation):
+	type(actionTransition), trigger(_trigger), guard(_guard), behavior(_behavior),
+	propagation(_propagation)
 {
 }
 
@@ -535,7 +537,8 @@ void Action::update(const Behavior& _behavior)
 	behavior = _behavior;
 }
 
-void Action::update(const Event& _trigger, const Guard& _guard, const Behavior& _behavior)
+void Action::update(const Event& _trigger, const Guard& _guard, const Behavior& _behavior,
+					EventPropagation _propagation)
 {
 	if (type == actionTransition && _trigger.size() == 0) {
 		return ;
@@ -543,12 +546,14 @@ void Action::update(const Event& _trigger, const Guard& _guard, const Behavior& 
 	trigger = _trigger;
 	guard = _guard;
 	behavior = _behavior;
+	propagation = _propagation;
 }
 
 void Action::clear()
 {
 	if (type == actionTransition) {
 		trigger = guard = behavior = "";
+		propagation = eventPropagationNone;
 	} else {
 		guard = behavior = "";
 	}
@@ -558,7 +563,17 @@ String Action::to_str() const
 {
 	std::ostringstream s;
 	s << *this;
-	return s.str();	
+	return s.str();
+}
+
+static const char* propagation_str(EventPropagation propagation)
+{
+	switch (propagation) {
+	case eventPropagationBlock:     return "block";
+	case eventPropagationPropagate: return "propagate";
+	case eventPropagationDefer:     return "defer";
+	default:                        return "";
+	}
 }
 
 std::ostream& Action::dump(std::ostream& os) const
@@ -573,14 +588,21 @@ std::ostream& Action::dump(std::ostream& os) const
 	} else if (!trigger.empty()) {
 		os << "trigger: '" << trigger << "'";
 	}
-	if (!guard.empty()) {
+	if (propagation != eventPropagationNone) {
 		if (type != actionTransition || !trigger.empty()) {
+			os << ", ";
+		}
+		os << "propagation: '" << propagation_str(propagation) << "'";
+	}
+	if (!guard.empty()) {
+		if (type != actionTransition || !trigger.empty() || propagation != eventPropagationNone) {
 			os << ", ";
 		}
 		os << "guard: '" << guard << "'";
 	}
 	if (!behavior.empty()) {
-		if (type != actionTransition || !trigger.empty() || !guard.empty()) {
+		if (type != actionTransition || !trigger.empty() ||
+			propagation != eventPropagationNone || !guard.empty()) {
 			os << ", ";
 		}
 		os << "behavior: '" << behavior << "'";
@@ -1518,7 +1540,8 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 			
 			for (CyberiadaAction* a = n->actions; a; a = a->next) {
 				if (a->type == cybActionTransition) {
-					state->add_action(Action(a->trigger, a->guard, a->behavior));
+					state->add_action(Action(a->trigger, a->guard, a->behavior,
+											 EventPropagation(a->propagation)));
 				} else {
 					ActionType at;
 					if (a->type == cybActionEntry) {
@@ -1910,6 +1933,7 @@ static CyberiadaAction* to_action(const Action& a)
 													   a.get_trigger().c_str(),
 													   a.get_guard().c_str(),
 													   a.get_behavior().c_str());
+		action->propagation = CyberiadaEventPropagation(a.get_propagation());
 		return action;
 	}
 	return NULL;
@@ -1934,6 +1958,7 @@ static CyberiadaAction* to_action(const std::vector<Action>& actions)
 														   a.get_trigger().c_str(),
 														   a.get_guard().c_str(),
 														   a.get_behavior().c_str());
+			action->propagation = CyberiadaEventPropagation(a.get_propagation());
 			if (node_actions) {
 				CyberiadaAction* last_a = node_actions;
 				while (last_a->next) last_a = last_a->next;
@@ -2361,7 +2386,8 @@ void StateMachine::import_edges(CyberiadaEdge* edges)
 		case cybEdgeExternalTransition:
 		case cybEdgeLocalTransition:
 			if (e->action) {
-				action = Action(e->action->trigger, e->action->guard, e->action->behavior);
+				action = Action(e->action->trigger, e->action->guard, e->action->behavior,
+								EventPropagation(e->action->propagation));
 			}
 	
 			element = new Transition(this, e->type == cybEdgeExternalTransition ? transitionExternal: transitionLocal, 

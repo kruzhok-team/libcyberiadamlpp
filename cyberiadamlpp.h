@@ -497,9 +497,17 @@ namespace Cyberiada {
 		actionExit
 	} ActionType;
 
-	typedef String Event; 
+	typedef String Event;
 	typedef String Guard;
 	typedef String Behavior;
+
+	// the event handling keyword of a transition action
+	typedef enum {
+		eventPropagationNone = cybEventPropagationNone,
+		eventPropagationBlock = cybEventPropagationBlock,
+		eventPropagationPropagate = cybEventPropagationPropagate,
+		eventPropagationDefer = cybEventPropagationDefer
+	} EventPropagation;
 
 	typedef enum {
 		adiffArguments = CYBERIADA_ACTION_DIFF_BEHAVIOR_ARG,
@@ -514,7 +522,8 @@ namespace Cyberiada {
 	class Action {
 	public:
 		Action(ActionType type, const Behavior& behavior = Behavior());
-		Action(const Event& trigger = Event(), const Guard& guard = Guard(), const Behavior& behavior = Behavior());
+		Action(const Event& trigger = Event(), const Guard& guard = Guard(), const Behavior& behavior = Behavior(),
+			   EventPropagation propagation = eventPropagationNone);
 
 		bool                   is_empty_transition() const { return (type == actionTransition && !has_trigger() &&
 																	 !has_guard() && !has_behavior()); }
@@ -525,10 +534,13 @@ namespace Cyberiada {
 		const Guard&           get_guard() const { return guard; }
 		bool                   has_behavior() const { return !behavior.empty(); }
 		const Behavior&        get_behavior() const { return behavior; }
+		bool                   has_propagation() const { return propagation != eventPropagationNone; }
+		EventPropagation       get_propagation() const { return propagation; }
 		String                 to_str() const;
-		
+
 		void                   update(const Behavior& behavior);
-		void                   update(const Event& trigger, const Guard& guard, const Behavior& behavior);
+		void                   update(const Event& trigger, const Guard& guard, const Behavior& behavior,
+									  EventPropagation propagation = eventPropagationNone);
 		void                   clear();
 
 	protected:
@@ -540,6 +552,7 @@ namespace Cyberiada {
 		Event                  trigger;
 		Guard                  guard;
 		Behavior               behavior;
+		EventPropagation       propagation;
 	};
 
 	std::ostream& operator<<(std::ostream& os, const Action& a);
