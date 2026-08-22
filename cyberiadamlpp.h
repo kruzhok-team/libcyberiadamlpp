@@ -279,6 +279,7 @@ namespace Cyberiada {
 		const std::vector<CommentSubject>& get_subjects() const { return subjects; }
 	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
+		void                             remove_subject(size_t index);
 
 		bool                             has_geometry() const override { return geometry_rect.valid; }
 		bool                             has_point_geometry() const override { return false; }

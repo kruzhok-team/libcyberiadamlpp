@@ -769,6 +769,14 @@ void Comment::remove_subject(CommentSubjectType _type, const String& fragment)
 	}
 }
 
+void Comment::remove_subject(size_t index)
+{
+	if (index >= subjects.size()) {
+		throw ParametersException("Bad comment subject index");
+	}
+	subjects.erase(subjects.begin() + index);
+}
+
 void Comment::update_comment_type()
 {
 	if (human_readable) {
@@ -2428,7 +2436,10 @@ void StateMachine::import_edges(CyberiadaEdge* edges)
 			throw CybMLException("Unsupported edge type " + std::to_string(e->type));
 		}
 
-		add_element(element);
+		// comment subject edges are attached to the comment above
+		if (element) {
+			add_element(element);
+		}
 	}	
 }
 
