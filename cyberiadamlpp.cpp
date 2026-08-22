@@ -2898,7 +2898,7 @@ Comment* Document::new_formal_comment(ElementCollection* _parent, const ID& _id,
 	check_parent_element(_parent);
 	check_id_uniqueness(_id);
 
-	Comment* comm = new Comment(_parent, _id, body, _name, true, markup, r, c);
+	Comment* comm = new Comment(_parent, _id, body, _name, false, markup, r, c);
 	_parent->add_element(comm);
 	check_geometry_update(r);
 	return comm;
