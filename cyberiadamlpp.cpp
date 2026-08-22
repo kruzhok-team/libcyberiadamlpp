@@ -1191,9 +1191,7 @@ std::vector<const Vertex*> ElementCollection::get_vertexes() const
 
 std::vector<Vertex*> ElementCollection::get_vertexes()
 {
-	ElementTypes types = { elementComment,
-						   elementFormalComment,
-						   elementSimpleState,
+	ElementTypes types = { elementSimpleState,
 						   elementCompositeState,
 						   elementInitial,
 						   elementFinal,
