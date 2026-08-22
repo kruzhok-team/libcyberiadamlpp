@@ -960,14 +960,14 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class FileException: public Exception {
 	public:
-		FileException(const String& msg = "", const String& e = "Format Exception"):
-			Exception(e, msg) {}
+		FileException(const String& msg = "", const String& e = "File Exception"):
+			Exception(msg, e) {}
 	};
 // -----------------------------------------------------------------------------
 	class FormatException: public Exception {
 	public:
 		FormatException(const String& msg = "", const String& e = "Format Exception"):
-			Exception(e, msg) {}
+			Exception(msg, e) {}
 	};
 // -----------------------------------------------------------------------------
 	class XMLException: public FormatException {
