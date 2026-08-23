@@ -24,7 +24,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include "cyberiadamlpp.h"
 
 #define CYB_CHECK_RESULT(r) this->check_cyberiada_error((r), std::string(__FILE__) + ":" + std::to_string(__LINE__))
@@ -372,10 +372,10 @@ bool Rect::almost_equal(const Rect& r) const
 {
 	if (!valid && !r.valid) return true;
 	if (!valid || !r.valid) return false;
-	return (abs(x - r.x) < EQUAL_DIFF &&
-			abs(y - r.y) < EQUAL_DIFF &&
-			abs(width - r.width) < EQUAL_DIFF &&
-			abs(height - r.height) < EQUAL_DIFF);
+	return (std::fabs(x - r.x) < EQUAL_DIFF &&
+			std::fabs(y - r.y) < EQUAL_DIFF &&
+			std::fabs(width - r.width) < EQUAL_DIFF &&
+			std::fabs(height - r.height) < EQUAL_DIFF);
 }
 
 Rect Rect::round() const
@@ -3224,8 +3224,8 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 	if (r1.almost_equal(r2)) {
 		center_point = Point(0.0, 0.0);
 	} else if (geometry_format == geometryFormatQt &&
-			   abs(r1.width - r2.width) < EQUAL_DIFF &&
-			   abs(r1.height - r2.height) < EQUAL_DIFF) {
+			   std::fabs(r1.width - r2.width) < EQUAL_DIFF &&
+			   std::fabs(r1.height - r2.height) < EQUAL_DIFF) {
 		center_point = Point(r1.x, r1.y);
 	} else {
 		std::ostringstream s;
