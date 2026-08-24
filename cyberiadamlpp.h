@@ -448,6 +448,7 @@ namespace Cyberiada {
 		bool                   has_point_geometry() const override { return false; }
 		bool                   has_rect_geometry() const override { return true; }
 		const Rect&            get_geometry_rect() const { return geometry_rect; }
+		void                   update_geometry(const Rect& rect) { geometry_rect = rect; }
 		Rect                   get_bound_rect(const Document& d) const override;
 		void                   clean_geometry() override;
 		void                   round_geometry() override;
