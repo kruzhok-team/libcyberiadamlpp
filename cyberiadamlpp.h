@@ -736,6 +736,7 @@ namespace Cyberiada {
 		
 	protected:
 		void                           import_edges(CyberiadaEdge* edges);
+		void                           import_edge(CyberiadaEdge* e);
 		void                           export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm) const;
 
 		std::ostream&                dump(std::ostream& os) const override;

@@ -2358,89 +2358,102 @@ std::ostream& StateMachine::dump(std::ostream& os) const
 void StateMachine::import_edges(CyberiadaEdge* edges)
 {
 	for (CyberiadaEdge* e = edges; e; e = e->next) {
-		CYB_ASSERT(e->id);
+		if (e->type != cybEdgeComment) {
+			import_edge(e);
+		}
+	}
+	// the comment subject may refer to a transition (8.5), import the comments last
+	for (CyberiadaEdge* e = edges; e; e = e->next) {
+		if (e->type == cybEdgeComment) {
+			import_edge(e);
+		}
+	}
+}
 
-		Element* element = NULL;
-		Point    source_point, target_point, label_point;
-		Rect     label_rect;
-		Polyline polyline;
-		Color    _color;
-		Action   action;
+void StateMachine::import_edge(CyberiadaEdge* e)
+{
+	CYB_ASSERT(e->id);
 
-		if (e->geometry_source_point) {
-			source_point = Point(e->geometry_source_point);
-		}
-		if (e->geometry_target_point) {
-			target_point = Point(e->geometry_target_point);
-		}
-		if (e->geometry_label_point) {
-			label_point = Point(e->geometry_label_point);
-		}
-		if (e->geometry_label_rect) {
-			label_rect = Rect(e->geometry_label_rect);
-		}
-		if (e->geometry_polyline) {
-			for (CyberiadaPolyline* pl = e->geometry_polyline; pl; pl = pl->next) {
-				polyline.push_back(Point(pl->point.x, pl->point.y));
-			}
-		}
-		if (e->color) {
-			_color = Color(e->color);
-		}
+	Element* element = NULL;
+	Point    source_point, target_point, label_point;
+	Rect     label_rect;
+	Polyline polyline;
+	Color    _color;
+	Action   action;
 
-		Element* source_element = find_element_by_id(e->source_id);
-		CYB_ASSERT(source_element);
-		Element* target_element = find_element_by_id(e->target_id);
-		CYB_ASSERT(target_element);
-		Comment* comment = NULL;
-		
-		switch (e->type) {
-		case cybEdgeExternalTransition:
-		case cybEdgeLocalTransition:
-			if (e->action) {
-				action = Action(e->action->trigger, e->action->guard, e->action->behavior,
-								EventPropagation(e->action->propagation));
-			}
+	if (e->geometry_source_point) {
+		source_point = Point(e->geometry_source_point);
+	}
+	if (e->geometry_target_point) {
+		target_point = Point(e->geometry_target_point);
+	}
+	if (e->geometry_label_point) {
+		label_point = Point(e->geometry_label_point);
+	}
+	if (e->geometry_label_rect) {
+		label_rect = Rect(e->geometry_label_rect);
+	}
+	if (e->geometry_polyline) {
+		for (CyberiadaPolyline* pl = e->geometry_polyline; pl; pl = pl->next) {
+			polyline.push_back(Point(pl->point.x, pl->point.y));
+		}
+	}
+	if (e->color) {
+		_color = Color(e->color);
+	}
+
+	Element* source_element = find_element_by_id(e->source_id);
+	CYB_ASSERT(source_element);
+	Element* target_element = find_element_by_id(e->target_id);
+	CYB_ASSERT(target_element);
+	Comment* comment = NULL;
 	
-			element = new Transition(this, e->type == cybEdgeExternalTransition ? transitionExternal: transitionLocal, 
-									 e->id, e->source_id, e->target_id,
-									 action, polyline, source_point, target_point, label_point,
-									 label_rect, _color);
-			break;
+	switch (e->type) {
+	case cybEdgeExternalTransition:
+	case cybEdgeLocalTransition:
+		if (e->action) {
+			action = Action(e->action->trigger, e->action->guard, e->action->behavior,
+							EventPropagation(e->action->propagation));
+		}
 
-		case cybEdgeComment:
-			CYB_ASSERT(source_element->get_type() == elementComment ||
-					   source_element->get_type() == elementFormalComment);
-			CYB_ASSERT(e->comment_subject);
+		element = new Transition(this, e->type == cybEdgeExternalTransition ? transitionExternal: transitionLocal, 
+								 e->id, e->source_id, e->target_id,
+								 action, polyline, source_point, target_point, label_point,
+								 label_rect, _color);
+		break;
 
-			comment = static_cast<Comment*>(source_element);
-			
-			if (e->comment_subject->type == cybCommentSubjectNode) {
-				comment->add_subject(CommentSubject(e->id, target_element, source_point, target_point, polyline));
+	case cybEdgeComment:
+		CYB_ASSERT(source_element->get_type() == elementComment ||
+				   source_element->get_type() == elementFormalComment);
+		CYB_ASSERT(e->comment_subject);
+
+		comment = static_cast<Comment*>(source_element);
+		
+		if (e->comment_subject->type == cybCommentSubjectNode) {
+			comment->add_subject(CommentSubject(e->id, target_element, source_point, target_point, polyline));
+		} else {
+			CommentSubjectType cst;
+			if (e->comment_subject->type == cybCommentSubjectNameFragment) {
+				cst = commentSubjectName;
+			} else if (e->comment_subject->type == cybCommentSubjectDataFragment) {
+				cst = commentSubjectData;
 			} else {
-				CommentSubjectType cst;
-				if (e->comment_subject->type == cybCommentSubjectNameFragment) {
-					cst = commentSubjectName;
-				} else if (e->comment_subject->type == cybCommentSubjectDataFragment) {
-					cst = commentSubjectData;
-				} else {
-					throw CybMLException("Unsupported comment subject type " + std::to_string(e->comment_subject->type));
-				}
-				CYB_ASSERT(e->comment_subject->fragment);
-				comment->add_subject(CommentSubject(e->id, target_element, cst, e->comment_subject->fragment,
-													source_point, target_point, polyline));
-			}			
-			break;
-			
-		default:
-			throw CybMLException("Unsupported edge type " + std::to_string(e->type));
-		}
+				throw CybMLException("Unsupported comment subject type " + std::to_string(e->comment_subject->type));
+			}
+			CYB_ASSERT(e->comment_subject->fragment);
+			comment->add_subject(CommentSubject(e->id, target_element, cst, e->comment_subject->fragment,
+												source_point, target_point, polyline));
+		}			
+		break;
+		
+	default:
+		throw CybMLException("Unsupported edge type " + std::to_string(e->type));
+	}
 
-		// comment subject edges are attached to the comment above
-		if (element) {
-			add_element(element);
-		}
-	}	
+	// comment subject edges are attached to the comment above
+	if (element) {
+		add_element(element);
+	}
 }
 
 void StateMachine::export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm) const
@@ -2475,7 +2488,16 @@ void StateMachine::export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm
 	edge = *edges;
 	while (edge) {
 		edge->source = cyberiada_graph_find_node_by_id(new_sm->nodes, edge->source_id);
-		edge->target = cyberiada_graph_find_node_by_id(new_sm->nodes, edge->target_id);		
+		edge->target = cyberiada_graph_find_node_by_id(new_sm->nodes, edge->target_id);
+		if (!edge->target && edge->type == cybEdgeComment) {
+			// the comment subject refers to a transition (8.5)
+			for (CyberiadaEdge* t = *edges; t; t = t->next) {
+				if (t != edge && t->id && String(t->id) == String(edge->target_id)) {
+					edge->target_edge = t;
+					break;
+				}
+			}
+		}
 		edge = edge->next;
 	}
 }
