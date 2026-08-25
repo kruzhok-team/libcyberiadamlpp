@@ -3265,7 +3265,8 @@ void Document::decode(const String& buffer,
 					  bool reconstruct_sm,
 					  bool skip_empty_events,
 					  bool simplify_ids,
-					  bool skip_meta_format)
+					  bool skip_meta_format,
+					  bool strict)
 {
 	int flags = 0;
 
@@ -3309,6 +3310,9 @@ void Document::decode(const String& buffer,
 	}
 	if (skip_meta_format) {
 		flags |= CYBERIADA_FLAG_SKIP_META;
+	}
+	if (strict) {
+		flags |= CYBERIADA_FLAG_STRICT;
 	}
 	
 	if (buffer.length() == 0) {
@@ -3825,7 +3829,8 @@ void LocalDocument::open(const String& path,
 						 bool reconstruct_sm,
 						 bool skip_empty_events,
 						 bool simplify_ids,
-						 bool skip_meta_format)
+						 bool skip_meta_format,
+						 bool strict)
 {
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -3841,7 +3846,8 @@ void LocalDocument::open(const String& path,
 
 	reset();	
 	file_format = f;
-	decode(content, file_format, file_format_str, gf, reconstruct, reconstruct_sm, skip_empty_events, simplify_ids, skip_meta_format);
+	decode(content, file_format, file_format_str, gf, reconstruct, reconstruct_sm, skip_empty_events, simplify_ids,
+		   skip_meta_format, strict);
 	file_path = path;
 }
 
