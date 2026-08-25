@@ -28,16 +28,12 @@ markupLanguage/ html
 
 transitionOrder/ exitFirst
 
-eventPropagation/ propagate
+eventPropagation/ propagate'}}}}}
+Document: {id: '', name: 'Test document', geometry format: none, meta: {standard version: '1.0', transition order: action first, event propagation: block events}, elements: {State Machine: {id: 'g0', name: 'Автобортник', elements: {Formal Comment: {id: 'n0', name: 'CGML_META', body: 'standardVersion/ 1.0
 
-'}}}}}
-Document: {id: '', name: 'Test document', geometry format: none, meta: {standard version: '1.0', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'g0', name: 'Автобортник', elements: {Formal Comment: {id: 'n0', name: 'CGML_META', body: 'standardVersion/ 1.0
+transitionOrder/ actionFirst
 
-transitionOrder/ transitionFirst
-
-eventPropagation/ block
-
-'}, Simple State: {id: 'n1', name: 'Скан', actions: {a {entry, behavior: 'Сенсор.ПоискВрагаПоДистанции(min)
+eventPropagation/ block'}, Simple State: {id: 'n1', name: 'Скан', actions: {a {entry, behavior: 'Сенсор.ПоискВрагаПоДистанции(min)
 Движение.ЗадатьКоординатуВверх(350)
 Движение.ДвигатьсяПоКоординатам()'}, a {exit, behavior: 'Сенсор.ОстановкаПоиска()
 Движение.СбросКоординат()

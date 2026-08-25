@@ -28,6 +28,4 @@ markupLanguage/ html
 
 transitionOrder/ exitFirst
 
-eventPropagation/ propagate
-
-'}}}}}
+eventPropagation/ propagate'}}}}}

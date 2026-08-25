@@ -30,6 +30,4 @@ customKey/ custom value
 
 transitionOrder/ exitFirst
 
-eventPropagation/ propagate
-
-'}}}}}
+eventPropagation/ propagate'}}}}}

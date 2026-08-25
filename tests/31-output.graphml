@@ -5,7 +5,7 @@
   <key id="dName" for="graph" attr.name="name" attr.type="string"/>
   <key id="dName" for="node" attr.name="name" attr.type="string"/>
   <key id="dStateMachine" for="graph" attr.name="stateMachine" attr.type="string"/>
-  <key id="dRegion" for="node" attr.name="region" attr.type="string"/>
+  <key id="dRegion" for="graph" attr.name="region" attr.type="string"/>
   <key id="dSubmachineState" for="node" attr.name="submachineState" attr.type="string"/>
   <key id="dGeometry" for="graph" attr.name="geometry"/>
   <key id="dGeometry" for="node" attr.name="geometry"/>
@@ -39,13 +39,7 @@ target/ Autoborder
 
 creationDate/ 05/20/2025 03:05:08
 
-name/ Светофор-4
-
-transitionOrder/ transitionFirst
-
-eventPropagation/ block
-
-</data>
+name/ Светофор-4</data>
     </node>
     <node id="n1">
       <data key="dVertex">initial</data>
@@ -139,10 +133,10 @@ exit/</data>
     <edge id="n0::n1-n3::n4" source="n0::n1" target="n3::n4">
       <data key="dData">Timer.Elapsed/</data>
       <data key="dSourcePoint">
-        <point x="413.000000" y="104.000000"/>
+        <point x="413.000000" y="103.442645"/>
       </data>
       <data key="dTargetPoint">
-        <point x="0.000000" y="64.000000"/>
+        <point x="0.000000" y="64.446694"/>
       </data>
     </edge>
     <edge id="n0::n2-n3::n5" source="n0::n2" target="n3::n5">

@@ -5,7 +5,7 @@
   <key id="dName" for="graph" attr.name="name" attr.type="string"/>
   <key id="dName" for="node" attr.name="name" attr.type="string"/>
   <key id="dStateMachine" for="graph" attr.name="stateMachine" attr.type="string"/>
-  <key id="dRegion" for="node" attr.name="region" attr.type="string"/>
+  <key id="dRegion" for="graph" attr.name="region" attr.type="string"/>
   <key id="dSubmachineState" for="node" attr.name="submachineState" attr.type="string"/>
   <key id="dGeometry" for="graph" attr.name="geometry"/>
   <key id="dGeometry" for="node" attr.name="geometry"/>
@@ -33,11 +33,7 @@
       <data key="dName">CGML_META</data>
       <data key="dData">standardVersion/ 1.0
 
-transitionOrder/ transitionFirst
-
-eventPropagation/ block
-
-</data>
+eventPropagation/ block</data>
     </node>
     <node id="init">
       <data key="dVertex">initial</data>
@@ -48,7 +44,7 @@ eventPropagation/ block
       <data key="dData">entry/
 prepare();
 
-TICK defer/
+TICK/ defer
 count();
 </data>
     </node>
@@ -71,7 +67,7 @@ finish();
 </data>
     </edge>
     <edge id="n2-n0" source="n2" target="n0">
-      <data key="dData">RESET defer/</data>
+      <data key="dData">RESET/ defer</data>
     </edge>
   </graph>
 </graphml>

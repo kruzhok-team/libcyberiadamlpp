@@ -1,11 +1,10 @@
-LocalDocument: {Document: {id: '', name: '', geometry format: none, meta: {standard version: '1.0', target: 'autoboarder', platform: 'Arena', platformVersion: '0.8.6', transition order: transition first, event propagation: block events}, elements: {State Machine: {id: 'g0', name: 'Автобортник', elements: {Formal Comment: {id: 'n0', name: 'CGML_META', body: 'standardVersion/ 1.0
+LocalDocument: {Document: {id: '', name: '', geometry format: none, meta: {standard version: '1.0', target: 'autoboarder', platform: 'Arena', platformVersion: '0.8.6'}, elements: {State Machine: {id: 'g0', name: 'Автобортник', elements: {Formal Comment: {id: 'n0', name: 'CGML_META', body: 'standardVersion/ 1.0
 
 target/ autoboarder
 
 platform/ Arena
 
-platformVersion/ 0.8.6
-'}, Simple State: {id: 'n1', name: 'Скан', actions: {a {entry, behavior: 'Сенсор.ПоискВрагаПоДистанции(min)
+platformVersion/ 0.8.6'}, Simple State: {id: 'n1', name: 'Скан', actions: {a {entry, behavior: 'Сенсор.ПоискВрагаПоДистанции(min)
 Движение.ЗадатьКоординатуВверх(350)
 Движение.ДвигатьсяПоКоординатам()'}, a {exit, behavior: 'Сенсор.ОстановкаПоиска()
 Движение.СбросКоординат()
