@@ -3227,6 +3227,8 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 			new_sm->from_sm(sm, &meta);
 			if (meta) metainfo_element = static_cast<Comment*>(meta);
 		}
+		// the metainformation comment text may use the legacy parameter values
+		update_metainfo_element();
 	} catch (const CybMLException& e) {
 		cyberiada_cleanup_sm_document(doc);
 		throw CybMLException(e.str());		

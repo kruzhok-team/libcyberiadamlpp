@@ -50,8 +50,9 @@ int main(int argc, char** argv)
 		ld.open(string(argv[0]) + "-input2.graphml", formatCyberiada10, geometryFormatNone, false, false, false, true, true);
 		Document d2(ld);
 		CYB_ASSERT(d2.meta().standard_version == CYBERIADA_STANDARD_VERSION_CYBERIADAML);
-		CYB_ASSERT(d2.meta().transition_order == transitionOrderNone); // absent: action first
-		CYB_ASSERT(d2.meta().event_propagation == docEventPropagationNone); // absent: block events
+		// the skipped metainformation is replaced by the default one
+		CYB_ASSERT(d2.meta().transition_order == transitionOrderAction);
+		CYB_ASSERT(d2.meta().event_propagation == docEventPropagationBlock);
 		cout << d2 << endl;
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
