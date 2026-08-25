@@ -2614,8 +2614,8 @@ void Document::reset(DocumentGeometryFormat format)
 {
 	metainfo = DocumentMetainformation();
 	metainfo.standard_version = STANDARD_VERSION;
-	metainfo.transition_order_flag = false;     
-	metainfo.event_propagation_flag = false;
+	metainfo.transition_order = transitionOrderAction;
+	metainfo.event_propagation = docEventPropagationBlock;
 	geometry_format = format;
 	metainfo_element = NULL;
 	if (format != geometryFormatNone) {
@@ -3185,8 +3185,8 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 				}
 			}
 		}
-		metainfo.transition_order_flag = doc->meta_info->transition_order_flag == 2;
-		metainfo.event_propagation_flag = doc->meta_info->event_propagation_flag == 2;
+		metainfo.transition_order = DocumentTransitionOrder(doc->meta_info->transition_order_flag);
+		metainfo.event_propagation = DocumentEventPropagation(doc->meta_info->event_propagation_flag);
 		
 		for (CyberiadaSM* sm = doc->state_machines; sm; sm = sm->next) {
 			CyberiadaNode* root = sm->nodes;
@@ -3382,8 +3382,8 @@ CyberiadaMetainformation* Document::export_meta() const
 		}
 		last = new_sl;
 	}
-	meta_info->transition_order_flag = metainfo.transition_order_flag ? 2: 1;
-	meta_info->event_propagation_flag = metainfo.event_propagation_flag ? 2: 1;
+	meta_info->transition_order_flag = char(metainfo.transition_order);
+	meta_info->event_propagation_flag = char(metainfo.event_propagation);
 
 	return meta_info;
 }
@@ -3566,8 +3566,15 @@ std::ostream& Document::dump(std::ostream& os) const
 		 i++) {
 		params.push_back(i->first + ": '" + i->second + "'");	
 	}
-	params.push_back(String("transition order: ") + (metainfo.transition_order_flag ? "exit first": "transition first"));
-	params.push_back(String("event propagation: ") +  (metainfo.event_propagation_flag ? "propagate events": "block events"));
+	if (metainfo.transition_order != transitionOrderNone) {
+		params.push_back(String("transition order: ") +
+						 (metainfo.transition_order == transitionOrderExit ? "exit first": "action first"));
+	}
+	if (metainfo.event_propagation != docEventPropagationNone) {
+		params.push_back(String("event propagation: ") +
+						 (metainfo.event_propagation == docEventPropagationPropagate ?
+						  "propagate events": "block events"));
+	}
 	for (std::vector<String>::const_iterator i = params.begin(); i != params.end(); i++) {
 		os << *i;
 		if (std::next(i) != params.end()) {

@@ -44,14 +44,14 @@ int main(int argc, char** argv)
 		CYB_ASSERT(d.meta().get_string("version") == "0.1");
 		CYB_ASSERT(d.meta().get_string("date") == "2024-04-14T11:22:00");
 		CYB_ASSERT(d.meta().get_string("markupLanguage") == "html");
-		CYB_ASSERT(d.meta().transition_order_flag); // exit first
-		CYB_ASSERT(d.meta().event_propagation_flag); // propagate
+		CYB_ASSERT(d.meta().transition_order == transitionOrderExit);
+		CYB_ASSERT(d.meta().event_propagation == docEventPropagationPropagate);
 		cout << d << endl;
 		ld.open(string(argv[0]) + "-input2.graphml", formatCyberiada10, geometryFormatNone, false, false, false, true, true);
 		Document d2(ld);
 		CYB_ASSERT(d2.meta().standard_version == CYBERIADA_STANDARD_VERSION_CYBERIADAML);
-		CYB_ASSERT(!d2.meta().transition_order_flag); // default: transition first
-		CYB_ASSERT(!d2.meta().event_propagation_flag); // default: block events		
+		CYB_ASSERT(d2.meta().transition_order == transitionOrderNone); // absent: action first
+		CYB_ASSERT(d2.meta().event_propagation == docEventPropagationNone); // absent: block events
 		cout << d2 << endl;
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;

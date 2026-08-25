@@ -40,8 +40,8 @@ int main(int argc, char** argv)
 	d.meta().set_string("version", "0.1");
 	d.meta().set_string("date", "2024-04-14T11:22:00");
 	d.meta().set_string("markupLanguage", "html");
-	d.meta().transition_order_flag = true; // exit first
-	d.meta().event_propagation_flag = true; // propagate
+	d.meta().transition_order = transitionOrderExit;
+	d.meta().event_propagation = docEventPropagationPropagate;
 	try {
 		d.save_as(string(argv[0]) + ".graphml", formatCyberiada10);
 	} catch (const Cyberiada::Exception&) {

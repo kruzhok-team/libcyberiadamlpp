@@ -748,10 +748,24 @@ namespace Cyberiada {
 // Cyberiada-GraphML document
 // -----------------------------------------------------------------------------
 	
+	// the default action execution order of the document (6.9)
+	typedef enum {
+		transitionOrderNone = 0,                                      // the parameter is absent: action first
+		transitionOrderAction = 1,
+		transitionOrderExit = 2
+	} DocumentTransitionOrder;
+
+	// the default event handling order of the document (6.9)
+	typedef enum {
+		docEventPropagationNone = 0,                                  // the parameter is absent: block events
+		docEventPropagationBlock = 1,
+		docEventPropagationPropagate = 2
+	} DocumentEventPropagation;
+
 	struct DocumentMetainformation {
 		String                                 standard_version;      // PRIMS standard version
-		bool                                   transition_order_flag; // false = transition first; true = exit first
-		bool                                   event_propagation_flag;// false = block events; true = propagate events
+		DocumentTransitionOrder                transition_order;      // the action execution order
+		DocumentEventPropagation               event_propagation;     // the event handling order
 		std::vector<std::pair<String, String>> strings;
 
 		const String&                          get_string(const String& name) const;
