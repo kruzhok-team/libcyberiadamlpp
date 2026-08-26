@@ -70,9 +70,15 @@ namespace Cyberiada {
 
 	enum DocumentFormat {
 		formatCyberiada10 = 0,                      // Cyberiada 1.0 format
-		formatLegacyYED = 1,                        // Legacy YED-based Berloga/Ostranna format 
+		formatLegacyYED = 1,                        // Legacy YED-based Berloga/Ostranna format:
+		                                            // the dialect is detected while reading, the Ostranna one is written
+		formatLegacyYEDOstranna = 2,                // Write the YED Ostranna dialect
+		formatLegacyYEDBerloga16 = 3,               // Write the YED Berloga 1.6 dialect
 		formatDetect = 99                           // Format is not specified and will be detected while loading
 	};
+
+	// Is the format one of the YED dialects?
+	bool is_legacy_yed_format(DocumentFormat f);
 
 	enum DocumentGeometryFormat {
 		geometryFormatNone,                         // No geometry
@@ -866,7 +872,11 @@ namespace Cyberiada {
 											  bool strict = false);
 		void                           encode(String& buffer,
 											  DocumentFormat f = formatCyberiada10,
-											  bool round = false) const;
+											  bool round = false,
+											  bool skip_geometry = false,
+											  bool check_initial = false,
+											  bool strict_actions = false,
+											  bool skip_empty_behavior = false) const;
 
 		void                           set_name(const Name& name) override;
 		const DocumentMetainformation& meta() const { return metainfo; }
@@ -936,10 +946,18 @@ namespace Cyberiada {
 											bool simplify_ids = false,
 											bool skip_meta_format = false,
 											bool strict = false);
-		void                           save(bool round = false);
+		void                           save(bool round = false,
+											bool skip_geometry = false,
+											bool check_initial = false,
+											bool strict_actions = false,
+											bool skip_empty_behavior = false);
 		void                           save_as(const String& path,
 											   DocumentFormat f,
-											   bool round = false);
+											   bool round = false,
+											   bool skip_geometry = false,
+											   bool check_initial = false,
+											   bool strict_actions = false,
+											   bool skip_empty_behavior = false);
 
 		DocumentFormat                 get_file_format() const { return file_format; }
 		String                         get_file_format_str() const;

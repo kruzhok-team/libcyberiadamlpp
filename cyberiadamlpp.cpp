@@ -53,6 +53,8 @@ namespace Cyberiada {
 	static const String STANDARD_VERSION = "1.0";	
 	static const String DEFAULT_GRAPHML_FORMAT = "Cyberiada-GraphML-1.0";
 	static const String DEFAULT_YED_FORMAT = "yEd Berloga";
+	static const String DEFAULT_YED_FORMAT_OSTRANNA = "yEd Ostranna";
+	static const String DEFAULT_YED_FORMAT_BERLOGA16 = "yEd Berloga-1.6";
 	static const String META_NODE_NAME = "CGML_META";
 	static const String META_NODE_ID = "nMeta";
 	static const String VERTEX_ID_PREFIX = "n";
@@ -3476,7 +3478,14 @@ void Document::to_document(CyberiadaDocument* doc) const
 	}
 }
 
-void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
+bool Cyberiada::is_legacy_yed_format(DocumentFormat f)
+{
+	return f == formatLegacyYED || f == formatLegacyYEDOstranna || f == formatLegacyYEDBerloga16;
+}
+
+void Document::encode(String& res_buffer, DocumentFormat f, bool round,
+					  bool skip_geometry, bool check_initial, bool strict_actions,
+					  bool skip_empty_behavior) const
 {
 	CyberiadaDocument doc;
 	int res;
@@ -3485,9 +3494,12 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 	
 	if (f == formatDetect) {
 		throw ParametersException("Bad save format " + std::to_string(f));
-	} else if (f == formatLegacyYED) {
+	} else if (is_legacy_yed_format(f)) {
 		if (children_count() != 1) {
 			throw ParametersException("Legacy Berloga-YED format supports single-SM documents only");
+		}
+		if (skip_geometry || geometry_format == geometryFormatNone) {
+			throw ParametersException("Legacy Berloga-YED format requires the geometry");
 		}
 	}
 
@@ -3501,10 +3513,22 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round) const
 	
 	int flags = 0;
 
-	if (geometry_format == geometryFormatNone) {
+	if (skip_geometry || geometry_format == geometryFormatNone) {
+		/* the library allows no other flag beside the skipped geometry */
 		flags = CYBERIADA_FLAG_SKIP_GEOMETRY;
-	} else if (round) {
-		flags |= CYBERIADA_FLAG_ROUND_GEOMETRY;
+	} else {
+		if (round) {
+			flags |= CYBERIADA_FLAG_ROUND_GEOMETRY;
+		}
+		if (check_initial) {
+			flags |= CYBERIADA_FLAG_CHECK_INITIAL;
+		}
+		if (strict_actions) {
+			flags |= CYBERIADA_FLAG_STRICT_ACTION_ENTRIES;
+		}
+		if (skip_empty_behavior) {
+			flags |= CYBERIADA_FLAG_SKIP_EMPTY_BEHAVIOR;
+		}
 	}
 
 	res = cyberiada_encode_sm_document(&doc, &buffer, &buffer_size, CyberiadaXMLFormat(f), flags);
@@ -3799,6 +3823,10 @@ String LocalDocument::get_file_format_str() const
 {
 	if (file_format == formatCyberiada10) {
 		return DEFAULT_GRAPHML_FORMAT;
+	} else if (file_format == formatLegacyYEDOstranna) {
+		return DEFAULT_YED_FORMAT_OSTRANNA;
+	} else if (file_format == formatLegacyYEDBerloga16) {
+		return DEFAULT_YED_FORMAT_BERLOGA16;
 	} else {
 		CYB_ASSERT(file_format == formatLegacyYED);
 		return file_format_str;
@@ -3815,6 +3843,10 @@ std::ostream& LocalDocument::dump(std::ostream& os) const
 	os << ", format: ";
 	if (file_format == formatCyberiada10) {
 		os << "cyberiada";
+	} else if (file_format == formatLegacyYEDOstranna) {
+		os << "yed-ostranna";
+	} else if (file_format == formatLegacyYEDBerloga16) {
+		os << "yed-berloga";
 	} else if (file_format == formatLegacyYED) {
 		os << "yed";
 	} else {
@@ -3853,10 +3885,12 @@ void LocalDocument::open(const String& path,
 	file_path = path;
 }
 
-void LocalDocument::save(bool round)
+void LocalDocument::save(bool round, bool skip_geometry, bool check_initial,
+						 bool strict_actions, bool skip_empty_behavior)
 {
 	String buffer;
-	encode(buffer, file_format, round);
+	encode(buffer, file_format, round, skip_geometry, check_initial,
+		   strict_actions, skip_empty_behavior);
 
 	std::ofstream file(file_path);
 	if (!file.is_open()) {
@@ -3868,14 +3902,30 @@ void LocalDocument::save(bool round)
 
 void LocalDocument::save_as(const String& path,
 							DocumentFormat f,
-							bool round)
+							bool round,
+							bool skip_geometry,
+							bool check_initial,
+							bool strict_actions,
+							bool skip_empty_behavior)
 {
+	String old_path = file_path;
+	DocumentFormat old_format = file_format;
+	String old_format_str = file_format_str;
+
 	file_path = path;
 	if (f != formatDetect) {
 		file_format = f;
 		file_format_str = get_file_format_str();
 	}
-	save(round);
+	try {
+		save(round, skip_geometry, check_initial, strict_actions, skip_empty_behavior);
+	} catch (const Exception&) {
+		/* the document keeps its file while the new one is not written */
+		file_path = old_path;
+		file_format = old_format;
+		file_format_str = old_format_str;
+		throw;
+	}
 }
 
 Element* LocalDocument::copy(Element*) const
