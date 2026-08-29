@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "cyberiadamlpp.h"
+#include "testutils.h"
 
 using namespace Cyberiada;
 using namespace std;
@@ -41,6 +42,18 @@ int main(int argc, char** argv)
 			   geometryFormatQt, true, true);
 		p.round_geometry();
 		cout << p << endl;
+
+		/* the metainformation node is not displayed (6.9): the reconstruction
+		   leaves it and the comment edge it carries out of the geometry */
+		LocalDocument m;
+		m.open(string(argv[0]) + "-input2.graphml");
+		m.reconstruct_geometry(true);
+		m.round_geometry();
+		const Element* meta = m.find_element_by_id("nMeta");
+		CYB_ASSERT(meta && meta->get_type() == elementFormalComment);
+		CYB_ASSERT(!meta->has_geometry());
+		CYB_ASSERT(m.find_element_by_id("n0")->has_geometry());
+		cout << Document(m) << endl;
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
 		return 1;
