@@ -3183,6 +3183,47 @@ void DocumentMetainformation::set_string(const String& name, const String& value
 	strings.push_back(std::pair<String, String>(name, value));
 }
 
+void DocumentMetainformation::remove_string(const String& name)
+{
+	for (std::vector<std::pair<String, String>>::iterator i = strings.begin(); i != strings.end(); i++) {
+		if (i->first == name) {
+			strings.erase(i);
+			return ;
+		}
+	}
+}
+
+DocumentGeometryDeclaration DocumentMetainformation::get_geometry() const
+{
+	const String& value = get_string(CYBERIADA_META_GEOMETRY);
+	if (value == CYBERIADA_META_GEOM_NONE) {
+		return geometryDeclarationNone;
+	} else if (value == CYBERIADA_META_GEOM_SHORT) {
+		return geometryDeclarationShort;
+	} else if (value == CYBERIADA_META_GEOM_FULL) {
+		return geometryDeclarationFull;
+	}
+	// an unknown value is not a declaration, as the library reads it
+	return geometryDeclarationAbsent;
+}
+
+void DocumentMetainformation::set_geometry(DocumentGeometryDeclaration g)
+{
+	switch (g) {
+	case geometryDeclarationNone:
+		set_string(CYBERIADA_META_GEOMETRY, CYBERIADA_META_GEOM_NONE);
+		break;
+	case geometryDeclarationShort:
+		set_string(CYBERIADA_META_GEOMETRY, CYBERIADA_META_GEOM_SHORT);
+		break;
+	case geometryDeclarationFull:
+		set_string(CYBERIADA_META_GEOMETRY, CYBERIADA_META_GEOM_FULL);
+		break;
+	default:
+		remove_string(CYBERIADA_META_GEOMETRY);
+	}
+}
+
 void Document::set_name(const Name& _name)
 {
 	Element::set_name(_name);

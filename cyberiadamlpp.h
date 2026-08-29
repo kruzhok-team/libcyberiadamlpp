@@ -769,6 +769,14 @@ namespace Cyberiada {
 		docEventPropagationPropagate = 2
 	} DocumentEventPropagation;
 
+	// the geometry format declared by the document (7.1)
+	typedef enum {
+		geometryDeclarationAbsent = 0,                                // the parameter is absent
+		geometryDeclarationNone = 1,                                  // the document carries no geometry
+		geometryDeclarationShort = 2,                                 // the base format: the rect size may be omitted
+		geometryDeclarationFull = 3                                   // the extended format: the rect size is exact
+	} DocumentGeometryDeclaration;
+
 	struct DocumentMetainformation {
 		String                                 standard_version;      // PRIMS standard version
 		DocumentTransitionOrder                transition_order;      // the action execution order
@@ -777,6 +785,10 @@ namespace Cyberiada {
 
 		const String&                          get_string(const String& name) const;
 		void                                   set_string(const String& name, const String& value);
+		void                                   remove_string(const String& name);
+
+		DocumentGeometryDeclaration            get_geometry() const;
+		void                                   set_geometry(DocumentGeometryDeclaration g);
 
 	private:
 		static String                          empty_string;
