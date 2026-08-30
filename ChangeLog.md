@@ -15,9 +15,7 @@ Added:
 
 Fixed:
 - the geometry reconstruction and the bounding rect calculation;
-- the optional metainformation parameters are kept optional;
-- the comment subject import and the element copy;
-- the standard version string leak in the metainformation export.
+- minor fixes.
 
 ## Version 1.0
 
