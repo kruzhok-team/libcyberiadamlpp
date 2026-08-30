@@ -1,13 +1,24 @@
 set(CPACK_VERBATIM_VARIABLES YES)
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_VENDOR "Kruzhok Association")
 set(CPACK_PACKAGE_CONTACT "aleksey@fedoseev.net")
-set(CPACK_DEBIAN_PACKAGE_NAME "libcyberiadamlpp")
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxml2 (>=2.9), libcyberiadaml (>=1.0), libhtreegeom (>=1.0)")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "The C++ library for processing the Cyberiada state machine graphs")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+
+# the library and the development packages
+set(CPACK_DEB_COMPONENT_INSTALL YES)
+set(CPACK_COMPONENTS_ALL runtime dev)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS YES)
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "The C++ library for processing the Cyberiada state machine graphs")
+
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "libcyberiadamlpp")
+set(CPACK_DEBIAN_RUNTIME_DESCRIPTION "The C++ library for processing the Cyberiada state machine graphs")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_DEPENDS "libxml2 (>= 2.9), libcyberiadaml (>= 1.0.6), libhtreegeom (>= 1.0.6)")
+
+set(CPACK_DEBIAN_DEV_PACKAGE_NAME "libcyberiadamlpp-dev")
+set(CPACK_DEBIAN_DEV_DESCRIPTION "The C++ Cyberiada state machine graphs library development files: the header and the CMake configuration")
+set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "libcyberiadamlpp (= ${CPACK_PACKAGE_VERSION}), libcyberiadaml-dev (>= 1.0.6)")

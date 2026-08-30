@@ -23,6 +23,12 @@
 #ifndef __CYBERIADA_ML_CPP_H
 #define __CYBERIADA_ML_CPP_H
 
+/* The version of the library itself */
+
+#define CYBERIADA_ML_CPP_LIB_VERSION_MAJOR 1
+#define CYBERIADA_ML_CPP_LIB_VERSION_MINOR 0
+#define CYBERIADA_ML_CPP_LIB_VERSION_PATCH 6
+
 #include <string>
 #include <vector>
 #include <ostream>

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(cyberiadamlpp VERSION 1.0)
+project(cyberiadamlpp VERSION 1.0.6)
 
 find_package(LibXml2 REQUIRED)
 if(!LibXml2_FOUND)
@@ -104,11 +104,13 @@ file(COPY_FILE
   ${PROJECT_SOURCE_DIR}/run-mem-tests.sh
   ${PROJECT_BINARY_DIR}/run-mem-tests.sh ONLY_IF_DIFFERENT)
 
-install(TARGETS cyberiadamlpp DESTINATION lib EXPORT cyberiadamlpp)
-install(FILES cyberiadamlpp.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
-  DESTINATION include/cyberiada)
-install(EXPORT cyberiadamlpp DESTINATION lib/cmake)
+install(TARGETS cyberiadamlpp DESTINATION lib EXPORT cyberiadamlpp
+  COMPONENT runtime)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
+  DESTINATION include/cyberiada
+  COMPONENT dev)
+install(EXPORT cyberiadamlpp DESTINATION lib/cmake
+  COMPONENT dev)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cyberiadamlpp-config.cmake.in
@@ -116,7 +118,8 @@ configure_file(
 
 install(FILES
   ${PROJECT_BINARY_DIR}/cyberiadamlpp-config.cmake
-  DESTINATION lib/cmake)
+  DESTINATION lib/cmake
+  COMPONENT dev)
 
 configure_file ("${PROJECT_SOURCE_DIR}/CyberiadaMLPackOptions.cmake.in"
                 "${PROJECT_BINARY_DIR}/CyberiadaMLPackOptions.cmake"

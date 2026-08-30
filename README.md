@@ -22,6 +22,10 @@ Run `cmake ..` to build the library binaries and the test program.
 
 Run `make install` to install the library.
 
+Run `cpack -G DEB` to build the Debian packages: `libcyberiadamlpp` with
+the shared library and `libcyberiadamlpp-dev` with the header and the
+CMake configuration.
+
 Use CMake parameters to change the build type / installation prefix / etc.
 
 ## Testing
