@@ -953,6 +953,9 @@ namespace Cyberiada {
 		DocumentGeometryFormat         geometry_format;
 		DocumentMetainformation        metainfo;
 		Comment*                       metainfo_element;
+		// always zero for the Qt format: the top-level coordinates of a
+		// state machine without a rect are global, so the content is not
+		// re-centred on the origin any more (kept for compatibility)
 		Point                          center_point;
 	};
 

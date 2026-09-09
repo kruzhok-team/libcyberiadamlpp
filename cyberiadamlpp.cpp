@@ -3541,6 +3541,8 @@ void Document::to_document(CyberiadaDocument* doc) const
 	}
 
 	if (geometry_format == geometryFormatQt) {
+		// a summary of the content for the C document, never its frame: the
+		// top level of a state machine without a rect is global (7.2.1)
 		doc->bounding_rect = get_bound_rect().c_rect();
 	}
 }

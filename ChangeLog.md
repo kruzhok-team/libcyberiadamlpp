@@ -1,5 +1,16 @@
 # libcyberiadamlpp project changelog
 
+## Unreleased
+
+Fixed:
+- the comment subjects of a copied element tree point into the copy;
+- the top-level coordinates of a state machine without a rect stay global
+  through the Qt geometry format (7.2.1), so a saved document keeps its
+  placement instead of shifting by the content centre.
+
+Added:
+- `LocalDocument::set_file()` sets the file identity without a write.
+
 ## Version 1.0.6
 
 The version compatible with `libcyberiadaml` 1.0.6 and the CyberiadaML-GraphML 1.0
