@@ -225,6 +225,8 @@ namespace Cyberiada {
 		commentSubjectData
 	};
 	
+	class ElementCollection;
+
 	class CommentSubject {
 	public:
 		CommentSubject(const ID& id, Element* element,
@@ -258,6 +260,8 @@ namespace Cyberiada {
 	protected:
 		std::ostream&          dump(std::ostream& os) const;
 		friend std::ostream&   operator<<(std::ostream& os, const CommentSubject& cs);
+		// the target pointer is re-bound by the owning comment after a copy
+		friend class Comment;
 		
 	private:
 		CommentSubjectType     type;
@@ -292,6 +296,8 @@ namespace Cyberiada {
 	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 		void                             remove_subject(size_t index);
+		// point the subjects whose target lives under root at that copy of it
+		void                             rebind_subjects(ElementCollection& root);
 
 		bool                             has_geometry() const override { return geometry_rect.valid; }
 		bool                             has_point_geometry() const override { return false; }
@@ -383,6 +389,8 @@ namespace Cyberiada {
 		Element*                 get_element(int index);
 		const Element*           find_element_by_id(const ID& id) const;
 		Element*                 find_element_by_id(const ID& id);
+		// re-bind the comment subjects below to the elements found under root
+		void                     rebind_subjects(ElementCollection& root);
 		ConstElementList         find_elements_by_type(ElementType type) const;
 		ConstElementList         find_elements_by_types(const ElementTypes& types) const;
 		ElementList              find_elements_by_type(ElementType type);

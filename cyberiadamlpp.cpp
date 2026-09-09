@@ -752,6 +752,17 @@ Element* Comment::copy(Element* _parent) const
 	return c;
 }
 
+void Comment::rebind_subjects(ElementCollection& root)
+{
+	for (std::vector<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
+		if (!i->element) continue;
+		Element* e = root.find_element_by_id(i->element->get_id());
+		if (e) {
+			i->element = e;
+		}
+	}
+}
+
 const CommentSubject& Comment::add_subject(const CommentSubject& s)
 {
 	subjects.push_back(s);
@@ -1490,6 +1501,21 @@ void ElementCollection::copy_elements(const ElementCollection& source)
 		const Element* e = *i;
 		Element* new_e = e->copy(this);
 		children.push_back(new_e);
+	}
+	// the subjects were copied with their targets in the source tree
+	rebind_subjects(*this);
+}
+
+void ElementCollection::rebind_subjects(ElementCollection& root)
+{
+	for (ElementList::iterator i = children.begin(); i != children.end(); i++) {
+		Element* e = *i;
+		ElementType t = e->get_type();
+		if (t == elementComment || t == elementFormalComment) {
+			static_cast<Comment*>(e)->rebind_subjects(root);
+		} else if (ElementCollection* c = dynamic_cast<ElementCollection*>(e)) {
+			c->rebind_subjects(root);
+		}
 	}
 }
 
