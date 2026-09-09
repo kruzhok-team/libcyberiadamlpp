@@ -3969,6 +3969,13 @@ void LocalDocument::save_as(const String& path,
 	}
 }
 
+void LocalDocument::set_file(const String& path, DocumentFormat f)
+{
+	file_path = path;
+	file_format = f;
+	file_format_str = get_file_format_str();
+}
+
 Element* LocalDocument::copy(Element*) const
 {
 	 return new LocalDocument(*this);

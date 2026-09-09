@@ -980,6 +980,9 @@ namespace Cyberiada {
 		DocumentFormat                 get_file_format() const { return file_format; }
 		String                         get_file_format_str() const;
 		String                         get_file_path() const { return file_path; }
+		// the file identity without a write: a document decoded from memory
+		// keeps the file it came from
+		void                           set_file(const String& path, DocumentFormat f);
 
 		Element*                       copy(Element* parent) const override;
 		
