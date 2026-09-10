@@ -3961,7 +3961,7 @@ void LocalDocument::save(bool round, bool skip_geometry, bool check_initial,
 	encode(buffer, file_format, round, skip_geometry, check_initial,
 		   strict_actions, skip_empty_behavior);
 
-	std::ofstream file(file_path);
+	std::ofstream file(file_path, std::ios::binary);
 	if (!file.is_open()) {
 		throw FileException("Cannot open file " + file_path);
 	}

@@ -3,17 +3,27 @@ cmake_minimum_required(VERSION 3.21)
 project(cyberiadamlpp VERSION 1.0.6)
 
 find_package(LibXml2 REQUIRED)
-if(!LibXml2_FOUND)
+if(NOT LibXml2_FOUND)
   message(FATAL_ERROR "Cannot find libxml2 library")
 endif()
 
-set(cyberiadaml_DIR /usr/lib/cmake)
+if(NOT DEFINED cyberiadaml_DIR AND UNIX)
+  set(cyberiadaml_DIR /usr/lib/cmake)
+endif()
 find_package(cyberiadaml REQUIRED)
-if(!cyberiadaml_FOUND)
+if(NOT cyberiadaml_FOUND)
   message(FATAL_ERROR "Cannot find libcyberiadaml library")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D__DEBUG__")
+add_compile_definitions($<$<CONFIG:Debug>:__DEBUG__>)
+
+if(MSVC)
+  add_compile_options(/W4)
+endif()
+
+if(WIN32)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,15 +61,21 @@ foreach(source_path ${files})
   target_include_directories("${target_name}" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
   target_link_directories("${target_name}" PUBLIC "${PROJECT_BINARY_DIR}")
   target_link_libraries("${target_name}" PUBLIC cyberiadamlpp)
-  if (WIN32)
+  # the tests derive their data file names from argv[0], so the copy keeps
+  # the name without the platform executable suffix
+  add_custom_command(TARGET "${target_name}"
+    POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:${target_name}>"
+            "${PROJECT_BINARY_DIR}/tests/${target_name}"
+    )
+  if(WIN32)
     add_custom_command(TARGET "${target_name}"
       POST_BUILD
-      COMMAND copy "${PROJECT_BINARY_DIR}/${target_name}" "${PROJECT_BINARY_DIR}/tests/"
-      )
-  else()
-    add_custom_command(TARGET "${target_name}"
-      POST_BUILD
-      COMMAND ln -sf "${PROJECT_BINARY_DIR}/${target_name}" "${PROJECT_BINARY_DIR}/tests/"
+      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+              "$<TARGET_RUNTIME_DLLS:${target_name}>"
+              "${PROJECT_BINARY_DIR}/tests/"
+      COMMAND_EXPAND_LISTS
       )
   endif()
   # the binary path is relative to the build directory: the tests
@@ -104,8 +120,10 @@ file(COPY_FILE
   ${PROJECT_SOURCE_DIR}/run-mem-tests.sh
   ${PROJECT_BINARY_DIR}/run-mem-tests.sh ONLY_IF_DIFFERENT)
 
-install(TARGETS cyberiadamlpp DESTINATION lib EXPORT cyberiadamlpp
-  COMPONENT runtime)
+install(TARGETS cyberiadamlpp EXPORT cyberiadamlpp
+  RUNTIME DESTINATION bin COMPONENT runtime
+  LIBRARY DESTINATION lib COMPONENT runtime
+  ARCHIVE DESTINATION lib COMPONENT dev)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
   DESTINATION include/cyberiada
   COMPONENT dev)

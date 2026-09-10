@@ -16,6 +16,10 @@ the GNU Free Documentation License (version 1.3).
 
 ## Installation
 
+Building on Windows is described in the
+[libcyberiadaml](https://github.com/kruzhok-team/libcyberiadaml) documentation:
+`docs/BUILD-WINDOWS.md`.
+
 Create `build` directory: `mkdir build && cd build`
 
 Run `cmake ..` to build the library binaries and the test program.
