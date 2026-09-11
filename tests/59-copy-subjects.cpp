@@ -79,6 +79,24 @@ int main(int argc, char** argv)
 		CYB_ASSERT(copied_note->get_subjects()[1].get_element() == outer);
 		delete copied;
 
+		// a subject that targets the moved subtree ROOT must re-bind to the copy:
+		// the editor reparents by copy + rebind + remove-original + add-copy, and
+		// find_element_by_id skips the root, so before the fix the subject dangled
+		StateMachine* sm1 = d1->get_state_machines().front();
+		Comment* rootnote = d1->new_comment(sm1, "points at the composite");
+		d1->add_comment_to_element(rootnote, composite);
+		ElementCollection* cparent = static_cast<ElementCollection*>(composite->get_parent());
+		const ID composite_id = composite->get_id();
+		State* moved = static_cast<State*>(composite->copy(cparent));
+		d1->rebind_subjects(*moved);
+		CYB_ASSERT(rootnote->get_subjects().back().get_element() == moved);
+		CYB_ASSERT(rootnote->get_subjects().back().get_element() != composite);
+		cparent->remove_element(composite_id);   // free the original, as move() does
+		cparent->add_element(moved);
+		String rebound;
+		d1->encode(rebound);                     // a use-after-free before the fix
+		CYB_ASSERT(!rebound.empty());
+
 		delete d1;
 		delete ld2;
 		delete e3;

@@ -757,6 +757,11 @@ void Comment::rebind_subjects(ElementCollection& root)
 	for (std::vector<CommentSubject>::iterator i = subjects.begin(); i != subjects.end(); i++) {
 		if (!i->element) continue;
 		Element* e = root.find_element_by_id(i->element->get_id());
+		// find_element_by_id searches children only; the subtree root itself is
+		// also a valid target - a subject that points at the moved/copied element
+		if (!e && root.get_id() == i->element->get_id()) {
+			e = &root;
+		}
 		if (e) {
 			i->element = e;
 		}
