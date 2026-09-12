@@ -107,11 +107,14 @@ int main(int argc, char** argv)
 		CYB_ASSERT(Action("EV", "", "b();", eventPropagationDefer).to_str() ==
 				   "trigger: 'EV', propagation: 'defer', behavior: 'b();'");
 
-		// the transition action update requires a trigger
+		// a transition action may be updated to guard-only or behaviour-only
+		// (a choice branch, an initial/completion edge); only a fully empty
+		// update is refused
 		Action tr("EVENT", "", "b();");
 		tr.update("", "g", "c();");
-		CYB_ASSERT(tr.get_trigger() == "EVENT");
-		CYB_ASSERT(tr.get_behavior() == "b();");
+		CYB_ASSERT(tr.get_trigger() == "" && tr.get_guard() == "g" && tr.get_behavior() == "c();");
+		tr.update("", "", "");
+		CYB_ASSERT(tr.get_behavior() == "c();");
 
 		// guards are not allowed in the entry/exit activities
 		Document d(geometryFormatQt);

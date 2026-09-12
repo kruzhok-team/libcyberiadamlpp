@@ -669,6 +669,8 @@ namespace Cyberiada {
         void                   update(const Point& source, const Point& target);
         void                   update(const Polyline& pl);
         void                   update(const ID& source, const ID& target);
+        // the label position; an invalid point clears it (auto-placement)
+        void                   update_label(const Point& label_point);
         void                   clean_geometry() override;
 		void                   round_geometry() override;
 		

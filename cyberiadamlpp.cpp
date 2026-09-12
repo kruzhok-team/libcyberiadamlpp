@@ -542,7 +542,9 @@ void Action::update(const Behavior& _behavior)
 void Action::update(const Event& _trigger, const Guard& _guard, const Behavior& _behavior,
 					EventPropagation _propagation)
 {
-	if (type == actionTransition && _trigger.size() == 0) {
+	// a transition action may have no trigger (a guard-only choice branch, or a
+	// behaviour-only initial/completion edge); only a fully empty one is refused
+	if (type == actionTransition && _trigger.size() == 0 && _guard.size() == 0 && _behavior.size() == 0) {
 		return ;
 	}
 	trigger = _trigger;
@@ -2180,6 +2182,12 @@ void Transition::update(const ID &source, const ID &target)
 {
     source_id = source;
     target_id = target;
+}
+
+void Transition::update_label(const Point &label_point)
+{
+    this->label_point = label_point;
+    label_rect = Rect();
 }
 
 void Transition::clean_geometry()
