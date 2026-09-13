@@ -911,7 +911,10 @@ namespace Cyberiada {
 		DocumentMetainformation&       meta() { return metainfo; }
 		const Comment*                 get_meta_element() const { return metainfo_element; }
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
-		
+		// declare the geometry format without converting coordinates: for a
+		// document that gains its first geometry (a border on a frameless one)
+		void                           set_geometry(DocumentGeometryFormat format);
+
 		ConstStateMachineList          get_state_machines() const;
 		StateMachineList               get_state_machines();
 		const StateMachine*            get_parent_sm(const Element* element) const;
@@ -938,7 +941,6 @@ namespace Cyberiada {
 		ID                             generate_vertex_id(const Element* parent) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
 		CyberiadaMetainformation*      export_meta() const;
-		void                           set_geometry(DocumentGeometryFormat format);
 
 		void                           check_nonempty_string(const String& s) const;
 		void                           check_parent_element(const Element* parent) const;
