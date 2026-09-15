@@ -689,6 +689,8 @@ namespace Cyberiada {
         void                   update(const ID& source, const ID& target);
         // the label position; an invalid point clears it (auto-placement)
         void                   update_label(const Point& label_point);
+        // the label box; an invalid rect clears it (auto-placement)
+        void                   update_label(const Rect& label_rect);
         void                   clean_geometry() override;
 		void                   round_geometry() override;
 		

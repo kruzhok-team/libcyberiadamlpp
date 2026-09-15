@@ -2196,6 +2196,12 @@ void Transition::update_label(const Point &label_point)
     label_rect = Rect();
 }
 
+void Transition::update_label(const Rect &label_rect)
+{
+    this->label_rect = label_rect;
+    label_point = Point();
+}
+
 void Transition::clean_geometry()
 {
 	source_point = Point();
