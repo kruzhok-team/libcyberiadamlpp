@@ -312,6 +312,7 @@ namespace Cyberiada {
 
         bool                             has_color() const { return !color.empty(); }
 		const Color&                     get_color() const { return color; }
+		void                             set_color(const Color& c) { color = c; }
 
 		bool                             has_markup() const { return !markup.empty(); }
 		const String&                    get_markup() const { return markup; }
@@ -417,9 +418,10 @@ namespace Cyberiada {
 		
         bool                     has_color() const { return !color.empty(); }
 		const Color&             get_color() const { return color; }
+		void                     set_color(const Color& c) { color = c; }
 
 		CyberiadaNode*           to_node() const override;
-		
+
 	protected:
 		void                     import_nodes_recursively(CyberiadaNode* nodes, Element** metainfo_element = NULL);
 
@@ -475,10 +477,11 @@ namespace Cyberiada {
 		
         bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
+		void                   set_color(const Color& c) { color = c; }
 
 		CyberiadaNode*         to_node() const override;
 		Element*               copy(Element* parent) const override;
-		
+
 	protected:
 	    std::ostream&          dump(std::ostream& os) const override;
 
@@ -676,6 +679,7 @@ namespace Cyberiada {
 		
 		bool                   has_color() const { return !color.empty(); }
 		const Color&           get_color() const { return color; }
+		void                   set_color(const Color& c) { color = c; }
 
 		virtual CyberiadaEdge* to_edge() const;
 		Element*       copy(Element* parent) const override;
@@ -809,6 +813,55 @@ namespace Cyberiada {
 	private:
 		static String                          empty_string;
 	};
+
+	// Colour access through a base Element*, dispatched to the subclass that
+	// stores the colour. Elements without a colour attribute return no colour
+	// and reject a set.
+	inline bool element_has_color(const Element* e) {
+		if (!e) return false;
+		switch (e->get_type()) {
+		case elementComment: case elementFormalComment:
+			return static_cast<const Comment*>(e)->has_color();
+		case elementChoice:
+			return static_cast<const ChoicePseudostate*>(e)->has_color();
+		case elementTransition:
+			return static_cast<const Transition*>(e)->has_color();
+		case elementSM: case elementSimpleState: case elementCompositeState:
+			return static_cast<const ElementCollection*>(e)->has_color();
+		default:
+			return false;
+		}
+	}
+
+	inline Color element_get_color(const Element* e) {
+		if (!element_has_color(e)) return Color();
+		switch (e->get_type()) {
+		case elementComment: case elementFormalComment:
+			return static_cast<const Comment*>(e)->get_color();
+		case elementChoice:
+			return static_cast<const ChoicePseudostate*>(e)->get_color();
+		case elementTransition:
+			return static_cast<const Transition*>(e)->get_color();
+		default:
+			return static_cast<const ElementCollection*>(e)->get_color();
+		}
+	}
+
+	inline bool element_set_color(Element* e, const Color& c) {
+		if (!e) return false;
+		switch (e->get_type()) {
+		case elementComment: case elementFormalComment:
+			static_cast<Comment*>(e)->set_color(c); return true;
+		case elementChoice:
+			static_cast<ChoicePseudostate*>(e)->set_color(c); return true;
+		case elementTransition:
+			static_cast<Transition*>(e)->set_color(c); return true;
+		case elementSM: case elementSimpleState: case elementCompositeState:
+			static_cast<ElementCollection*>(e)->set_color(c); return true;
+		default:
+			return false;
+		}
+	}
 
 	class Document: public ElementCollection {
 	public: 
