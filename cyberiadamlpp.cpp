@@ -946,18 +946,18 @@ std::ostream& Comment::dump(std::ostream& os) const
 // Vertex
 // -----------------------------------------------------------------------------
 
-Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Point& pos):
-	Element(_parent, _type, _id), geometry_point(pos)
+Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Point& pos, const Color& _color):
+	Element(_parent, _type, _id), geometry_point(pos), color(_color)
 {
 }
 
-Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& pos):
-	Element(_parent, _type, _id, _name), geometry_point(pos)
+Vertex::Vertex(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& pos, const Color& _color):
+	Element(_parent, _type, _id, _name), geometry_point(pos), color(_color)
 {
 }
 
 Vertex::Vertex(const Vertex& v):
-	Element(v), geometry_point(v.geometry_point)
+	Element(v), geometry_point(v.geometry_point), color(v.color)
 {
 }
 
@@ -989,7 +989,10 @@ std::ostream& Vertex::dump(std::ostream& os) const
 	if (has_geometry()) {
 		os << ", geometry: " << geometry_point;
 	}
-	os << "}";	
+	if (has_color()) {
+		os << ", color: " << color;
+	}
+	os << "}";
 	return os;
 }
 
@@ -998,6 +1001,9 @@ CyberiadaNode* Vertex::to_node() const
 	CyberiadaNode* node = Element::to_node();
 	if (has_geometry()) {
 		node->geometry_point = geometry_point.c_point();
+	}
+	if (has_color()) {
+		cyberiada_copy_string(&(node->color), &(node->color_len), color.c_str());
 	}
 	return node;
 }
@@ -1641,27 +1647,27 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 			
 		case cybNodeInitial:
 			if (n->title) {
-				element = new InitialPseudostate(this, n->id, n->title, point);
+				element = new InitialPseudostate(this, n->id, n->title, point, _color);
 			} else {
-				element = new InitialPseudostate(this, n->id, point);
+				element = new InitialPseudostate(this, n->id, point, _color);
 			}
 
 			break;
 
 		case cybNodeTerminate:
 			if (n->title) {
-				element = new TerminatePseudostate(this, n->id, n->title, point);
+				element = new TerminatePseudostate(this, n->id, n->title, point, _color);
 			} else {
-				element = new TerminatePseudostate(this, n->id, point);
+				element = new TerminatePseudostate(this, n->id, point, _color);
 			}
 
 			break;
-			
+
 		case cybNodeFinal:
 			if (n->title) {
-				element = new FinalState(this, n->id, n->title, point);
+				element = new FinalState(this, n->id, n->title, point, _color);
 			} else {
-				element = new FinalState(this, n->id, point);
+				element = new FinalState(this, n->id, point, _color);
 			}
 
 			break;
@@ -1728,13 +1734,13 @@ std::ostream& ElementCollection::dump(std::ostream& os) const
 // Pseudostate
 // -----------------------------------------------------------------------------
 
-Pseudostate::Pseudostate(Element* _parent, ElementType _type, const ID& _id, const Point& p):
-	Vertex(_parent, _type, _id, p)
+Pseudostate::Pseudostate(Element* _parent, ElementType _type, const ID& _id, const Point& p, const Color& _color):
+	Vertex(_parent, _type, _id, p, _color)
 {
 }
 
-Pseudostate::Pseudostate(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& p):
-	Vertex(_parent, _type, _id, _name, p)
+Pseudostate::Pseudostate(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Vertex(_parent, _type, _id, _name, p, _color)
 {
 }
 
@@ -1742,22 +1748,22 @@ Pseudostate::Pseudostate(Element* _parent, ElementType _type, const ID& _id, con
 // Initial pseudostate
 // -----------------------------------------------------------------------------
 
-InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Point& p):
-	Pseudostate(_parent, elementInitial, _id, p)
+InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Point& p, const Color& _color):
+	Pseudostate(_parent, elementInitial, _id, p, _color)
 {
 }
 
-InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p):
-	Pseudostate(_parent, elementInitial, _id, _name, p)
+InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Pseudostate(_parent, elementInitial, _id, _name, p, _color)
 {
 }
 
 Element* InitialPseudostate::copy(Element* parent) const
 {
 	if (has_name()) {
-		return new InitialPseudostate(parent, get_id(), get_name(), get_geometry_point());
+		return new InitialPseudostate(parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new InitialPseudostate(parent, get_id(), get_geometry_point());
+		return new InitialPseudostate(parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -1765,22 +1771,22 @@ Element* InitialPseudostate::copy(Element* parent) const
 // Terminate pseudostate
 // -----------------------------------------------------------------------------
 
-TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Point& p):
-	Pseudostate(_parent, elementTerminate, _id, p)
+TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Point& p, const Color& _color):
+	Pseudostate(_parent, elementTerminate, _id, p, _color)
 {
 }
 
-TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p):
-	Pseudostate(_parent, elementTerminate, _id, _name, p)
+TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Pseudostate(_parent, elementTerminate, _id, _name, p, _color)
 {
 }
 
 Element* TerminatePseudostate::copy(Element* parent) const
 {
 	if (has_name()) {
-		return new TerminatePseudostate(parent, get_id(), get_name(), get_geometry_point());
+		return new TerminatePseudostate(parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new TerminatePseudostate(parent, get_id(), get_geometry_point());
+		return new TerminatePseudostate(parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -1863,22 +1869,22 @@ std::ostream& ChoicePseudostate::dump(std::ostream& os) const
 // Final state
 // -----------------------------------------------------------------------------
 
-FinalState::FinalState(Element* _parent, const ID& _id, const Point& p):
-	Vertex(_parent, elementFinal, _id, p)
+FinalState::FinalState(Element* _parent, const ID& _id, const Point& p, const Color& _color):
+	Vertex(_parent, elementFinal, _id, p, _color)
 {
 }
 
-FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const Point& p):
-	Vertex(_parent, elementFinal, _id, _name, p)
+FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Vertex(_parent, elementFinal, _id, _name, p, _color)
 {
 }
 
 Element* FinalState::copy(Element* parent) const
 {
 	if (has_name()) {
-		return new FinalState(parent, get_id(), get_name(), get_geometry_point());
+		return new FinalState(parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new FinalState(parent, get_id(), get_geometry_point());
+		return new FinalState(parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -2738,69 +2744,69 @@ State* Document::new_state(ElementCollection* _parent, const ID& state_id, const
 	return state;
 }
 
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Point& p)
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Point& p, const Color& color)
 {
 	check_parent_element(_parent);
 	check_single_initial(_parent);
 
-	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p);
-	_parent->add_element(initial);
-	check_geometry_update(p);	
-	return initial;
-}
-
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p)
-{
-	check_parent_element(_parent);
-	check_nonempty_string(initial_name);
-	check_single_initial(_parent);
-	
-	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p);
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p, color);
 	_parent->add_element(initial);
 	check_geometry_update(p);
 	return initial;
 }
 
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p)
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p, const Color& color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(initial_name);
+	check_single_initial(_parent);
+
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p, color);
+	_parent->add_element(initial);
+	check_geometry_update(p);
+	return initial;
+}
+
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p, const Color& color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(initial_name);
 	check_single_initial(_parent);
 	check_id_uniqueness(_id);
-	
-	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p);
+
+	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p, color);
 	_parent->add_element(initial);
 	check_geometry_update(p);
 	return initial;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const Point& point)
+FinalState* Document::new_final(ElementCollection* _parent, const Point& point, const Color& color)
 {
 	check_parent_element(_parent);
 
-	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), point);
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), point, color);
 	_parent->add_element(fin);
 	return fin;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point)
+FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point, const Color& color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
-	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point);
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point, color);
 	_parent->add_element(fin);
 	check_geometry_update(point);
 	return fin;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point)
+FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point, const Color& color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
-	FinalState* fin = new FinalState(_parent, _id, _name, point);
+	FinalState* fin = new FinalState(_parent, _id, _name, point, color);
 	_parent->add_element(fin);
 	check_geometry_update(point);	
 	return fin;	
@@ -2839,34 +2845,34 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	return choice;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Point& p)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Point& p, const Color& color)
 {
 	check_parent_element(_parent);
 
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p);
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p, color);
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Name& _name, const Point& p)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Name& _name, const Point& p, const Color& color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p);
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p, color);
 	_parent->add_element(term);
-	check_geometry_update(p);	
+	check_geometry_update(p);
 	return term;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
-	
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p);
+
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p, color);
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;

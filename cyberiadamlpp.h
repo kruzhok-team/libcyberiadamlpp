@@ -340,8 +340,10 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Vertex: public Element {
 	public:
-		Vertex(Element* parent, ElementType type, const ID& id, const Point& pos = Point());
-		Vertex(Element* parent, ElementType type, const ID& id, const Name& name, const Point& pos = Point());
+		Vertex(Element* parent, ElementType type, const ID& id, const Point& pos = Point(),
+			   const Color& color = Color());
+		Vertex(Element* parent, ElementType type, const ID& id, const Name& name,
+			   const Point& pos = Point(), const Color& color = Color());
 		Vertex(const Vertex& v);
 
 		bool                   has_geometry() const override { return geometry_point.valid; }
@@ -352,16 +354,21 @@ namespace Cyberiada {
 		void                   update_geometry(const Point& point) { geometry_point = point; }
 		void                   clean_geometry() override;
 		void                   round_geometry() override;
-		
+
 		bool                   has_children() const override { return false; }
 
+		bool                   has_color() const { return !color.empty(); }
+		const Color&           get_color() const { return color; }
+		void                   set_color(const Color& c) { color = c; }
+
 		CyberiadaNode*         to_node() const override;
-		
+
 	protected:
 	    std::ostream&          dump(std::ostream& os) const override;
-		
+
 	private:
 		Point                  geometry_point;
+		Color                  color;
 	};
 
 // -----------------------------------------------------------------------------
@@ -440,8 +447,10 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class Pseudostate: public Vertex {
 	public:
-		Pseudostate(Element* parent, ElementType type, const ID& id, const Point& p = Point());
-		Pseudostate(Element* parent, ElementType type, const ID& id, const Name& name, const Point& p = Point());
+		Pseudostate(Element* parent, ElementType type, const ID& id, const Point& p = Point(),
+					const Color& color = Color());
+		Pseudostate(Element* parent, ElementType type, const ID& id, const Name& name,
+					const Point& p = Point(), const Color& color = Color());
 	};
 
 // -----------------------------------------------------------------------------
@@ -449,8 +458,10 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class InitialPseudostate: public Pseudostate {
 	public:
-		InitialPseudostate(Element* parent, const ID& id, const Point& p = Point());
-		InitialPseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
+		InitialPseudostate(Element* parent, const ID& id, const Point& p = Point(),
+						   const Color& color = Color());
+		InitialPseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point(),
+						   const Color& color = Color());
 
 		Element*       copy(Element* parent) const override;
 	};
@@ -494,8 +505,10 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class TerminatePseudostate: public Pseudostate {
 	public:
-		TerminatePseudostate(Element* parent, const ID& id, const Point& p = Point());
-		TerminatePseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point());
+		TerminatePseudostate(Element* parent, const ID& id, const Point& p = Point(),
+							 const Color& color = Color());
+		TerminatePseudostate(Element* parent, const ID& id, const Name& name, const Point& p = Point(),
+							 const Color& color = Color());
 
 		Element*               copy(Element* parent) const override;
 	};
@@ -505,8 +518,10 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 	class FinalState: public Vertex {
 	public:
-		FinalState(Element* parent, const ID& id, const Point& point = Point());
-		FinalState(Element* parent, const ID& id, const Name& name, const Point& point = Point());
+		FinalState(Element* parent, const ID& id, const Point& point = Point(),
+				   const Color& color = Color());
+		FinalState(Element* parent, const ID& id, const Name& name, const Point& point = Point(),
+				   const Color& color = Color());
 
 		Element*       copy(Element* parent) const override;
 	};
@@ -824,6 +839,8 @@ namespace Cyberiada {
 			return static_cast<const Comment*>(e)->has_color();
 		case elementChoice:
 			return static_cast<const ChoicePseudostate*>(e)->has_color();
+		case elementInitial: case elementFinal: case elementTerminate:
+			return static_cast<const Vertex*>(e)->has_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->has_color();
 		case elementSM: case elementSimpleState: case elementCompositeState:
@@ -840,6 +857,8 @@ namespace Cyberiada {
 			return static_cast<const Comment*>(e)->get_color();
 		case elementChoice:
 			return static_cast<const ChoicePseudostate*>(e)->get_color();
+		case elementInitial: case elementFinal: case elementTerminate:
+			return static_cast<const Vertex*>(e)->get_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->get_color();
 		default:
@@ -854,6 +873,8 @@ namespace Cyberiada {
 			static_cast<Comment*>(e)->set_color(c); return true;
 		case elementChoice:
 			static_cast<ChoicePseudostate*>(e)->set_color(c); return true;
+		case elementInitial: case elementFinal: case elementTerminate:
+			static_cast<Vertex*>(e)->set_color(c); return true;
 		case elementTransition:
 			static_cast<Transition*>(e)->set_color(c); return true;
 		case elementSM: case elementSimpleState: case elementCompositeState:
@@ -877,21 +898,21 @@ namespace Cyberiada {
 		State*                         new_state(ElementCollection* parent, const ID& id, const String& state_name,
 												 const Action& a = Action(), const Rect& r = Rect(),
 												 const Rect& region = Rect(), const Color& color = Color());
-		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point());
-		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& name, const Point& p = Point());
-		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
-		FinalState*                    new_final(ElementCollection* parent, const Point& point = Point());
-		FinalState*                    new_final(ElementCollection* parent, const Name& name, const Point& point = Point());
-		FinalState*                    new_final(ElementCollection* parent, const ID& id, const Name& name, const Point& point = Point());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		InitialPseudostate*            new_initial(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
+		FinalState*                    new_final(ElementCollection* parent, const Point& point = Point(), const Color& color = Color());
+		FinalState*                    new_final(ElementCollection* parent, const Name& name, const Point& point = Point(), const Color& color = Color());
+		FinalState*                    new_final(ElementCollection* parent, const ID& id, const Name& name, const Point& point = Point(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent,
 												  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent, const Name& name,
 												  const Rect& r = Rect(), const Color& color = Color());
 		ChoicePseudostate*             new_choice(ElementCollection* parent, const ID& id, const Name& name,
 												  const Rect& r = Rect(), const Color& color = Color());
-		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Point& p = Point());
-		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Name& name, const Point& p = Point());
-		TerminatePseudostate*          new_terminate(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		TerminatePseudostate*          new_terminate(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
 		Transition*                    new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
