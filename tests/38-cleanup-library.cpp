@@ -24,11 +24,8 @@
 
 using namespace Cyberiada;
 
-int main(int argc, char** argv)
+int main()
 {
-	(void)argc;
-	(void)argv;
-
 	{
 		Document d;
 		d.new_state_machine("SM");

@@ -25,7 +25,7 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main()
 {
 	LocalDocument d;
 	try {

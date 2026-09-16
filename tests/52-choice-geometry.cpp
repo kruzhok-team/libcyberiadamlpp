@@ -33,7 +33,7 @@ static ChoicePseudostate* choice(Document& d, const ID& id)
 	return static_cast<ChoicePseudostate*>(e);
 }
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	try {
 		LocalDocument d;

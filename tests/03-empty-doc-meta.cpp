@@ -25,7 +25,7 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	LocalDocument d;
 	d.new_state_machine("SM");

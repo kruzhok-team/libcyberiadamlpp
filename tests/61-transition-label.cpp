@@ -26,7 +26,7 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main()
 {
 	try {
 		Document d;

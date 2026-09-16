@@ -25,9 +25,8 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
-	LocalDocument d;
 	try {
 		LocalDocument d;
 		d.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatNone, false, false, true, true);

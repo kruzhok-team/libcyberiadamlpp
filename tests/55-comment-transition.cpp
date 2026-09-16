@@ -26,7 +26,7 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	try {
 		// the comment subject refers to a transition (8.5)

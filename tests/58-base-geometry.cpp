@@ -53,7 +53,7 @@ static Rect state_rect(const Document& d, const ID& id)
 	return static_cast<const ElementCollection*>(e)->get_geometry_rect();
 }
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	try {
 		// the robot-vacuum example of the standard is authored in the base format

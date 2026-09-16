@@ -38,7 +38,7 @@ static bool loaded(const String& path, bool strict)
 	return true;
 }
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	try {
 		String prefix = string(argv[0]) + "-";

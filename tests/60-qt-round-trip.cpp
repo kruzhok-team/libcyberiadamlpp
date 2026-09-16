@@ -29,7 +29,7 @@ using namespace std;
 
 // the content is not centred on the origin on purpose: a frame taken from
 // the content would move it on the way through the file
-int main(int argc, char** argv)
+int main()
 {
 	try {
 		Document d;

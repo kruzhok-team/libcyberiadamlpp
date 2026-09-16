@@ -26,7 +26,7 @@
 using namespace Cyberiada;
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
 	try {
 		// check wrong graph with two initial pseudostates on the same level
