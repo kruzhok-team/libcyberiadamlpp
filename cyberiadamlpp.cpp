@@ -63,7 +63,7 @@ namespace Cyberiada {
 	static const String TRANTISION_ID_NUM_SEP = "#"; 
 	static const std::string tab = "\t";
     static DocumentGeometryFormat DEFAULT_REAL_GEOMETRY_FORMAT = geometryFormatQt;
-};
+}
 	
 using namespace Cyberiada;
 
