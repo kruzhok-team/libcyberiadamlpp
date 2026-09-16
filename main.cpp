@@ -39,7 +39,7 @@ void usage(const char* program)
 int main(int argc, char** argv)
 {
 	LocalDocument d;
-	DocumentFormat format;
+	DocumentFormat format = formatCyberiada10;
 	string command, from_file, to_file, format_str;
 	
 	if (argc < 3) {
