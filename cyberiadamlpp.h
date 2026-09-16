@@ -1043,6 +1043,7 @@ namespace Cyberiada {
 		ID                             generate_sm_id() const;
 		ID                             generate_vertex_id(const Element* parent) const;
 		ID                             generate_transition_id(const String& source_id, const String& target_id) const;
+		ID                             generate_subject_id(const Comment* comment, const String& target_id) const;
 		CyberiadaMetainformation*      export_meta() const;
 
 		void                           check_nonempty_string(const String& s) const;

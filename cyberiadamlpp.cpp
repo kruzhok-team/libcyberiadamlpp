@@ -3112,7 +3112,7 @@ const CommentSubject& Document::add_comment_to_element(Comment* comment, Element
 	check_geometry_update(target);
 	check_geometry_update(pl);
 
-	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()),
+	return comment->add_subject(CommentSubject(generate_subject_id(comment, element->get_id()),
 											   element, source, target, pl));
 }
 
@@ -3141,7 +3141,7 @@ const CommentSubject& Document::add_comment_to_element_name(Comment* comment, El
 	check_geometry_update(target);
 	check_geometry_update(pl);
 	
-	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
+	return comment->add_subject(CommentSubject(generate_subject_id(comment, element->get_id()), element,
 											   commentSubjectName, fragment, source, target, pl));
 }
 
@@ -3172,7 +3172,7 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 	check_geometry_update(target);
 	check_geometry_update(pl);
 	
-	return comment->add_subject(CommentSubject(generate_transition_id(comment->get_id(), element->get_id()), element,
+	return comment->add_subject(CommentSubject(generate_subject_id(comment, element->get_id()), element,
 											   commentSubjectData, fragment, source, target, pl));
 }
 
@@ -3892,7 +3892,36 @@ ID Document::generate_transition_id(const String& source_id, const String& targe
 		s2 << base_name << TRANTISION_ID_NUM_SEP << id_num;
 		result = ID(s2.str());
 		id_num++;
-	}	
+	}
+	return result;
+}
+
+// a comment subject is serialized as an edge <comment>-<target>; a comment may
+// carry several subjects to the same target (a link and a name/data fragment),
+// so the id must also stay clear of the comment's existing subjects, which
+// find_element_by_id does not see
+ID Document::generate_subject_id(const Comment* comment, const String& target_id) const
+{
+	std::ostringstream s;
+	s << comment->get_id() << TRANTISION_ID_SEP << target_id;
+	String base_name = s.str();
+	ID result = ID(base_name);
+	size_t id_num = 0;
+	bool clash = true;
+	while (clash) {
+		clash = (find_element_by_id(result) != NULL);
+		if (!clash) {
+			const std::vector<CommentSubject>& subs = comment->get_subjects();
+			for (std::vector<CommentSubject>::const_iterator i = subs.begin(); i != subs.end(); i++) {
+				if (i->get_id() == result) { clash = true; break; }
+			}
+		}
+		if (clash) {
+			std::ostringstream s2;
+			s2 << base_name << TRANTISION_ID_NUM_SEP << id_num++;
+			result = ID(s2.str());
+		}
+	}
 	return result;
 }
 
