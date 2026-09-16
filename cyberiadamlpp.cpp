@@ -877,9 +877,9 @@ CyberiadaEdge* Comment::subjects_to_edges() const
 
 Rect Comment::get_bound_rect(const Document& d) const
 {
-	Rect r, parent;
+	Rect r, parent_rect;
 	if (has_geometry()) {
-		parent = r = geometry_rect;
+		parent_rect = r = geometry_rect;
 	}
 	if (has_geometry() && has_subjects()) {
 		for (std::vector<CommentSubject>::const_iterator i = subjects.begin(); i != subjects.end(); i++) {
@@ -889,8 +889,8 @@ Rect Comment::get_bound_rect(const Document& d) const
 			Rect ch_r = i->get_bound_rect(d);
 			if (d.get_geometry_format() == geometryFormatCyberiada10 ||
 				d.get_geometry_format() == geometryFormatQt) {
-				ch_r.x += parent.x;
-				ch_r.y += parent.y;
+				ch_r.x += parent_rect.x;
+				ch_r.y += parent_rect.y;
 			}
 			r.expand(ch_r, d);
 		}
@@ -1381,9 +1381,9 @@ static bool transition_node_frame(const ElementCollection* coll, const Element* 
 
 Rect ElementCollection::get_bound_rect(const Document& d) const
 {
-	Rect r, parent;
+	Rect r, parent_rect;
 	if (has_geometry()) {
-		parent = geometry_rect;
+		parent_rect = geometry_rect;
 		r.expand(geometry_rect, d);
 	}
 	if (has_children()) {
@@ -1474,8 +1474,8 @@ Rect ElementCollection::get_bound_rect(const Document& d) const
 			Rect ch_r = (*i)->get_bound_rect(d);
 			if (d.get_geometry_format() == geometryFormatCyberiada10 ||
 				d.get_geometry_format() == geometryFormatQt) {
-				ch_r.x += parent.x;
-				ch_r.y += parent.y;
+				ch_r.x += parent_rect.x;
+				ch_r.y += parent_rect.y;
 			}
 			r.expand(ch_r, d);
 		}
@@ -1758,12 +1758,12 @@ InitialPseudostate::InitialPseudostate(Element* _parent, const ID& _id, const Na
 {
 }
 
-Element* InitialPseudostate::copy(Element* parent) const
+Element* InitialPseudostate::copy(Element* _parent) const
 {
 	if (has_name()) {
-		return new InitialPseudostate(parent, get_id(), get_name(), get_geometry_point(), get_color());
+		return new InitialPseudostate(_parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new InitialPseudostate(parent, get_id(), get_geometry_point(), get_color());
+		return new InitialPseudostate(_parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -1781,12 +1781,12 @@ TerminatePseudostate::TerminatePseudostate(Element* _parent, const ID& _id, cons
 {
 }
 
-Element* TerminatePseudostate::copy(Element* parent) const
+Element* TerminatePseudostate::copy(Element* _parent) const
 {
 	if (has_name()) {
-		return new TerminatePseudostate(parent, get_id(), get_name(), get_geometry_point(), get_color());
+		return new TerminatePseudostate(_parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new TerminatePseudostate(parent, get_id(), get_geometry_point(), get_color());
+		return new TerminatePseudostate(_parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -1843,12 +1843,12 @@ void ChoicePseudostate::round_geometry()
 	}
 }
 
-Element* ChoicePseudostate::copy(Element* parent) const
+Element* ChoicePseudostate::copy(Element* _parent) const
 {
 	if (has_name()) {
-		return new ChoicePseudostate(parent, get_id(), get_name(), get_geometry_rect(), color);
+		return new ChoicePseudostate(_parent, get_id(), get_name(), get_geometry_rect(), color);
 	} else {
-		return new ChoicePseudostate(parent, get_id(), get_geometry_rect(), color);
+		return new ChoicePseudostate(_parent, get_id(), get_geometry_rect(), color);
 	}
 }
 
@@ -1879,12 +1879,12 @@ FinalState::FinalState(Element* _parent, const ID& _id, const Name& _name, const
 {
 }
 
-Element* FinalState::copy(Element* parent) const
+Element* FinalState::copy(Element* _parent) const
 {
 	if (has_name()) {
-		return new FinalState(parent, get_id(), get_name(), get_geometry_point(), get_color());
+		return new FinalState(_parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
-		return new FinalState(parent, get_id(), get_geometry_point(), get_color());
+		return new FinalState(_parent, get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -2079,9 +2079,9 @@ CyberiadaNode* State::to_node() const
 	return node;
 }
 
-Element* State::copy(Element* parent) const
+Element* State::copy(Element* _parent) const
 {
-	State* s = new State(parent, get_id(), get_name(), get_geometry_rect(), get_region_geometry_rect(), get_color());
+	State* s = new State(_parent, get_id(), get_name(), get_geometry_rect(), get_region_geometry_rect(), get_color());
 	s->copy_elements(*this);
 	s->actions = actions;
 	s->update_state_type();
@@ -2190,15 +2190,15 @@ void Transition::update(const ID &source, const ID &target)
     target_id = target;
 }
 
-void Transition::update_label(const Point &label_point)
+void Transition::update_label(const Point &_label_point)
 {
-    this->label_point = label_point;
+    label_point = _label_point;
     label_rect = Rect();
 }
 
-void Transition::update_label(const Rect &label_rect)
+void Transition::update_label(const Rect &_label_rect)
 {
-    this->label_rect = label_rect;
+    label_rect = _label_rect;
     label_point = Point();
 }
 
@@ -2228,9 +2228,9 @@ ActionsDiffFlags Transition::compare_actions(const Transition& t) const
 	return compare_two_actions(action, t.get_action());
 }
 
-Element* Transition::copy(Element* parent) const
+Element* Transition::copy(Element* _parent) const
 {
-	return new Transition(parent, transition_type, get_id(), source_id, target_id, action,
+	return new Transition(_parent, transition_type, get_id(), source_id, target_id, action,
 						  polyline, source_point, target_point, label_point,
 						  label_rect, get_color());
 }
@@ -2393,10 +2393,10 @@ CyberiadaNode* StateMachine::to_node(const Point& center) const
 	return node;
 }
 
-Element* StateMachine::copy(Element* parent) const
+Element* StateMachine::copy(Element* _parent) const
 {
 	 StateMachine* sm = new StateMachine(*this);
-	 sm->update_parent(parent);
+	 sm->update_parent(_parent);
 	 return sm;
 }
 
@@ -2528,8 +2528,8 @@ void StateMachine::export_edges(CyberiadaEdge** edges, const CyberiadaSM* new_sm
 	}
 	std::vector<const Comment*> comments = get_comments();
 	for (std::vector<const Comment*>::const_iterator j = comments.begin(); j != comments.end(); j++) {
-		const Comment* c = *j;
-		edge = c->subjects_to_edges();
+		const Comment* comment = *j;
+		edge = comment->subjects_to_edges();
 		if (*edges) {
 			CyberiadaEdge* e = *edges;
 			while (e->next) e = e->next;
@@ -2750,69 +2750,69 @@ State* Document::new_state(ElementCollection* _parent, const ID& state_id, const
 	return state;
 }
 
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Point& p, const Color& color)
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_single_initial(_parent);
 
-	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p, color);
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), p, _color);
 	_parent->add_element(initial);
 	check_geometry_update(p);
 	return initial;
 }
 
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p, const Color& color)
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const Name& initial_name, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(initial_name);
 	check_single_initial(_parent);
 
-	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p, color);
+	InitialPseudostate* initial = new InitialPseudostate(_parent, generate_vertex_id(_parent), initial_name, p, _color);
 	_parent->add_element(initial);
 	check_geometry_update(p);
 	return initial;
 }
 
-InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p, const Color& color)
+InitialPseudostate* Document::new_initial(ElementCollection* _parent, const ID& _id, const Name& initial_name, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(initial_name);
 	check_single_initial(_parent);
 	check_id_uniqueness(_id);
 
-	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p, color);
+	InitialPseudostate* initial = new InitialPseudostate(_parent, _id, initial_name, p, _color);
 	_parent->add_element(initial);
 	check_geometry_update(p);
 	return initial;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const Point& point, const Color& color)
+FinalState* Document::new_final(ElementCollection* _parent, const Point& point, const Color& _color)
 {
 	check_parent_element(_parent);
 
-	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), point, color);
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), point, _color);
 	_parent->add_element(fin);
 	return fin;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point, const Color& color)
+FinalState* Document::new_final(ElementCollection* _parent, const Name& _name, const Point& point, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
-	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point, color);
+	FinalState* fin = new FinalState(_parent, generate_vertex_id(_parent), _name, point, _color);
 	_parent->add_element(fin);
 	check_geometry_update(point);
 	return fin;
 }
 
-FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point, const Color& color)
+FinalState* Document::new_final(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& point, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
-	FinalState* fin = new FinalState(_parent, _id, _name, point, color);
+	FinalState* fin = new FinalState(_parent, _id, _name, point, _color);
 	_parent->add_element(fin);
 	check_geometry_update(point);	
 	return fin;	
@@ -2851,34 +2851,34 @@ ChoicePseudostate* Document::new_choice(ElementCollection* _parent, const ID& _i
 	return choice;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Point& p, const Color& color)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p, color);
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), p, _color);
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Name& _name, const Point& p, const Color& color)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const Name& _name, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p, color);
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, generate_vertex_id(_parent), _name, p, _color);
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;
 }
 
-TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& color)
+TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color)
 {
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
-	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p, color);
+	TerminatePseudostate* term = new TerminatePseudostate(_parent, _id, _name, p, _color);
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;
@@ -3084,7 +3084,7 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 											   commentSubjectData, fragment, source, target, pl));
 }
 
-bool Document::update_metainfo_from_comment(const String& body)
+bool Document::update_metainfo_from_comment(const String&)
 {
 	return false;
 }
@@ -3224,7 +3224,6 @@ const String& DocumentMetainformation::get_string(const String& name) const
 
 void DocumentMetainformation::set_string(const String& name, const String& value)
 {
-	bool found = false;
 	for (std::vector<std::pair<String, String>>::iterator i = strings.begin(); i != strings.end(); i++) {
 		if (i->first == name) {
 			i->second = value;
@@ -3661,10 +3660,10 @@ StateMachineList Document::get_state_machines()
 const StateMachine* Document::get_parent_sm(const Element* element) const
 {
 	if (element != NULL) {
-		ElementType type = element->get_type();
-		if (type == elementRoot) {
+		ElementType element_type = element->get_type();
+		if (element_type == elementRoot) {
 			return NULL;
-		} else if (type == elementSM) {
+		} else if (element_type == elementSM) {
 			return static_cast<const StateMachine*>(element);
 		} else {
 			CYB_ASSERT(element->get_parent());
@@ -3678,10 +3677,10 @@ const StateMachine* Document::get_parent_sm(const Element* element) const
 StateMachine* Document::get_parent_sm(const Element* element)
 {
 	if (element != NULL) {
-		ElementType type = element->get_type();
-		if (type == elementRoot) {
+		ElementType element_type = element->get_type();
+		if (element_type == elementRoot) {
 			return NULL;
-		} else if (type == elementSM) {
+		} else if (element_type == elementSM) {
 			return static_cast<StateMachine*>(const_cast<Element*>(element));
 		} else {
 			CYB_ASSERT(element->get_parent());

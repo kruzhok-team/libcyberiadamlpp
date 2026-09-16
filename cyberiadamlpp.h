@@ -773,6 +773,7 @@ namespace Cyberiada {
 
 		void                           from_sm(const CyberiadaSM* sm, Element** metainfo_element = NULL);
 		CyberiadaSM*                   to_sm() const;
+		using ElementCollection::to_node;
 		CyberiadaNode*                 to_node(const Point& center) const;
 		
 		Element*                       copy(Element* parent) const override;
