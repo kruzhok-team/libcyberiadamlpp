@@ -1098,7 +1098,7 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // Exceptions
 // -----------------------------------------------------------------------------
-	class Exception: std::exception {
+	class Exception: public std::exception {
 	public:
 		Exception(const String& msg = "", const String& error = "Generic Error"):
 			message(error + ": " + msg) {}

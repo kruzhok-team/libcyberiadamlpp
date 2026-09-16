@@ -20,11 +20,30 @@
  * ----------------------------------------------------------------------------- */
 
 #include <iostream>
+#include <type_traits>
 #include "cyberiadamlpp.h"
 #include "testutils.h"
 
 using namespace Cyberiada;
 using namespace std;
+
+// every exception must reach a catch site expecting std::exception:
+// a private base compiles but is silently uncatchable (MSVC C4670 / C4673)
+#define CYB_CATCHABLE(T) \
+	static_assert(std::is_convertible<T*, std::exception*>::value, \
+				  #T " is not catchable as std::exception")
+
+CYB_CATCHABLE(Exception);
+CYB_CATCHABLE(FileException);
+CYB_CATCHABLE(FormatException);
+CYB_CATCHABLE(XMLException);
+CYB_CATCHABLE(CybMLException);
+CYB_CATCHABLE(ActionException);
+CYB_CATCHABLE(MetainformationException);
+CYB_CATCHABLE(ParametersException);
+CYB_CATCHABLE(NotFoundException);
+CYB_CATCHABLE(AssertException);
+CYB_CATCHABLE(NotImplementedException);
 
 int main(int, char** argv)
 {
@@ -59,6 +78,13 @@ int main(int, char** argv)
 			ld.open(string(argv[0]) + "-input4.graphml");
 			return 1;
 		} catch (const Cyberiada::MetainformationException&) {
+		}
+
+		// the same exception seen through the standard base
+		try {
+			throw FileException("file.graphml");
+		} catch (const std::exception& e) {
+			CYB_ASSERT(String(e.what()).find("file.graphml") != String::npos);
 		}
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
