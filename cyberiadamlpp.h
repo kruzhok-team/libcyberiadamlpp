@@ -100,7 +100,7 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------	
 	struct Point {
 		Point(): valid(false) {}
-		Point(float _x, float _y):
+		Point(double _x, double _y):
 			valid(true), x(_x), y(_y) {}
 		Point(CyberiadaPoint* p);
 
@@ -110,7 +110,7 @@ namespace Cyberiada {
 		String to_str() const;
 
 		bool   valid;
-		float  x, y;
+		double x, y;
 	};
 
 	class Polyline: public std::vector<Point> {
@@ -125,7 +125,7 @@ namespace Cyberiada {
 
 	struct Rect {
 		Rect(): valid(false), x(0.0), y(0.0), width(0.0), height(0.0) {}
-		Rect(float _x, float _y, float _width, float _height):
+		Rect(double _x, double _y, double _width, double _height):
 			valid(true), x(_x), y(_y), width(_width), height(_height) {}
 		Rect(CyberiadaRect* r);
 
@@ -142,8 +142,8 @@ namespace Cyberiada {
 		bool almost_equal(const Rect& r) const;
 		
 		bool   valid;
-		float  x, y;
-		float  width, height;
+		double x, y;
+		double width, height;
 	};
 	
 	std::ostream& operator<<(std::ostream& os, const Point& p);
