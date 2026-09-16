@@ -13,13 +13,15 @@ if(NOT cyberiadaml_FOUND)
 endif()
 
 if(WIN32)
-  # htgeom is linked through its import library, which does not tell where the
-  # DLL is, so the tests cannot get it from $<TARGET_RUNTIME_DLLS>
-  find_file(HTGeom_RUNTIME_LIBRARY NAMES htgeom.dll
-            HINTS "${cyberiadaml_LIBRARY}" "${cyberiadaml_LIBRARY}/.." "${HTGeom_DIR}"
-            PATH_SUFFIXES bin lib)
-  if(NOT HTGeom_RUNTIME_LIBRARY)
-    message(WARNING "Cannot find htgeom.dll; copy it next to the executables manually")
+  # the library DLLs live in the install prefix: libcyberiadaml puts its own
+  # into bin, libhtreegeom puts htgeom.dll beside its import library in lib.
+  # $<TARGET_RUNTIME_DLLS> cannot report htgeom.dll, which reaches the link
+  # through an import library path rather than a target
+  get_filename_component(CYB_PREFIX_LIB "${cyberiadaml_LIBRARY}" ABSOLUTE)
+  file(GLOB CYB_DEPENDENCY_DLLS "${CYB_PREFIX_LIB}/*.dll" "${CYB_PREFIX_LIB}/../bin/*.dll")
+  if(NOT CYB_DEPENDENCY_DLLS)
+    message(WARNING "No library DLLs found near ${CYB_PREFIX_LIB}; "
+                    "copy cyberiadaml.dll and htgeom.dll next to the executables manually")
   endif()
 endif()
 
@@ -92,12 +94,18 @@ foreach(source_path ${files})
               "${PROJECT_BINARY_DIR}/tests/"
       COMMAND_EXPAND_LISTS
       )
-    if(HTGeom_RUNTIME_LIBRARY)
+    # next to the executable the build produces, and next to the copy the
+    # test driver actually runs
+    if(CYB_DEPENDENCY_DLLS)
       add_custom_command(TARGET "${target_name}"
         POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-                "${HTGeom_RUNTIME_LIBRARY}"
+                ${CYB_DEPENDENCY_DLLS}
+                "$<TARGET_FILE_DIR:${target_name}>"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                ${CYB_DEPENDENCY_DLLS}
                 "${PROJECT_BINARY_DIR}/tests/"
+        COMMAND_EXPAND_LISTS
         )
     endif()
     add_custom_command(TARGET "${target_name}"
