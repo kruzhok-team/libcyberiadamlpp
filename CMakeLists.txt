@@ -100,6 +100,13 @@ foreach(source_path ${files})
                 "${PROJECT_BINARY_DIR}/tests/"
         )
     endif()
+    add_custom_command(TARGET "${target_name}"
+      POST_BUILD
+      COMMAND "${CMAKE_COMMAND}"
+              -DSRC=$<TARGET_FILE_DIR:${target_name}>
+              -DDST=${PROJECT_BINARY_DIR}/tests
+              -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/copy-dlls.cmake"
+      )
   endif()
   # the binary path is relative to the build directory: the tests
   # resolve their input/output files and print the paths via argv[0]
