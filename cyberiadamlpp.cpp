@@ -168,6 +168,8 @@ CyberiadaNode* Element::to_node() const
 	case elementFinal:          node->type = cybNodeFinal; break;
 	case elementChoice:         node->type = cybNodeChoice; break;
 	case elementTerminate:      node->type = cybNodeTerminate; break;
+	case elementShallowHistory: node->type = cybNodeShallowHistory; break;
+	case elementDeepHistory:    node->type = cybNodeDeepHistory; break;
 	default:
 		std::cerr << id << " " << type << std::endl;
 		CYB_ASSERT(false);
@@ -204,6 +206,8 @@ std::ostream& Element::dump(std::ostream& os) const
 	case elementFinal:          type_str = "Final"; break;
 	case elementChoice:         type_str = "Choice"; break;
 	case elementTerminate:      type_str = "Terminate"; break;
+	case elementShallowHistory: type_str = "Shallow History"; break;
+	case elementDeepHistory:    type_str = "Deep History"; break;
 	case elementTransition:     type_str = "Transition"; break;
 	default:
 		CYB_ASSERT(false);
@@ -1214,7 +1218,9 @@ std::vector<const Vertex*> ElementCollection::get_vertexes() const
 						   elementInitial,
 						   elementFinal,
 						   elementChoice,
-						   elementTerminate};
+						   elementTerminate,
+						   elementShallowHistory,
+						   elementDeepHistory};
 	std::vector<const Vertex*> result;
 	ConstElementList vertexes = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = vertexes.begin(); i != vertexes.end(); i++) {
@@ -1230,7 +1236,9 @@ std::vector<Vertex*> ElementCollection::get_vertexes()
 						   elementInitial,
 						   elementFinal,
 						   elementChoice,
-						   elementTerminate};
+						   elementTerminate,
+						   elementShallowHistory,
+						   elementDeepHistory};
 	std::vector<Vertex*> result;
 	ElementList vertexes = find_elements_by_types(types);
 	for (ElementList::const_iterator i =  vertexes.begin(); i != vertexes.end(); i++) {
@@ -1671,7 +1679,18 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 			}
 
 			break;
-	
+
+		case cybNodeShallowHistory:
+		case cybNodeDeepHistory: {
+			ElementType ht = (n->type == cybNodeDeepHistory) ? elementDeepHistory : elementShallowHistory;
+			if (n->title) {
+				element = new HistoryPseudostate(this, ht, n->id, n->title, point, _color);
+			} else {
+				element = new HistoryPseudostate(this, ht, n->id, point, _color);
+			}
+			break;
+		}
+
 		default:
 			throw CybMLException("Unsupported node type " + std::to_string(n->type));
 		}
@@ -1787,6 +1806,29 @@ Element* TerminatePseudostate::copy(Element* _parent) const
 		return new TerminatePseudostate(_parent, get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
 		return new TerminatePseudostate(_parent, get_id(), get_geometry_point(), get_color());
+	}
+}
+
+// -----------------------------------------------------------------------------
+// History pseudostate (shallow/deep)
+// -----------------------------------------------------------------------------
+
+HistoryPseudostate::HistoryPseudostate(Element* _parent, ElementType _type, const ID& _id, const Point& p, const Color& _color):
+	Pseudostate(_parent, _type, _id, p, _color)
+{
+}
+
+HistoryPseudostate::HistoryPseudostate(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Pseudostate(_parent, _type, _id, _name, p, _color)
+{
+}
+
+Element* HistoryPseudostate::copy(Element* _parent) const
+{
+	if (has_name()) {
+		return new HistoryPseudostate(_parent, get_type(), get_id(), get_name(), get_geometry_point(), get_color());
+	} else {
+		return new HistoryPseudostate(_parent, get_type(), get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -2882,6 +2924,72 @@ TerminatePseudostate* Document::new_terminate(ElementCollection* _parent, const 
 	_parent->add_element(term);
 	check_geometry_update(p);
 	return term;
+}
+
+HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, generate_vertex_id(_parent), p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
+}
+
+HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, generate_vertex_id(_parent), _name, p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
+}
+
+HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+	check_id_uniqueness(_id);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, _id, _name, p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
+}
+
+HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, generate_vertex_id(_parent), p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
+}
+
+HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, generate_vertex_id(_parent), _name, p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
+}
+
+HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+	check_id_uniqueness(_id);
+
+	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, _id, _name, p, _color);
+	_parent->add_element(h);
+	check_geometry_update(p);
+	return h;
 }
 
 Transition* Document::new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,

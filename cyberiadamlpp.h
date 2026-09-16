@@ -55,7 +55,10 @@ namespace Cyberiada {
 		elementFinal,                // final state
 		elementChoice,               // choice pseudostate
 		elementTerminate,            // terminate pseudostate
-		elementTransition            // transition
+		elementTransition,           // transition
+		// appended so the existing values keep their numbers (ABI)
+		elementShallowHistory,       // shallow (local) history pseudostate
+		elementDeepHistory           // deep history pseudostate
 	};
 
 	enum TransitionType {
@@ -512,7 +515,21 @@ namespace Cyberiada {
 
 		Element*               copy(Element* parent) const override;
 	};
-	
+
+// -----------------------------------------------------------------------------
+// History pseudostate (shallow/local or deep)
+// -----------------------------------------------------------------------------
+	class HistoryPseudostate: public Pseudostate {
+	public:
+		// the type is elementShallowHistory or elementDeepHistory
+		HistoryPseudostate(Element* parent, ElementType type, const ID& id, const Point& p = Point(),
+						   const Color& color = Color());
+		HistoryPseudostate(Element* parent, ElementType type, const ID& id, const Name& name,
+						   const Point& p = Point(), const Color& color = Color());
+
+		Element*               copy(Element* parent) const override;
+	};
+
 // -----------------------------------------------------------------------------
 // Final state
 // -----------------------------------------------------------------------------
@@ -843,6 +860,7 @@ namespace Cyberiada {
 		case elementChoice:
 			return static_cast<const ChoicePseudostate*>(e)->has_color();
 		case elementInitial: case elementFinal: case elementTerminate:
+		case elementShallowHistory: case elementDeepHistory:
 			return static_cast<const Vertex*>(e)->has_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->has_color();
@@ -861,6 +879,7 @@ namespace Cyberiada {
 		case elementChoice:
 			return static_cast<const ChoicePseudostate*>(e)->get_color();
 		case elementInitial: case elementFinal: case elementTerminate:
+		case elementShallowHistory: case elementDeepHistory:
 			return static_cast<const Vertex*>(e)->get_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->get_color();
@@ -877,6 +896,7 @@ namespace Cyberiada {
 		case elementChoice:
 			static_cast<ChoicePseudostate*>(e)->set_color(c); return true;
 		case elementInitial: case elementFinal: case elementTerminate:
+		case elementShallowHistory: case elementDeepHistory:
 			static_cast<Vertex*>(e)->set_color(c); return true;
 		case elementTransition:
 			static_cast<Transition*>(e)->set_color(c); return true;
@@ -916,6 +936,12 @@ namespace Cyberiada {
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
 		TerminatePseudostate*          new_terminate(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_shallow_history(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_shallow_history(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_shallow_history(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
 		Transition*                    new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
