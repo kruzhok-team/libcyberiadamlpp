@@ -27,6 +27,13 @@ add_compile_definitions($<$<CONFIG:Debug>:__DEBUG__>)
 
 if(MSVC)
   add_compile_options(/W4)
+else()
+  add_compile_options(-Wall)
+  add_compile_options(-Wextra)
+  add_compile_options(-Wpedantic)
+  add_compile_options(-Wformat-security)
+  # /W4 reports the hidden members, -Wall -Wextra do not
+  add_compile_options(-Wshadow)
 endif()
 
 if(WIN32)
