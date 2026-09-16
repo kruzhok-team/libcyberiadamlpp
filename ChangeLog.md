@@ -15,6 +15,7 @@ Added:
 
 Fixed:
 - the geometry reconstruction and the bounding rect calculation;
+- the CMake package configuration is installed into its own directory;
 - minor fixes.
 
 ## Version 1.0

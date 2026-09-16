@@ -7,9 +7,6 @@ if(NOT LibXml2_FOUND)
   message(FATAL_ERROR "Cannot find libxml2 library")
 endif()
 
-if(NOT DEFINED cyberiadaml_DIR AND UNIX)
-  set(cyberiadaml_DIR /usr/lib/cmake)
-endif()
 find_package(cyberiadaml REQUIRED)
 if(NOT cyberiadaml_FOUND)
   message(FATAL_ERROR "Cannot find libcyberiadaml library")
@@ -127,7 +124,7 @@ install(TARGETS cyberiadamlpp EXPORT cyberiadamlpp
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
   DESTINATION include/cyberiada
   COMPONENT dev)
-install(EXPORT cyberiadamlpp DESTINATION lib/cmake
+install(EXPORT cyberiadamlpp DESTINATION lib/cmake/cyberiadamlpp
   COMPONENT dev)
 
 configure_file(
@@ -136,7 +133,7 @@ configure_file(
 
 install(FILES
   ${PROJECT_BINARY_DIR}/cyberiadamlpp-config.cmake
-  DESTINATION lib/cmake
+  DESTINATION lib/cmake/cyberiadamlpp
   COMPONENT dev)
 
 configure_file ("${PROJECT_SOURCE_DIR}/CyberiadaMLPackOptions.cmake.in"
