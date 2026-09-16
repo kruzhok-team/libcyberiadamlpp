@@ -19,6 +19,18 @@ if(WIN32)
   # through an import library path rather than a target
   get_filename_component(CYB_PREFIX_LIB "${cyberiadaml_LIBRARY}" ABSOLUTE)
   file(GLOB CYB_DEPENDENCY_DLLS "${CYB_PREFIX_LIB}/*.dll" "${CYB_PREFIX_LIB}/../bin/*.dll")
+  # an installed copy of this library must never overwrite the fresh build
+  # output: the executables are linked against the new import library
+  string(TOLOWER "${PROJECT_NAME}.dll" CYB_OWN_DLL)
+  set(CYB_PREFIX_DLLS)
+  foreach(dll IN LISTS CYB_DEPENDENCY_DLLS)
+    get_filename_component(dll_name "${dll}" NAME)
+    string(TOLOWER "${dll_name}" dll_name)
+    if(NOT "${dll_name}" STREQUAL "${CYB_OWN_DLL}")
+      list(APPEND CYB_PREFIX_DLLS "${dll}")
+    endif()
+  endforeach()
+  set(CYB_DEPENDENCY_DLLS ${CYB_PREFIX_DLLS})
   if(NOT CYB_DEPENDENCY_DLLS)
     message(WARNING "No library DLLs found near ${CYB_PREFIX_LIB}; "
                     "copy cyberiadaml.dll and htgeom.dll next to the executables manually")
