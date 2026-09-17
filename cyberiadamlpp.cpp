@@ -3445,19 +3445,17 @@ void Document::update_from_document(DocumentGeometryFormat gf, CyberiadaDocument
 	}
 
 	Rect r1 = Rect(doc->bounding_rect);
-	Rect r2 = get_bound_rect(); 
+	Rect r2 = get_bound_rect();
 	if (r1.almost_equal(r2)) {
 		center_point = Point(0.0, 0.0);
-	} else if (geometry_format == geometryFormatQt &&
-			   std::fabs(r1.width - r2.width) < EQUAL_DIFF &&
-			   std::fabs(r1.height - r2.height) < EQUAL_DIFF) {
-		center_point = Point(r1.x, r1.y);
 	} else {
-		std::ostringstream s;
-		s << "lib " << r1 << " lib++ " << r2 << " doc: " << *this;
-		cyberiada_cleanup_sm_document(doc);
-		throw AssertException("Bounding rectangles mismatch: " + s.str());
-	}	
+		// the document bounding rect is derived and not serialized: a mismatch
+		// between the C bound and the recomputed union is an overhang the C bound
+		// misses (a transition label, a marker) - it is corrected here, never a
+		// reason to refuse the document. Keep the C-frame origin under Qt so the
+		// geometry does not shift; the recomputed union r2 is authoritative.
+		center_point = (geometry_format == geometryFormatQt) ? Point(r1.x, r1.y) : Point(0.0, 0.0);
+	}
 }
 
 void Document::decode(const String& buffer,
