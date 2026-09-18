@@ -170,6 +170,9 @@ CyberiadaNode* Element::to_node() const
 	case elementTerminate:      node->type = cybNodeTerminate; break;
 	case elementShallowHistory: node->type = cybNodeShallowHistory; break;
 	case elementDeepHistory:    node->type = cybNodeDeepHistory; break;
+	case elementSubmachineState: node->type = cybNodeSubmachineState; break;
+	case elementEntryPoint:     node->type = cybNodeEntryPoint; break;
+	case elementExitPoint:      node->type = cybNodeExitPoint; break;
 	default:
 		std::cerr << id << " " << type << std::endl;
 		CYB_ASSERT(false);
@@ -208,6 +211,9 @@ std::ostream& Element::dump(std::ostream& os) const
 	case elementTerminate:      type_str = "Terminate"; break;
 	case elementShallowHistory: type_str = "Shallow History"; break;
 	case elementDeepHistory:    type_str = "Deep History"; break;
+	case elementSubmachineState: type_str = "Submachine State"; break;
+	case elementEntryPoint:     type_str = "Entry Point"; break;
+	case elementExitPoint:      type_str = "Exit Point"; break;
 	case elementTransition:     type_str = "Transition"; break;
 	default:
 		CYB_ASSERT(false);
@@ -1220,7 +1226,9 @@ std::vector<const Vertex*> ElementCollection::get_vertexes() const
 						   elementChoice,
 						   elementTerminate,
 						   elementShallowHistory,
-						   elementDeepHistory};
+						   elementDeepHistory,
+						   elementEntryPoint,
+						   elementExitPoint};
 	std::vector<const Vertex*> result;
 	ConstElementList vertexes = find_elements_by_types(types);
 	for (ConstElementList::const_iterator i = vertexes.begin(); i != vertexes.end(); i++) {
@@ -1238,7 +1246,9 @@ std::vector<Vertex*> ElementCollection::get_vertexes()
 						   elementChoice,
 						   elementTerminate,
 						   elementShallowHistory,
-						   elementDeepHistory};
+						   elementDeepHistory,
+						   elementEntryPoint,
+						   elementExitPoint};
 	std::vector<Vertex*> result;
 	ElementList vertexes = find_elements_by_types(types);
 	for (ElementList::const_iterator i =  vertexes.begin(); i != vertexes.end(); i++) {
@@ -1691,6 +1701,29 @@ void ElementCollection::import_nodes_recursively(CyberiadaNode* nodes, Element**
 			break;
 		}
 
+		case cybNodeEntryPoint:
+		case cybNodeExitPoint: {
+			ElementType ct = (n->type == cybNodeExitPoint) ? elementExitPoint : elementEntryPoint;
+			if (n->title) {
+				element = new ConnectionPoint(this, ct, n->id, n->title, point, _color);
+			} else {
+				element = new ConnectionPoint(this, ct, n->id, point, _color);
+			}
+			break;
+		}
+
+		case cybNodeSubmachineState: {
+			if (!n->link || !n->link->ref) {
+				throw CybMLException("Submachine state " + std::string(n->id) + " has no link");
+			}
+			if (n->title) {
+				element = new SubmachineState(this, n->id, n->title, n->link->ref, rect, _color);
+			} else {
+				element = new SubmachineState(this, n->id, "", n->link->ref, rect, _color);
+			}
+			break;
+		}
+
 		default:
 			throw CybMLException("Unsupported node type " + std::to_string(n->type));
 		}
@@ -1829,6 +1862,29 @@ Element* HistoryPseudostate::copy(Element* _parent) const
 		return new HistoryPseudostate(_parent, get_type(), get_id(), get_name(), get_geometry_point(), get_color());
 	} else {
 		return new HistoryPseudostate(_parent, get_type(), get_id(), get_geometry_point(), get_color());
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Connection point (entry/exit point)
+// -----------------------------------------------------------------------------
+
+ConnectionPoint::ConnectionPoint(Element* _parent, ElementType _type, const ID& _id, const Point& p, const Color& _color):
+	Pseudostate(_parent, _type, _id, p, _color)
+{
+}
+
+ConnectionPoint::ConnectionPoint(Element* _parent, ElementType _type, const ID& _id, const Name& _name, const Point& p, const Color& _color):
+	Pseudostate(_parent, _type, _id, _name, p, _color)
+{
+}
+
+Element* ConnectionPoint::copy(Element* _parent) const
+{
+	if (has_name()) {
+		return new ConnectionPoint(_parent, get_type(), get_id(), get_name(), get_geometry_point(), get_color());
+	} else {
+		return new ConnectionPoint(_parent, get_type(), get_id(), get_geometry_point(), get_color());
 	}
 }
 
@@ -2147,6 +2203,45 @@ std::ostream& State::dump(std::ostream& os) const
 	if (region_rect.valid) {
 		os << ", region: " << region_rect;
 	}
+	os << "}";
+	return os;
+}
+
+// -----------------------------------------------------------------------------
+// Submachine state
+// -----------------------------------------------------------------------------
+
+SubmachineState::SubmachineState(Element* _parent, const ID& _id, const Name& _name, const ID& _reference,
+								 const Rect& r, const Color& _color):
+	ElementCollection(_parent, elementSubmachineState, _id, _name, r, _color), reference(_reference)
+{
+}
+
+SubmachineState::SubmachineState(const SubmachineState& ss):
+	ElementCollection(ss), reference(ss.reference)
+{
+}
+
+CyberiadaNode* SubmachineState::to_node() const
+{
+	CyberiadaNode* node = ElementCollection::to_node();
+	node->link = cyberiada_new_link(reference.c_str());
+	return node;
+}
+
+Element* SubmachineState::copy(Element* _parent) const
+{
+	SubmachineState* ss = new SubmachineState(_parent, get_id(), get_name(), reference,
+											  get_geometry_rect(), get_color());
+	ss->copy_elements(*this);
+	return ss;
+}
+
+std::ostream& SubmachineState::dump(std::ostream& os) const
+{
+	Element::dump(os);
+	os << ", submachine: '" << reference << "'";
+	ElementCollection::dump(os);
 	os << "}";
 	return os;
 }
@@ -2990,6 +3085,95 @@ HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const
 	_parent->add_element(h);
 	check_geometry_update(p);
 	return h;
+}
+
+SubmachineState* Document::new_submachine_state(ElementCollection* _parent, const ID& _reference, const Name& _name, const Rect& r, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_reference);
+
+	SubmachineState* ss = new SubmachineState(_parent, generate_vertex_id(_parent), _name, _reference, r, _color);
+	_parent->add_element(ss);
+	check_geometry_update(r);
+	return ss;
+}
+
+SubmachineState* Document::new_submachine_state(ElementCollection* _parent, const ID& _id, const ID& _reference, const Name& _name, const Rect& r, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_reference);
+	check_id_uniqueness(_id);
+
+	SubmachineState* ss = new SubmachineState(_parent, _id, _name, _reference, r, _color);
+	_parent->add_element(ss);
+	check_geometry_update(r);
+	return ss;
+}
+
+ConnectionPoint* Document::new_entry(ElementCollection* _parent, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementEntryPoint, generate_vertex_id(_parent), p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
+}
+
+ConnectionPoint* Document::new_entry(ElementCollection* _parent, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementEntryPoint, generate_vertex_id(_parent), _name, p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
+}
+
+ConnectionPoint* Document::new_entry(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+	check_id_uniqueness(_id);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementEntryPoint, _id, _name, p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
+}
+
+ConnectionPoint* Document::new_exit(ElementCollection* _parent, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementExitPoint, generate_vertex_id(_parent), p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
+}
+
+ConnectionPoint* Document::new_exit(ElementCollection* _parent, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementExitPoint, generate_vertex_id(_parent), _name, p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
+}
+
+ConnectionPoint* Document::new_exit(ElementCollection* _parent, const ID& _id, const Name& _name, const Point& p, const Color& _color)
+{
+	check_parent_element(_parent);
+	check_nonempty_string(_name);
+	check_id_uniqueness(_id);
+
+	ConnectionPoint* c = new ConnectionPoint(_parent, elementExitPoint, _id, _name, p, _color);
+	_parent->add_element(c);
+	check_geometry_update(p);
+	return c;
 }
 
 Transition* Document::new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,

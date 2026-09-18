@@ -58,7 +58,10 @@ namespace Cyberiada {
 		elementTransition,           // transition
 		// appended so the existing values keep their numbers (ABI)
 		elementShallowHistory,       // shallow (local) history pseudostate
-		elementDeepHistory           // deep history pseudostate
+		elementDeepHistory,          // deep history pseudostate
+		elementSubmachineState,      // state with a nested (referenced) machine
+		elementEntryPoint,           // entry point pseudostate
+		elementExitPoint             // exit point pseudostate
 	};
 
 	enum TransitionType {
@@ -531,6 +534,20 @@ namespace Cyberiada {
 	};
 
 // -----------------------------------------------------------------------------
+// Connection point (entry/exit point pseudostate)
+// -----------------------------------------------------------------------------
+	class ConnectionPoint: public Pseudostate {
+	public:
+		// the type is elementEntryPoint or elementExitPoint
+		ConnectionPoint(Element* parent, ElementType type, const ID& id, const Point& p = Point(),
+						const Color& color = Color());
+		ConnectionPoint(Element* parent, ElementType type, const ID& id, const Name& name,
+						const Point& p = Point(), const Color& color = Color());
+
+		Element*               copy(Element* parent) const override;
+	};
+
+// -----------------------------------------------------------------------------
 // Final state
 // -----------------------------------------------------------------------------
 	class FinalState: public Vertex {
@@ -658,6 +675,29 @@ namespace Cyberiada {
 		bool                       collapsed;
 		Rect                       region_rect;
 		std::vector<Action>        actions;
+	};
+
+// -----------------------------------------------------------------------------
+// Submachine state (a state referencing a nested machine; 8.1)
+// -----------------------------------------------------------------------------
+	class SubmachineState: public ElementCollection {
+	public:
+		SubmachineState(Element* parent, const ID& id, const Name& name, const ID& reference,
+						const Rect& r = Rect(), const Color& color = Color());
+		SubmachineState(const SubmachineState& ss);
+
+		bool                       is_submachine_state() const { return true; }
+		const ID&                  get_submachine_reference() const { return reference; }
+		void                       set_submachine_reference(const ID& ref) { reference = ref; }
+
+		CyberiadaNode*             to_node() const override;
+		Element*                   copy(Element* parent) const override;
+
+	protected:
+		std::ostream&              dump(std::ostream& os) const override;
+
+	private:
+		ID                         reference;
 	};
 
 // -----------------------------------------------------------------------------
@@ -861,10 +901,12 @@ namespace Cyberiada {
 			return static_cast<const ChoicePseudostate*>(e)->has_color();
 		case elementInitial: case elementFinal: case elementTerminate:
 		case elementShallowHistory: case elementDeepHistory:
+		case elementEntryPoint: case elementExitPoint:
 			return static_cast<const Vertex*>(e)->has_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->has_color();
 		case elementSM: case elementSimpleState: case elementCompositeState:
+		case elementSubmachineState:
 			return static_cast<const ElementCollection*>(e)->has_color();
 		default:
 			return false;
@@ -880,6 +922,7 @@ namespace Cyberiada {
 			return static_cast<const ChoicePseudostate*>(e)->get_color();
 		case elementInitial: case elementFinal: case elementTerminate:
 		case elementShallowHistory: case elementDeepHistory:
+		case elementEntryPoint: case elementExitPoint:
 			return static_cast<const Vertex*>(e)->get_color();
 		case elementTransition:
 			return static_cast<const Transition*>(e)->get_color();
@@ -897,10 +940,12 @@ namespace Cyberiada {
 			static_cast<ChoicePseudostate*>(e)->set_color(c); return true;
 		case elementInitial: case elementFinal: case elementTerminate:
 		case elementShallowHistory: case elementDeepHistory:
+		case elementEntryPoint: case elementExitPoint:
 			static_cast<Vertex*>(e)->set_color(c); return true;
 		case elementTransition:
 			static_cast<Transition*>(e)->set_color(c); return true;
 		case elementSM: case elementSimpleState: case elementCompositeState:
+		case elementSubmachineState:
 			static_cast<ElementCollection*>(e)->set_color(c); return true;
 		default:
 			return false;
@@ -942,6 +987,14 @@ namespace Cyberiada {
 		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
 		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
 		HistoryPseudostate*            new_deep_history(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
+		SubmachineState*               new_submachine_state(ElementCollection* parent, const ID& reference, const Name& name = Name(), const Rect& r = Rect(), const Color& color = Color());
+		SubmachineState*               new_submachine_state(ElementCollection* parent, const ID& id, const ID& reference, const Name& name, const Rect& r = Rect(), const Color& color = Color());
+		ConnectionPoint*               new_entry(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		ConnectionPoint*               new_entry(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		ConnectionPoint*               new_entry(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
+		ConnectionPoint*               new_exit(ElementCollection* parent, const Point& p = Point(), const Color& color = Color());
+		ConnectionPoint*               new_exit(ElementCollection* parent, const Name& name, const Point& p = Point(), const Color& color = Color());
+		ConnectionPoint*               new_exit(ElementCollection* parent, const ID& id, const Name& name, const Point& p = Point(), const Color& color = Color());
 		Transition*                    new_transition(StateMachine* sm, TransitionType ttype, Element* source, Element* target,
 													  const Action& action, const Polyline& pl = Polyline(),
 													  const Point& sp = Point(), const Point& tp = Point(),
