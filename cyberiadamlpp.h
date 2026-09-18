@@ -680,7 +680,7 @@ namespace Cyberiada {
 // -----------------------------------------------------------------------------
 // Submachine state (a state referencing a nested machine; 8.1)
 // -----------------------------------------------------------------------------
-	class SubmachineState: public ElementCollection {
+	class SubmachineState: public State {
 	public:
 		SubmachineState(Element* parent, const ID& id, const Name& name, const ID& reference,
 						const Rect& r = Rect(), const Color& color = Color());
@@ -689,6 +689,10 @@ namespace Cyberiada {
 		bool                       is_submachine_state() const { return true; }
 		const ID&                  get_submachine_reference() const { return reference; }
 		void                       set_submachine_reference(const ID& ref) { reference = ref; }
+
+		// keep the submachine type: only entry/exit points nest, no reclassification
+		void                       add_element(Element* e) override;
+		void                       remove_element(const ID& id) override;
 
 		CyberiadaNode*             to_node() const override;
 		Element*                   copy(Element* parent) const override;

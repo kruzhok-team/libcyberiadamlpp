@@ -2213,13 +2213,25 @@ std::ostream& State::dump(std::ostream& os) const
 
 SubmachineState::SubmachineState(Element* _parent, const ID& _id, const Name& _name, const ID& _reference,
 								 const Rect& r, const Color& _color):
-	ElementCollection(_parent, elementSubmachineState, _id, _name, r, _color), reference(_reference)
+	State(_parent, _id, _name, r, Rect(), _color), reference(_reference)
 {
+	set_type(elementSubmachineState);
 }
 
 SubmachineState::SubmachineState(const SubmachineState& ss):
-	ElementCollection(ss), reference(ss.reference)
+	State(ss), reference(ss.reference)
 {
+	set_type(elementSubmachineState);
+}
+
+void SubmachineState::add_element(Element* e)
+{
+	ElementCollection::add_element(e);
+}
+
+void SubmachineState::remove_element(const ID& _id)
+{
+	ElementCollection::remove_element(_id);
 }
 
 CyberiadaNode* SubmachineState::to_node() const
