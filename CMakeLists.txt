@@ -19,7 +19,12 @@ if(NOT HTGeom_FOUND)
   message(FATAL_ERROR "Cannot find libhtgeom library")
 endif()
 
-if(WIN32)
+# Under a cross-build the tests run via the emulator with the whole prefix on its
+# DLL path (WINEPATH), so this bulk copy of every prefix DLL is unnecessary — and,
+# run per test target into a shared dir under parallel make, it races. The fresh
+# cyberiada DLLs still reach the tests via $<TARGET_RUNTIME_DLLS> below. Keep the
+# copy only for a native Windows build.
+if(WIN32 AND NOT CMAKE_CROSSCOMPILING)
   # the library DLLs live in the install prefix: libcyberiadaml puts its own
   # into bin, libhtreegeom puts htgeom.dll beside its import library in lib.
   # $<TARGET_RUNTIME_DLLS> cannot report htgeom.dll, which reaches the link
