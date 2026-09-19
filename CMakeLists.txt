@@ -58,12 +58,16 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(cyberiadamlpp SHARED cyberiadamlpp.cpp)
+# the cyberiadaml include/lib dirs are absolute build-prefix paths from its config,
+# so they are build-only: baking them into the export makes the installed config
+# non-relocatable. The installed headers share include/cyberiada (INSTALL_INTERFACE)
+# and libcyberiadaml.so resolves from the install location at link/run time
 target_include_directories(cyberiadamlpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include/cyberiada>
-  "${cyberiadaml_INCLUDE_DIRS}")
-			 
-target_link_directories(cyberiadamlpp PUBLIC "${cyberiadaml_LIBRARY}")
+  $<BUILD_INTERFACE:${cyberiadaml_INCLUDE_DIRS}>)
+
+target_link_directories(cyberiadamlpp PUBLIC $<BUILD_INTERFACE:${cyberiadaml_LIBRARY}>)
 target_link_libraries(cyberiadamlpp PUBLIC "${cyberiadaml_LIBRARIES}")
 
 add_executable(cyberiadapp main.cpp)
