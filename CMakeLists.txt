@@ -145,6 +145,10 @@ foreach(source_path ${files})
   if(MEMCHECK)
     list(APPEND test_args "-DMEMCHECK=${MEMCHECK_COMMAND}")
   endif()
+  # run a cross-built exe under CMAKE_CROSSCOMPILING_EMULATOR (e.g. wine64); empty natively
+  if(CMAKE_CROSSCOMPILING_EMULATOR)
+    list(APPEND test_args "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}")
+  endif()
   add_test(NAME "${test_name}"
     COMMAND ${CMAKE_COMMAND} ${test_args} -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/runtest.cmake")
   set_tests_properties("${test_name}" PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

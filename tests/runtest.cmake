@@ -2,7 +2,8 @@
 # with the pattern files.
 #
 # Usage: cmake -DBINARY=<test binary> [-DCAPTURE=1] [-DPATTERN_TXT=<file>]
-#        [-DPATTERN_GRAPHML=<file>] [-DMEMCHECK=<command>] -P runtest.cmake
+#        [-DPATTERN_GRAPHML=<file>] [-DMEMCHECK=<command>] [-DEMULATOR=<wrapper>]
+#        -P runtest.cmake
 
 if(NOT BINARY)
   message(FATAL_ERROR "BINARY is not set")
@@ -11,6 +12,11 @@ endif()
 set(test_command)
 if(MEMCHECK)
   separate_arguments(test_command UNIX_COMMAND "${MEMCHECK}")
+endif()
+# EMULATOR carries CMAKE_CROSSCOMPILING_EMULATOR (e.g. wine64) so a cross-built
+# exe runs under it; empty on a native build
+if(EMULATOR)
+  list(APPEND test_command ${EMULATOR})
 endif()
 list(APPEND test_command "${BINARY}")
 
