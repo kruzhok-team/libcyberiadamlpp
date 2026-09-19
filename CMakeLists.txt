@@ -12,6 +12,13 @@ if(NOT cyberiadaml_FOUND)
   message(FATAL_ERROR "Cannot find libcyberiadaml library")
 endif()
 
+# cyberiadamlpp.cpp calls the htgeom API (htree_new_*) directly, so it must link
+# htgeom itself: MinGW/Windows resolves nothing transitively at link time
+find_package(HTGeom REQUIRED)
+if(NOT HTGeom_FOUND)
+  message(FATAL_ERROR "Cannot find libhtgeom library")
+endif()
+
 if(WIN32)
   # the library DLLs live in the install prefix: libcyberiadaml puts its own
   # into bin, libhtreegeom puts htgeom.dll beside its import library in lib.
@@ -68,7 +75,9 @@ target_include_directories(cyberiadamlpp PUBLIC
   $<BUILD_INTERFACE:${cyberiadaml_INCLUDE_DIRS}>)
 
 target_link_directories(cyberiadamlpp PUBLIC $<BUILD_INTERFACE:${cyberiadaml_LIBRARY}>)
-target_link_libraries(cyberiadamlpp PUBLIC "${cyberiadaml_LIBRARIES}")
+# htgeom is linked by its absolute build-prefix path (build-only, kept off the
+# export for relocatability); it resolves the htree_* symbols at link time
+target_link_libraries(cyberiadamlpp PUBLIC "${cyberiadaml_LIBRARIES}" $<BUILD_INTERFACE:${HTGeom_LIBRARY}>)
 
 add_executable(cyberiadapp main.cpp)
 target_include_directories(cyberiadapp PUBLIC
