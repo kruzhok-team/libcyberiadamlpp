@@ -38,6 +38,11 @@ function(compare_with_pattern output pattern)
   endif()
   file(READ "${output}" output_content)
   file(READ "${pattern}" pattern_content)
+  # the tests derive their data file from argv[0], which Wine reports as an
+  # absolute Windows path (e.g. Z:\...\tests\NAME.graphml); normalize it back to
+  # the platform-independent tests/NAME form the golden uses (a no-op natively)
+  string(REGEX REPLACE "[A-Za-z]:[\\\\/][^']*[\\\\/]tests[\\\\/]" "tests/"
+         output_content "${output_content}")
   if(NOT output_content STREQUAL pattern_content)
     find_program(diff_tool diff)
     if(diff_tool)
