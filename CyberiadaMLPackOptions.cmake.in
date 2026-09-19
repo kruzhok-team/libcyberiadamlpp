@@ -13,6 +13,18 @@ set(CPACK_COMPONENTS_ALL runtime dev)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 
+# a per-release build tags the version (e.g. 1.0.6+ubuntu2604) so the rebuild for a
+# release whose libxml2 soname differs is distinguishable from the once-built set.
+# '+' keeps it above the base so the downstream ">= 1.0.6" deps stay satisfied; the
+# dev "= exact" self-dep must then use the tagged version too.
+set(DISTRO_TAG "@DISTRO_TAG@")
+if(NOT DISTRO_TAG STREQUAL "")
+  set(CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}+${DISTRO_TAG}")
+  set(_selfver "${CPACK_PACKAGE_VERSION}+${DISTRO_TAG}")
+else()
+  set(_selfver "${CPACK_PACKAGE_VERSION}")
+endif()
+
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "The C++ library for processing the Cyberiada state machine graphs")
 
 set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "libcyberiadamlpp")
@@ -23,4 +35,4 @@ set(CPACK_DEBIAN_RUNTIME_PACKAGE_DEPENDS "libxml2 (>= 2.9) | libxml2-16, libcybe
 
 set(CPACK_DEBIAN_DEV_PACKAGE_NAME "libcyberiadamlpp-dev")
 set(CPACK_DEBIAN_DEV_DESCRIPTION "The C++ Cyberiada state machine graphs library development files: the header and the CMake configuration")
-set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "libcyberiadamlpp (= ${CPACK_PACKAGE_VERSION}), libcyberiadaml-dev (>= 1.0.6)")
+set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "libcyberiadamlpp (= ${_selfver}), libcyberiadaml-dev (>= 1.0.6)")
