@@ -425,6 +425,9 @@ namespace Cyberiada {
 		bool                     has_rect_geometry() const override { return true; }
 		const Rect&              get_geometry_rect() const { return geometry_rect; }
 		Rect                     get_bound_rect(const Document& d) const override;
+		// exclude_comments leaves comments out of the union (the SM-border fit),
+		// so a comment may sit outside the border; the default keeps them (export)
+		Rect                     get_bound_rect(const Document& d, bool exclude_comments) const;
 		void                     update_geometry(const Rect& rect) { geometry_rect = rect; }
 		void                     clean_geometry() override;
 		void                     round_geometry() override;
@@ -896,6 +899,12 @@ namespace Cyberiada {
 	// Colour access through a base Element*, dispatched to the subclass that
 	// stores the colour. Elements without a colour attribute return no colour
 	// and reject a set.
+	// an informal or formal comment; comments are drawn but do not count toward a
+	// state machine's border, so they may sit outside it (like the meta node)
+	inline bool element_is_comment(const Element* e) {
+		return e && (e->get_type() == elementComment || e->get_type() == elementFormalComment);
+	}
+
 	inline bool element_has_color(const Element* e) {
 		if (!e) return false;
 		switch (e->get_type()) {

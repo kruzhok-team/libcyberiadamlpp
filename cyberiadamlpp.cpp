@@ -1399,6 +1399,11 @@ static bool transition_node_frame(const ElementCollection* coll, const Element* 
 
 Rect ElementCollection::get_bound_rect(const Document& d) const
 {
+	return get_bound_rect(d, false);
+}
+
+Rect ElementCollection::get_bound_rect(const Document& d, bool exclude_comments) const
+{
 	Rect r, parent_rect;
 	if (has_geometry()) {
 		parent_rect = geometry_rect;
@@ -1489,7 +1494,13 @@ Rect ElementCollection::get_bound_rect(const Document& d) const
 				}
 				continue;
 			}
-			Rect ch_r = (*i)->get_bound_rect(d);
+			/* a comment does not extend the state-machine border: it may lie
+			   outside it (the export bound keeps it via the 1-arg overload) */
+			if (exclude_comments && element_is_comment(*i)) {
+				continue;
+			}
+			const ElementCollection* coll = dynamic_cast<const ElementCollection*>(*i);
+			Rect ch_r = coll ? coll->get_bound_rect(d, exclude_comments) : (*i)->get_bound_rect(d);
 			if (d.get_geometry_format() == geometryFormatCyberiada10 ||
 				d.get_geometry_format() == geometryFormatQt) {
 				ch_r.x += parent_rect.x;
@@ -2493,7 +2504,8 @@ bool Document::check_geometry() const
 		if ((*i)->get_type() != elementSM) continue;
 		const StateMachine* sm = static_cast<const StateMachine*>(*i);
 		if (!sm->has_geometry()) continue;
-		Rect u = sm->ElementCollection::get_bound_rect(*this);
+		/* comments may sit outside the border, so they are not part of the fit */
+		Rect u = sm->ElementCollection::get_bound_rect(*this, true);
 		if (u.valid && !u.almost_equal(sm->get_geometry_rect())) {
 			return false;
 		}

@@ -1,0 +1,7 @@
+comment outside, check: 1
+border: (0; 0; 600; 400)
+bound with comment: (0; 0; 820; 400)
+bound border-fit:   (0; 0; 600; 400)
+after reconstruct, check: 1
+border reaches the comment: 0
+after round-trip, check: 1
