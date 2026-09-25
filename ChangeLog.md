@@ -1,5 +1,10 @@
 # libcyberiadamlpp project changelog
 
+## Version 1.0.7 (unreleased)
+
+Fixed:
+- the transition color was saved only together with the transition geometry.
+
 ## Version 1.0.6
 
 The version compatible with `libcyberiadaml` 1.0.6 and the CyberiadaML-GraphML 1.0

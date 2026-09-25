@@ -2317,9 +2317,9 @@ CyberiadaEdge* Transition::to_edge() const
 		if (has_polyline()) {
 			edge->geometry_polyline = polyline.c_polyline();
 		}
-		if (has_color()) {
-			cyberiada_copy_string(&(edge->color), &(edge->color_len), color.c_str());
-		}		
+	}
+	if (has_color()) {
+		cyberiada_copy_string(&(edge->color), &(edge->color_len), color.c_str());
 	}
 	return edge;
 }
