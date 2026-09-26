@@ -1160,6 +1160,16 @@ bool ElementCollection::has_initial() const
 	return false;
 }
 
+bool ElementCollection::has_history(ElementType history_type) const
+{
+	for (ElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		if ((*i)->get_type() == history_type) {
+			return true;
+		}
+	}
+	return false;
+}
+
 int ElementCollection::element_index(const Element* e) const
 {
 	CYB_ASSERT(e);
@@ -3049,6 +3059,7 @@ HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, co
 {
 	check_parent_element(_parent);
 
+	check_single_history(_parent, elementShallowHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, generate_vertex_id(_parent), p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3060,6 +3071,7 @@ HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, co
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
+	check_single_history(_parent, elementShallowHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, generate_vertex_id(_parent), _name, p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3072,6 +3084,7 @@ HistoryPseudostate* Document::new_shallow_history(ElementCollection* _parent, co
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
+	check_single_history(_parent, elementShallowHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementShallowHistory, _id, _name, p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3082,6 +3095,7 @@ HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const
 {
 	check_parent_element(_parent);
 
+	check_single_history(_parent, elementDeepHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, generate_vertex_id(_parent), p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3093,6 +3107,7 @@ HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const
 	check_parent_element(_parent);
 	check_nonempty_string(_name);
 
+	check_single_history(_parent, elementDeepHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, generate_vertex_id(_parent), _name, p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3105,6 +3120,7 @@ HistoryPseudostate* Document::new_deep_history(ElementCollection* _parent, const
 	check_nonempty_string(_name);
 	check_id_uniqueness(_id);
 
+	check_single_history(_parent, elementDeepHistory);
 	HistoryPseudostate* h = new HistoryPseudostate(_parent, elementDeepHistory, _id, _name, p, _color);
 	_parent->add_element(h);
 	check_geometry_update(p);
@@ -3430,6 +3446,15 @@ void Document::check_single_initial(const ElementCollection* _parent) const
 {
 	if (_parent->has_initial()) {
 		throw ParametersException("Parent already has initial element");
+	}
+}
+
+void Document::check_single_history(const ElementCollection* _parent, ElementType history_type) const
+{
+	if (_parent->has_history(history_type)) {
+		throw ParametersException(history_type == elementShallowHistory ?
+								  "Parent already has a shallow history element" :
+								  "Parent already has a deep history element");
 	}
 }
 

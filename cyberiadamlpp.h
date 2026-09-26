@@ -410,6 +410,7 @@ namespace Cyberiada {
 		ElementList              find_elements_by_type(ElementType type);
 		ElementList              find_elements_by_types(const ElementTypes& types);
 		bool                     has_initial() const;
+		bool                     has_history(ElementType history_type) const;
 		int                      element_index(const Element* e) const;
 
 		virtual void             add_element(Element* e);
@@ -1116,6 +1117,7 @@ namespace Cyberiada {
 		void                           check_parent_element(const Element* parent) const;
 		void                           check_id_uniqueness(const ID& id) const;
 		void                           check_single_initial(const ElementCollection* parent) const;
+		void                           check_single_history(const ElementCollection* parent, ElementType history_type) const;
 		void                           check_transition_source(const Element* element) const;
 		void                           check_transition_target(const Element* element) const;
 		void                           check_comment_subject_element(const Element* element) const;
