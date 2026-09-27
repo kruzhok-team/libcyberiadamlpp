@@ -194,6 +194,13 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cyberiadamlpp.h
 install(EXPORT cyberiadamlpp DESTINATION lib/cmake/cyberiadamlpp
   COMPONENT dev)
 
+# user-facing docs travel with the runtime package (and the packaged archives)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog.md
+              ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+              ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+  DESTINATION share/doc/libcyberiadamlpp
+  COMPONENT runtime)
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/cyberiadamlpp-config.cmake.in
   ${PROJECT_BINARY_DIR}/cyberiadamlpp-config.cmake @ONLY)
