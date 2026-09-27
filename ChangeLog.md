@@ -2,6 +2,10 @@
 
 ## Version 1.0.7 (unreleased)
 
+Changed:
+- the full geometry reconstruction follows the libhtgeom 1.1 layered layout
+  (the recorded output of test 37).
+
 Fixed:
 - the transition color was saved only together with the transition geometry.
 
