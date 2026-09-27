@@ -308,7 +308,8 @@ String Point::to_str() const
 	return s.str();
 }
 
-Rect::Rect(CyberiadaRect* r)
+Rect::Rect(CyberiadaRect* r):
+	valid(false), x(0.0), y(0.0), width(0.0), height(0.0)
 {
 	if (r) {
 		valid = true;
@@ -316,8 +317,6 @@ Rect::Rect(CyberiadaRect* r)
 		y = r->y;
 		width = r->width;
 		height = r->height;
-	} else {
-		valid = false;
 	}
 }
 
