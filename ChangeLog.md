@@ -1,5 +1,11 @@
 # libcyberiadamlpp project changelog
 
+## Version 1.0.8 (unreleased)
+
+Added:
+- the test of the wide transition labels inside the reconstructed machine
+  border (the point-sourced label rect of libhtgeom 1.1.1).
+
 ## Version 1.0.7
 
 Changed:
