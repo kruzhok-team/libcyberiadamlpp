@@ -2044,7 +2044,7 @@ void State::clean_geometry()
 	ElementCollection::clean_geometry();
 }
 
-void State::add_action(const Action& a)
+static void check_state_action(const Action& a)
 {
 	if (a.is_empty_transition()) {
 		throw ParametersException("Empty transition action is not allowed");
@@ -2052,7 +2052,28 @@ void State::add_action(const Action& a)
 	if (a.get_type() != actionTransition && a.has_guard()) {
 		throw ParametersException("Guards are not allowed for entry/exit activities");
 	}
+}
+
+void State::add_action(const Action& a)
+{
+	check_state_action(a);
 	actions.push_back(a);
+}
+
+void State::set_actions(const std::vector<Action>& list)
+{
+	for (std::vector<Action>::const_iterator i = list.begin(); i != list.end(); i++) {
+		check_state_action(*i);
+	}
+	actions = list;
+}
+
+void State::remove_action(size_t index)
+{
+	if (index >= actions.size()) {
+		throw ParametersException("Bad state action index");
+	}
+	actions.erase(actions.begin() + index);
 }
 
 std::vector<const State*> State::get_substates() const

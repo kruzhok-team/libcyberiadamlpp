@@ -1,0 +1,15 @@
+set
+actions: 4
+  entry, behavior: 'start()'
+  trigger: 'KEY', propagation: 'propagate', guard: 'ready', behavior: 'pressed()'
+  trigger: 'LATER', propagation: 'defer'
+  exit, behavior: 'stop()'
+the empty transition action refused
+removed 1
+actions: 3
+  entry, behavior: 'start()'
+  trigger: 'LATER', propagation: 'defer'
+  exit, behavior: 'stop()'
+index 9 refused
+strict round trip: 0
+cleared: 0

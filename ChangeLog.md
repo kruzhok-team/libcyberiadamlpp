@@ -7,6 +7,8 @@ Added:
   (libhtgeom 1.2); the packages require libcyberiadaml 1.0.8 and libhtreegeom 1.2;
 - the test of the wide transition labels inside the reconstructed machine
   border (the point-sourced label rect of libhtgeom 1.1.1).
+- `State::set_actions`, `State::clear_actions` and `State::remove_action`: the
+  actions of a state replaced, cleared or removed one by one.
 
 ## Version 1.0.7
 

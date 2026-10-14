@@ -665,6 +665,12 @@ namespace Cyberiada {
 		const std::vector<Action>& get_actions() const { return actions; }
 		std::vector<Action>&       get_actions() { return actions; }
 		void                       add_action(const Action& a);
+		/* replace the actions in order; every action is checked as by add_action
+		   first, so a refused list changes nothing; two entry (or exit) activities
+		   are joined into one on encode */
+		void                       set_actions(const std::vector<Action>& list);
+		void                       clear_actions() { actions.clear(); }
+		void                       remove_action(size_t index);
 		ActionsDiffFlags           compare_actions(const State& s) const;
 		
 		void                       clean_geometry() override;
