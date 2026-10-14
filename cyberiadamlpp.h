@@ -1096,6 +1096,7 @@ namespace Cyberiada {
 		bool                           check_geometry() const;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
 		void                           reconstruct_geometry(bool reconstruct_sm);
+		void                           update_geometry(bool reconstruct_sm);
 		void                           clean_geometry() override;
 		
 		Element*                       copy(Element* parent) const override;
