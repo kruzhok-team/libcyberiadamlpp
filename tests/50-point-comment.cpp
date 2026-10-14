@@ -33,11 +33,20 @@ int main(int, char** argv)
 		bool rejected = false;
 		try {
 			LocalDocument bad;
-			bad.open(string(argv[0]) + "-input.graphml");
+			bad.open(string(argv[0]) + "-input.graphml", formatDetect, geometryFormatQt,
+					 false, false, false, false, false, true);
 		} catch (const FormatException&) {
 			rejected = true;
 		}
 		CYB_ASSERT(rejected);
+
+		// the non-strict load reads the point as a loose rect (the Lapki dialect)
+		LocalDocument lapki;
+		lapki.open(string(argv[0]) + "-input.graphml");
+		CYB_ASSERT(lapki.get_file_format() == formatCyberiada10);
+		const Comment* point = static_cast<const Comment*>(
+			lapki.get_state_machines().front()->find_element_by_id("cX"));
+		CYB_ASSERT(point && point->has_geometry() && point->get_geometry_rect().valid);
 
 		// the reconstruction mode repairs the malformed geometry
 		LocalDocument d;

@@ -52,6 +52,7 @@ namespace Cyberiada {
 
 	static const String STANDARD_VERSION = "1.0";	
 	static const String DEFAULT_GRAPHML_FORMAT = "Cyberiada-GraphML-1.0";
+	static const String CYBERIADA_GRAPHML_FORMAT_PREFIX = "Cyberiada-GraphML-";
 	static const String DEFAULT_YED_FORMAT = "yEd Berloga";
 	static const String DEFAULT_YED_FORMAT_OSTRANNA = "yEd Ostranna";
 	static const String DEFAULT_YED_FORMAT_BERLOGA16 = "yEd Berloga-1.6";
@@ -3788,7 +3789,9 @@ void Document::decode(const String& buffer,
 	CYB_ASSERT(doc.format);
 	format_str = doc.format;
 	if (format == formatDetect) {
-		if (format_str == DEFAULT_GRAPHML_FORMAT) {
+		/* the Arena and Lapki dialects are Cyberiada-based */
+		if (format_str.compare(0, CYBERIADA_GRAPHML_FORMAT_PREFIX.length(),
+							   CYBERIADA_GRAPHML_FORMAT_PREFIX) == 0) {
 			format = formatCyberiada10;
 		} else {
 			format = formatLegacyYED;

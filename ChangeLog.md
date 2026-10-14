@@ -10,6 +10,9 @@ Added:
 - `State::set_actions`, `State::clear_actions` and `State::remove_action`: the
   actions of a state replaced, cleared or removed one by one.
 
+Fixed:
+- the detected Arena and Lapki documents are Cyberiada, not legacy yEd.
+
 ## Version 1.0.7
 
 Changed:
