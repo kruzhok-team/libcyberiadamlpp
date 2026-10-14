@@ -4,7 +4,7 @@
 
 Added:
 - `Document::update_geometry`: the geometry update keeping the drawn elements
-  (libhtgeom 1.2);
+  (libhtgeom 1.2); the packages require libcyberiadaml 1.0.8 and libhtreegeom 1.2;
 - the test of the wide transition labels inside the reconstructed machine
   border (the point-sourced label rect of libhtgeom 1.1.1).
 
