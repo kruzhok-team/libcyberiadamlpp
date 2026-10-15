@@ -2879,6 +2879,7 @@ Document::Document(const Document& d):
 
 void Document::reset(DocumentGeometryFormat format)
 {
+	Element::set_name(Name());   // the name goes with the metainformation
 	metainfo = DocumentMetainformation();
 	metainfo.standard_version = STANDARD_VERSION;
 	metainfo.transition_order = transitionOrderAction;

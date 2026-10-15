@@ -12,6 +12,8 @@ Added:
 
 Fixed:
 - the detected Arena and Lapki documents are Cyberiada, not legacy yEd.
+- `Document::reset` clears the document name together with the metainformation (a
+  document opened after a named one kept the old name).
 
 ## Version 1.0.7
 

@@ -73,8 +73,10 @@ int main(int, char** argv)
 		CYB_ASSERT(empty.get_name() == "No SM");
 		CYB_ASSERT(empty.get_meta_element() == NULL);
 
-		// the document reset
+		// the document reset drops the name with the rest
+		ld.set_name("Named");
 		ld.reset();
+		CYB_ASSERT(ld.get_name().empty());
 		CYB_ASSERT(ld.children_count() == 0);
 		CYB_ASSERT(ld.get_file_path() == "");
 		CYB_ASSERT(ld.get_file_format() == formatCyberiada10);
