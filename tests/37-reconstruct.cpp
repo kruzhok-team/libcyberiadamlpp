@@ -44,7 +44,8 @@ int main(int, char** argv)
 		cout << p << endl;
 
 		/* the metainformation node is not displayed (6.9): the reconstruction
-		   leaves it and the comment edge it carries out of the geometry */
+		   leaves it out of the geometry; its comment edge (6.9-1) is dropped
+		   by the non-strict reading */
 		LocalDocument m;
 		m.open(string(argv[0]) + "-input2.graphml");
 		m.reconstruct_geometry(true);

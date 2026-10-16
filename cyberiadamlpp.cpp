@@ -56,6 +56,7 @@ namespace Cyberiada {
 	static const String DEFAULT_YED_FORMAT = "yEd Berloga";
 	static const String DEFAULT_YED_FORMAT_OSTRANNA = "yEd Ostranna";
 	static const String DEFAULT_YED_FORMAT_BERLOGA16 = "yEd Berloga-1.6";
+	static const String DEFAULT_LAPKI_FORMAT = "Cyberiada-GraphML-Lapki";
 	static const String META_NODE_NAME = "CGML_META";
 	static const String META_NODE_ID = "nMeta";
 	static const String VERTEX_ID_PREFIX = "n";
@@ -3962,7 +3963,7 @@ void Document::encode(String& res_buffer, DocumentFormat f, bool round,
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	if (f == formatCyberiada10) {
+	if (f == formatCyberiada10 || f == formatLapki) {
 		cyberiada_copy_string(&(doc.format), &(doc.format_len),
 							  DEFAULT_GRAPHML_FORMAT.c_str());
 	}
@@ -4332,6 +4333,8 @@ String LocalDocument::get_file_format_str() const
 		return DEFAULT_YED_FORMAT_OSTRANNA;
 	} else if (file_format == formatLegacyYEDBerloga16) {
 		return DEFAULT_YED_FORMAT_BERLOGA16;
+	} else if (file_format == formatLapki) {
+		return DEFAULT_LAPKI_FORMAT;
 	} else {
 		CYB_ASSERT(file_format == formatLegacyYED);
 		return file_format_str;
@@ -4354,6 +4357,8 @@ std::ostream& LocalDocument::dump(std::ostream& os) const
 		os << "yed-berloga";
 	} else if (file_format == formatLegacyYED) {
 		os << "yed";
+	} else if (file_format == formatLapki) {
+		os << "lapki";
 	} else {
 		os << "unknown";
 	}

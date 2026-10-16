@@ -86,6 +86,8 @@ namespace Cyberiada {
 		                                            // the dialect is detected while reading, the Ostranna one is written
 		formatLegacyYEDOstranna = 2,                // Write the YED Ostranna dialect
 		formatLegacyYEDBerloga16 = 3,               // Write the YED Berloga 1.6 dialect
+		formatLapki = 4,                            // Write the Lapki IDE dialect of Cyberiada 1.0 (lapki-client,
+		                                            // lapki-compiler); read as Cyberiada 1.0
 		formatDetect = 99                           // Format is not specified and will be detected while loading
 	};
 

@@ -8,7 +8,9 @@ Added:
 - the test of the wide transition labels inside the reconstructed machine
   border (the point-sourced label rect of libhtgeom 1.1.1).
 - `State::set_actions`, `State::clear_actions` and `State::remove_action`: the
-  actions of a state replaced, cleared or removed one by one.
+  actions of a state replaced, cleared or removed one by one;
+- `formatLapki`: the Lapki IDE dialect of Cyberiada 1.0 written for lapki-client and
+  lapki-compiler (read as Cyberiada 1.0).
 
 Fixed:
 - the detected Arena and Lapki documents are Cyberiada, not legacy yEd.
