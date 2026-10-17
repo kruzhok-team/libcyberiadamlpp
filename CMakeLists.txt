@@ -201,6 +201,12 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog.md
   DESTINATION share/doc/libcyberiadamlpp
   COMPONENT runtime)
 
+# the machine-readable (DEP-5) copyright, where the Debian policy wants it
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/debian-copyright
+  DESTINATION share/doc/libcyberiadamlpp RENAME copyright COMPONENT runtime)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/debian-copyright
+  DESTINATION share/doc/libcyberiadamlpp-dev RENAME copyright COMPONENT dev)
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/cyberiadamlpp-config.cmake.in
   ${PROJECT_BINARY_DIR}/cyberiadamlpp-config.cmake @ONLY)
