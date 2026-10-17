@@ -1,6 +1,6 @@
 # libcyberiadamlpp project changelog
 
-## Version 1.0.8 (unreleased)
+## Version 1.0.8
 
 Added:
 - `Document::update_geometry`: the geometry update keeping the drawn elements
