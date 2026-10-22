@@ -808,6 +808,26 @@ void Comment::remove_subject(size_t index)
 	subjects.erase(subjects.begin() + index);
 }
 
+const CommentSubject& Comment::update_subject(size_t index, const CommentSubject& s)
+{
+	if (index >= subjects.size()) {
+		throw ParametersException("Bad comment subject index");
+	}
+	subjects[index] = s;
+	return subjects[index];
+}
+
+void Comment::update_subject_geometry(size_t index, const Point& source, const Point& target, const Polyline& pl)
+{
+	if (index >= subjects.size()) {
+		throw ParametersException("Bad comment subject index");
+	}
+	CommentSubject& s = subjects[index];
+	s.source_point = source;
+	s.target_point = s.has_fragment() ? Point() : target;
+	s.polyline = pl;
+}
+
 void Comment::update_comment_type()
 {
 	if (human_readable) {
@@ -3437,6 +3457,33 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 	
 	return comment->add_subject(CommentSubject(_id, element,
 											   commentSubjectData, fragment, source, target, pl));
+}
+
+const CommentSubject& Document::update_comment_subject(Comment* comment, size_t index, Element* element,
+													   CommentSubjectType type, const String& fragment)
+{
+	check_parent_element(comment);
+	check_comment_subject_element(element);
+	if (element == comment) {
+		throw ParametersException("A comment cannot be its own subject");
+	}
+	if (index >= comment->get_subjects().size()) {
+		throw ParametersException("Bad comment subject index");
+	}
+	if (type != commentSubjectElement) {
+		check_nonempty_string(fragment);
+	}
+	const CommentSubject& old = comment->get_subjects()[index];
+	bool same_target = old.get_element() == element;
+	ID new_id = same_target ? old.get_id() : generate_subject_id(comment, element->get_id());
+	Point target = same_target && type == commentSubjectElement ? old.get_geometry_target_point() : Point();
+	if (type == commentSubjectElement) {
+		return comment->update_subject(index, CommentSubject(new_id, element, old.get_geometry_source_point(),
+															 target, old.get_geometry_polyline()));
+	}
+	return comment->update_subject(index, CommentSubject(new_id, element, type, fragment,
+														 old.get_geometry_source_point(), Point(),
+														 old.get_geometry_polyline()));
 }
 
 bool Document::update_metainfo_from_comment(const String&)

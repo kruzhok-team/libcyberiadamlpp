@@ -304,6 +304,12 @@ namespace Cyberiada {
 	    const CommentSubject&            add_subject(const CommentSubject& s);
 		void                             remove_subject(CommentSubjectType type, const String& fragment);
 		void                             remove_subject(size_t index);
+		// replace subject index in place, unchecked like add_subject
+		const CommentSubject&            update_subject(size_t index, const CommentSubject& s);
+		// the geometry of subject index; a fragment subject keeps no target point (PNST 1044 9.1.1)
+		void                             update_subject_geometry(size_t index, const Point& source,
+																 const Point& target = Point(),
+																 const Polyline& pl = Polyline());
 		// point the subjects whose target lives under root at that copy of it
 		void                             rebind_subjects(ElementCollection& root);
 
@@ -1063,6 +1069,11 @@ namespace Cyberiada {
 		const CommentSubject&          add_comment_to_element_body(Comment* comment, Element* element, const String& fragment, const ID& id,
 																   const Point& source = Point(), const Point& target = Point(),
 																   const Polyline& pl = Polyline());
+		// subject index of the comment points at a new element, type or fragment; a new
+		// target gets a new id and drops the target point, the order stays
+		const CommentSubject&          update_comment_subject(Comment* comment, size_t index, Element* element,
+															  CommentSubjectType type = commentSubjectElement,
+															  const String& fragment = String());
 		void                           update_metainfo_element();
 		bool                           update_metainfo_from_comment(const String& new_body);
 		
