@@ -1072,7 +1072,7 @@ namespace Cyberiada {
 		// subject index of the comment points at a new element, type or fragment; a new
 		// target gets a new id and drops the target point, the order stays
 		const CommentSubject&          update_comment_subject(Comment* comment, size_t index, Element* element,
-															  CommentSubjectType type = commentSubjectElement,
+															  CommentSubjectType subject_type = commentSubjectElement,
 															  const String& fragment = String());
 		void                           update_metainfo_element();
 		bool                           update_metainfo_from_comment(const String& new_body);

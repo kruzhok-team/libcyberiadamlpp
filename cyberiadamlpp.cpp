@@ -3460,7 +3460,7 @@ const CommentSubject& Document::add_comment_to_element_body(Comment* comment, El
 }
 
 const CommentSubject& Document::update_comment_subject(Comment* comment, size_t index, Element* element,
-													   CommentSubjectType type, const String& fragment)
+													   CommentSubjectType subject_type, const String& fragment)
 {
 	check_parent_element(comment);
 	check_comment_subject_element(element);
@@ -3470,18 +3470,18 @@ const CommentSubject& Document::update_comment_subject(Comment* comment, size_t 
 	if (index >= comment->get_subjects().size()) {
 		throw ParametersException("Bad comment subject index");
 	}
-	if (type != commentSubjectElement) {
+	if (subject_type != commentSubjectElement) {
 		check_nonempty_string(fragment);
 	}
 	const CommentSubject& old = comment->get_subjects()[index];
 	bool same_target = old.get_element() == element;
 	ID new_id = same_target ? old.get_id() : generate_subject_id(comment, element->get_id());
-	Point target = same_target && type == commentSubjectElement ? old.get_geometry_target_point() : Point();
-	if (type == commentSubjectElement) {
+	Point target = same_target && subject_type == commentSubjectElement ? old.get_geometry_target_point() : Point();
+	if (subject_type == commentSubjectElement) {
 		return comment->update_subject(index, CommentSubject(new_id, element, old.get_geometry_source_point(),
 															 target, old.get_geometry_polyline()));
 	}
-	return comment->update_subject(index, CommentSubject(new_id, element, type, fragment,
+	return comment->update_subject(index, CommentSubject(new_id, element, subject_type, fragment,
 														 old.get_geometry_source_point(), Point(),
 														 old.get_geometry_polyline()));
 }
