@@ -6,7 +6,8 @@ Added:
 - `Comment::update_subject_geometry`, `Comment::update_subject` and
   `Document::update_comment_subject`: a comment subject changed in place - its
   geometry, its target, type and fragment (a new target gets a new id, a fragment
-  keeps no target point), the order of the subjects kept.
+  keeps no target point), the order of the subjects kept; the packages require
+  libcyberiadaml 1.0.9 and libhtreegeom 1.3.
 
 ## Version 1.0.8
 
