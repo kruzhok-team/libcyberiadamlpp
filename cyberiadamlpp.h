@@ -1099,6 +1099,13 @@ namespace Cyberiada {
 		const DocumentMetainformation& meta() const { return metainfo; }
 		DocumentMetainformation&       meta() { return metainfo; }
 		const Comment*                 get_meta_element() const { return metainfo_element; }
+		// the EXT-FA extension: the metainformation parameter type/ fa and the
+		// top-level FA_INPUT[_RE] / FA_OUTPUT[_RE] alphabet comments
+		bool                           is_fa() const;
+		bool                           has_input_alphabet() const { return get_input_alphabet() != NULL; }
+		const Comment*                 get_input_alphabet() const;
+		bool                           has_output_alphabet() const { return get_output_alphabet() != NULL; }
+		const Comment*                 get_output_alphabet() const;
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		// declare the geometry format without converting coordinates: for a
 		// document that gains its first geometry (a border on a frameless one)
@@ -1258,6 +1265,13 @@ namespace Cyberiada {
 	class MetainformationException: public FormatException {
 	public:
 		MetainformationException(const String& msg = "", const String& e = "Metainfo Exception"):
+			FormatException(msg, e) {}
+	};
+// -----------------------------------------------------------------------------
+	// a finite automaton document (type/ fa) breaking the EXT-FA rules
+	class FAException: public FormatException {
+	public:
+		FAException(const String& msg = "", const String& e = "FA Exception"):
 			FormatException(msg, e) {}
 	};
 // -----------------------------------------------------------------------------

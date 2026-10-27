@@ -40,6 +40,7 @@ CYB_CATCHABLE(XMLException);
 CYB_CATCHABLE(CybMLException);
 CYB_CATCHABLE(ActionException);
 CYB_CATCHABLE(MetainformationException);
+CYB_CATCHABLE(FAException);
 CYB_CATCHABLE(ParametersException);
 CYB_CATCHABLE(NotFoundException);
 CYB_CATCHABLE(AssertException);

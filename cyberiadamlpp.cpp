@@ -243,6 +243,7 @@ void Element::check_cyberiada_error(int res, const String& msg) const
 	case CYBERIADA_FORMAT_ERROR: throw CybMLException(msg);
 	case CYBERIADA_ACTION_FORMAT_ERROR: throw ActionException(msg);
 	case CYBERIADA_METADATA_FORMAT_ERROR: throw MetainformationException(msg);
+	case CYBERIADA_FA_ERROR: throw FAException(msg);
 	case CYBERIADA_NOT_FOUND: throw NotFoundException(msg);
 	case CYBERIADA_BAD_PARAMETER: throw ParametersException(msg);
     case CYBERIADA_ASSERT: throw AssertException(msg);
@@ -3622,6 +3623,39 @@ void Document::set_geometry(DocumentGeometryFormat format)
 }
 
 String DocumentMetainformation::empty_string;
+
+bool Document::is_fa() const
+{
+	return metainfo.get_string(CYBERIADA_META_TYPE) == CYBERIADA_META_TYPE_FA;
+}
+
+// the first top-level formal comment of the first state machine named by one of the titles
+static const Comment* find_alphabet(const Document& doc, const char* title, const char* title_re)
+{
+	ConstStateMachineList machines = doc.get_state_machines();
+	if (machines.empty()) {
+		return NULL;
+	}
+	ConstElementList children = machines.front()->get_children();
+	for (ConstElementList::const_iterator i = children.begin(); i != children.end(); i++) {
+		const Element* e = *i;
+		if (e->get_type() == elementFormalComment && e->has_name() &&
+			(e->get_name() == title || e->get_name() == title_re)) {
+			return static_cast<const Comment*>(e);
+		}
+	}
+	return NULL;
+}
+
+const Comment* Document::get_input_alphabet() const
+{
+	return find_alphabet(*this, CYBERIADA_FA_INPUT_TITLE, CYBERIADA_FA_INPUT_RE_TITLE);
+}
+
+const Comment* Document::get_output_alphabet() const
+{
+	return find_alphabet(*this, CYBERIADA_FA_OUTPUT_TITLE, CYBERIADA_FA_OUTPUT_RE_TITLE);
+}
 
 const String& DocumentMetainformation::get_string(const String& name) const
 {

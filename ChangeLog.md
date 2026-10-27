@@ -1,8 +1,13 @@
 # libcyberiadamlpp project changelog
 
-## Version 1.0.9 (unreleased)
+## Version 1.1.0 (unreleased)
 
 Added:
+- the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR` of a
+  finite automaton document (`type/ fa`) breaking the EXT-FA rules, on any
+  load or save; `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
+  and their `has_` forms - the top-level `FA_INPUT[_RE]` / `FA_OUTPUT[_RE]`
+  comments; the packages require libcyberiadaml 1.1.
 - `Comment::update_subject_geometry`, `Comment::update_subject` and
   `Document::update_comment_subject`: a comment subject changed in place - its
   geometry, its target, type and fragment (a new target gets a new id, a fragment
