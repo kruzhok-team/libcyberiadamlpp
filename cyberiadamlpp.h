@@ -980,6 +980,15 @@ namespace Cyberiada {
 		}
 	}
 
+	// an EXT-FA violation of a finite automaton document
+	struct FAFinding {
+		String requirement;   // the testing spec row, "CGML-FA-3.4-1"
+		ID     element;       // the node or transition, empty for the document
+		String message;
+		bool   foreign;       // a construct outside the FA element set, not a draft fault
+	};
+	typedef std::vector<FAFinding> FAFindingList;
+
 	class Document: public ElementCollection {
 	public: 
 		Document(DocumentGeometryFormat format = geometryFormatNone);
@@ -1106,6 +1115,9 @@ namespace Cyberiada {
 		const Comment*                 get_input_alphabet() const;
 		bool                           has_output_alphabet() const { return get_output_alphabet() != NULL; }
 		const Comment*                 get_output_alphabet() const;
+		// every EXT-FA violation of a type/ fa document, whatever the strictness it was read
+		// with; empty for a compliant automaton and for another document
+		FAFindingList                  check_fa() const;
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		// declare the geometry format without converting coordinates: for a
 		// document that gains its first geometry (a border on a frameless one)
@@ -1268,7 +1280,8 @@ namespace Cyberiada {
 			FormatException(msg, e) {}
 	};
 // -----------------------------------------------------------------------------
-	// a finite automaton document (type/ fa) breaking the EXT-FA rules
+	// a finite automaton document (type/ fa) breaking the EXT-FA rules, read or written
+	// in the strict mode
 	class FAException: public FormatException {
 	public:
 		FAException(const String& msg = "", const String& e = "FA Exception"):

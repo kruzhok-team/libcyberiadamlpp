@@ -4,8 +4,10 @@
 
 Added:
 - the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR` of a
-  finite automaton document (`type/ fa`) breaking the EXT-FA rules, on any
-  load or save; `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
+  finite automaton document (`type/ fa`) breaking the EXT-FA rules, on a strict
+  load (a lenient one takes the automaton as a draft); `Document::check_fa`
+  lists every violation (`FAFinding`: the requirement, the element, the
+  message, foreign or a draft fault); `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
   and their `has_` forms - the top-level `FA_INPUT[_RE]` / `FA_OUTPUT[_RE]`
   comments; the packages require libcyberiadaml 1.1.
 - `Comment::update_subject_geometry`, `Comment::update_subject` and

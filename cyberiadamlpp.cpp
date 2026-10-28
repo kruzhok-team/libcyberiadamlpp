@@ -3657,6 +3657,34 @@ const Comment* Document::get_output_alphabet() const
 	return find_alphabet(*this, CYBERIADA_FA_OUTPUT_TITLE, CYBERIADA_FA_OUTPUT_RE_TITLE);
 }
 
+FAFindingList Document::check_fa() const
+{
+	FAFindingList result;
+	CyberiadaDocument doc;
+	CyberiadaFAFinding* findings = NULL;
+
+	if (!is_fa()) {
+		return result;
+	}
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
+	int res = cyberiada_check_fa_document(&doc, &findings);
+	cyberiada_cleanup_sm_document(&doc);
+	if (res != CYBERIADA_NO_ERROR && res != CYBERIADA_FA_ERROR) {
+		CYB_CHECK_RESULT(res);
+	}
+	for (const CyberiadaFAFinding* f = findings; f; f = f->next) {
+		FAFinding finding;
+		finding.requirement = f->requirement ? f->requirement : "";
+		finding.element = f->element_id ? f->element_id : "";
+		finding.message = f->message ? f->message : "";
+		finding.foreign = f->foreign != 0;
+		result.push_back(finding);
+	}
+	cyberiada_destroy_fa_findings(findings);
+	return result;
+}
+
 const String& DocumentMetainformation::get_string(const String& name) const
 {
 	for (std::vector<std::pair<String, String>>::const_iterator i = strings.begin(); i != strings.end(); i++) {

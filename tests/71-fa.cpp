@@ -45,16 +45,29 @@ int main(int, char** argv)
 		CYB_ASSERT(valid.get_input_alphabet()->get_body() == "0\n1");
 		CYB_ASSERT(valid.has_output_alphabet());
 		CYB_ASSERT(valid.get_output_alphabet()->get_name() == "FA_OUTPUT_RE");
+		CYB_ASSERT(valid.check_fa().empty());
 
-		// a transition with a guard is refused in both modes with the FA exception
-		for (int strict = 0; strict < 2; strict++) {
-			try {
-				LocalDocument invalid;
-				open_document(invalid, prefix + "invalid.graphml", strict != 0);
-				return 1;
-			} catch (const FAException&) {
-			}
+		// a transition with a guard is refused by the strict mode with the FA exception
+		try {
+			LocalDocument invalid;
+			open_document(invalid, prefix + "invalid.graphml", true);
+			return 1;
+		} catch (const FAException&) {
 		}
+
+		// the lenient mode reads and writes it as a draft, the guard is a foreign construct
+		LocalDocument draft;
+		open_document(draft, prefix + "invalid.graphml", false);
+		CYB_ASSERT(draft.is_fa());
+		FAFindingList findings = draft.check_fa();
+		CYB_ASSERT(findings.size() == 1);
+		CYB_ASSERT(findings[0].requirement == "CGML-FA-3.4-1");
+		CYB_ASSERT(findings[0].element == "q1-q1");
+		CYB_ASSERT(findings[0].foreign);
+		CYB_ASSERT(!findings[0].message.empty());
+		String buffer;
+		draft.encode(buffer);
+		CYB_ASSERT(!buffer.empty());
 
 		// the same document without type/ fa is an ordinary state machine
 		LocalDocument plain;
@@ -62,6 +75,7 @@ int main(int, char** argv)
 		CYB_ASSERT(!plain.is_fa());
 		CYB_ASSERT(!plain.has_input_alphabet());
 		CYB_ASSERT(!plain.has_output_alphabet());
+		CYB_ASSERT(plain.check_fa().empty());
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
 		return 1;
