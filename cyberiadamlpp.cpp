@@ -4356,6 +4356,26 @@ void Document::update_geometry(bool reconstruct_sm)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
+void Document::arrange_geometry(bool reconstruct_sm)
+{
+	/* the existing geometry is the seed: the document is laid out anew in
+	   its format, arranged as the seed is */
+	if (geometry_format == geometryFormatNone) {
+		geometry_format = geometryFormatQt;
+	}
+
+	CyberiadaDocument doc;
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
+
+	int res = cyberiada_arrange_document_geometry(&doc, int(reconstruct_sm));
+	CYB_CHECK_RESULT(res);
+
+	update_from_document(geometry_format, &doc);
+
+	cyberiada_cleanup_sm_document(&doc);
+}
+
 Element* Document::copy(Element*) const
 {
 	 return new Document(*this);
