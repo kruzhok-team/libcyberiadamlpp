@@ -1123,6 +1123,9 @@ namespace Cyberiada {
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
 		void                           reconstruct_geometry(bool reconstruct_sm);
 		void                           update_geometry(bool reconstruct_sm);
+		/* the layout anew, seeded by the existing geometry: its bands, order,
+		   directions and minimum sizes */
+		void                           arrange_geometry(bool reconstruct_sm);
 		void                           clean_geometry() override;
 		
 		Element*                       copy(Element* parent) const override;

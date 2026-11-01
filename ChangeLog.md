@@ -3,6 +3,10 @@
 ## Version 1.1.0 (unreleased)
 
 Added:
+- `Document::arrange_geometry`: the layout anew, seeded by the existing
+  geometry - its bands, the order in a layer, the flow directions and the
+  minimum sizes kept, the routes and the comments of the full layout
+  (libcyberiadaml 1.1);
 - the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR` of a
   finite automaton document (`type/ fa`) breaking the EXT-FA rules, on any
   load or save; `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
