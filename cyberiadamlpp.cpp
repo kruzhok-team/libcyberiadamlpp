@@ -4316,7 +4316,16 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
-void Document::reconstruct_geometry(bool reconstruct_sm)
+/* the layout options of the C library */
+static CyberiadaLayoutOptions layout_options(LayoutRouting routing)
+{
+	CyberiadaLayoutOptions options;
+	cyberiada_default_layout_options(&options);
+	options.routing = routing == layoutRoutingOrthogonal ? htRoutingOrthogonal : htRoutingPolyline;
+	return options;
+}
+
+void Document::reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the target format must be set before the export so the
 	   reconstructed geometry comes back in this format */
@@ -4328,7 +4337,8 @@ void Document::reconstruct_geometry(bool reconstruct_sm)
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_reconstruct_document_geometry(&doc, int(reconstruct_sm));
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_reconstruct_document_geometry_with(&doc, int(reconstruct_sm), &options);
 	CYB_CHECK_RESULT(res);
 
 	update_from_document(geometry_format, &doc);
@@ -4336,7 +4346,7 @@ void Document::reconstruct_geometry(bool reconstruct_sm)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
-void Document::update_geometry(bool reconstruct_sm)
+void Document::update_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the existing geometry is the seed and stays: only the geometry-less
 	   elements are laid out, in the document's format */
@@ -4348,7 +4358,8 @@ void Document::update_geometry(bool reconstruct_sm)
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_update_document_geometry(&doc, int(reconstruct_sm));
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_update_document_geometry_with(&doc, int(reconstruct_sm), &options);
 	CYB_CHECK_RESULT(res);
 
 	update_from_document(geometry_format, &doc);
@@ -4356,7 +4367,7 @@ void Document::update_geometry(bool reconstruct_sm)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
-void Document::arrange_geometry(bool reconstruct_sm)
+void Document::arrange_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the existing geometry is the seed: the document is laid out anew in
 	   its format, arranged as the seed is */
@@ -4368,7 +4379,8 @@ void Document::arrange_geometry(bool reconstruct_sm)
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_arrange_document_geometry(&doc, int(reconstruct_sm));
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_arrange_document_geometry_with(&doc, int(reconstruct_sm), &options);
 	CYB_CHECK_RESULT(res);
 
 	update_from_document(geometry_format, &doc);

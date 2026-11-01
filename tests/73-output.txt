@@ -1,0 +1,10 @@
+the polylines the default: 1
+the orthogonal routes differ: 1
+check: 1
+the update check: 1
+the arrange check: 1
+LocalDocument: {Document: {id: '', name: '', geometry format: qt, meta: {standard version: '1.0', transition order: action first, event propagation: block events}, elements: {State Machine: {id: 'G0', name: 'SM', geometry: (526; 290; 1052; 580), elements: {Formal Comment: {id: 'nMeta', name: 'CGML_META', body: 'standardVersion/ 1.0
+
+transitionOrder/ actionFirst
+
+eventPropagation/ block'}, Composite State: {id: 'n0', name: 'Parent 0', geometry: (0; -125; 1032; 290), elements: {Simple State: {id: 'n0::n0', name: 'State 0', geometry: (-346; 3; 300; 200)}, Simple State: {id: 'n0::n1', name: 'State 1', geometry: (110; 3; 300; 200)}}, region: (0; 18; 1012; 234)}, Simple State: {id: 'n1', name: 'Parent 1', geometry: (0; 180; 300; 200)}, Transition: {id: 'n0::n0-n0::n1', type: loc, source: 'n0::n0', target: 'n0::n1', sp: (150; -33), tp: (-150; -33)}, Transition: {id: 'n0::n0-n0::n1#0', type: loc, source: 'n0::n0', target: 'n0::n1', action: {trigger: 'A'}, sp: (150; 33), tp: (-150; 33), rect: (228; 56; 36; 36)}, Transition: {id: 'n0::n0-n0::n0', type: loc, source: 'n0::n0', target: 'n0::n0', action: {trigger: 'IDLE'}, sp: (-10; 100), tp: (10; 100), rect: (0; 143; 66; 36), polyline: [ (-10; 110), (10; 110) ]}, Transition: {id: 'n0-n0::n0', type: loc, source: 'n0', target: 'n0::n0', action: {trigger: 'INSIDE'}, sp: (-516; 21), tp: (-150; 0), rect: (-453; 21; 86; 36)}, Transition: {id: 'n0::n1-n0', type: loc, source: 'n0::n1', target: 'n0', action: {trigger: 'OUTSIDE'}, sp: (150; -33), tp: (290; -145), rect: (298; -20; 96; 36), polyline: [ (180; -33) ]}, Transition: {id: 'n0::n1-n1', type: loc, source: 'n0::n1', target: 'n1', action: {trigger: 'EVENT', guard: 'guard()', behavior: 'action();'}, sp: (150; 33), tp: (0; -100), rect: (298; 76; 176; 56), polyline: [ (180; 33), (180; 119), (-110; 119) ]}}}}, bounding rect: (526; 290; 1052; 580)}, file: 'tests/73-layout-routing.test-input.graphml', format: cyberiada, format_str: 'Cyberiada-GraphML-1.0'}

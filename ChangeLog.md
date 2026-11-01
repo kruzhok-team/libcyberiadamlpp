@@ -7,6 +7,10 @@ Added:
   geometry - its bands, the order in a layer, the flow directions and the
   minimum sizes kept, the routes and the comments of the full layout
   (libcyberiadaml 1.1);
+- the routing of the layout: `LayoutRouting` (`layoutRoutingPolyline`, the
+  default, or `layoutRoutingOrthogonal`) as the optional second argument of
+  `Document::reconstruct_geometry`, `update_geometry` and `arrange_geometry`
+  (libcyberiadaml 1.1, test 73);
 - the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR` of a
   finite automaton document (`type/ fa`) breaking the EXT-FA rules, on any
   load or save; `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
