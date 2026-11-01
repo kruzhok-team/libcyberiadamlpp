@@ -4325,6 +4325,11 @@ static CyberiadaLayoutOptions layout_options(LayoutRouting routing)
 	return options;
 }
 
+void Document::reconstruct_geometry(bool reconstruct_sm)
+{
+	reconstruct_geometry(reconstruct_sm, layoutRoutingPolyline);
+}
+
 void Document::reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the target format must be set before the export so the
@@ -4346,6 +4351,11 @@ void Document::reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
+void Document::update_geometry(bool reconstruct_sm)
+{
+	update_geometry(reconstruct_sm, layoutRoutingPolyline);
+}
+
 void Document::update_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the existing geometry is the seed and stays: only the geometry-less
@@ -4365,6 +4375,11 @@ void Document::update_geometry(bool reconstruct_sm, LayoutRouting routing)
 	update_from_document(geometry_format, &doc);
 
 	cyberiada_cleanup_sm_document(&doc);
+}
+
+void Document::arrange_geometry(bool reconstruct_sm)
+{
+	arrange_geometry(reconstruct_sm, layoutRoutingPolyline);
 }
 
 void Document::arrange_geometry(bool reconstruct_sm, LayoutRouting routing)

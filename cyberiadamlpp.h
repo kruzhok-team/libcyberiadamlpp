@@ -1126,14 +1126,16 @@ namespace Cyberiada {
 		Rect                           get_bound_rect(const Document& d) const override;
 		bool                           check_geometry() const;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
-		void                           reconstruct_geometry(bool reconstruct_sm,
-															LayoutRouting routing = layoutRoutingPolyline);
-		void                           update_geometry(bool reconstruct_sm,
-													   LayoutRouting routing = layoutRoutingPolyline);
+		/* the layouts with the polylines, or routed as `routing` says (the
+		   one-argument calls stay for the ABI) */
+		void                           reconstruct_geometry(bool reconstruct_sm);
+		void                           reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing);
+		void                           update_geometry(bool reconstruct_sm);
+		void                           update_geometry(bool reconstruct_sm, LayoutRouting routing);
 		/* the layout anew, seeded by the existing geometry: its bands, order,
 		   directions and minimum sizes */
-		void                           arrange_geometry(bool reconstruct_sm,
-														LayoutRouting routing = layoutRoutingPolyline);
+		void                           arrange_geometry(bool reconstruct_sm);
+		void                           arrange_geometry(bool reconstruct_sm, LayoutRouting routing);
 		void                           clean_geometry() override;
 		
 		Element*                       copy(Element* parent) const override;
