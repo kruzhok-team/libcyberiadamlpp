@@ -3688,6 +3688,20 @@ void DocumentMetainformation::remove_string(const String& name)
 	}
 }
 
+bool DocumentMetainformation::regions_stored() const
+{
+	return get_string(CYBERIADA_META_REGION_GEOMETRY) == CYBERIADA_META_REGION_GEOMETRY_STORED;
+}
+
+void DocumentMetainformation::set_regions_stored(bool stored)
+{
+	if (stored) {
+		set_string(CYBERIADA_META_REGION_GEOMETRY, CYBERIADA_META_REGION_GEOMETRY_STORED);
+	} else {
+		remove_string(CYBERIADA_META_REGION_GEOMETRY);
+	}
+}
+
 DocumentGeometryDeclaration DocumentMetainformation::get_geometry() const
 {
 	const String& value = get_string(CYBERIADA_META_GEOMETRY);

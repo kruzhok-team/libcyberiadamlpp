@@ -911,6 +911,10 @@ namespace Cyberiada {
 
 		DocumentGeometryDeclaration            get_geometry() const;
 		void                                   set_geometry(DocumentGeometryDeclaration g);
+		/* regionGeometry/ stored: the region rects are the frames of the
+		   nested elements as drawn (an editor that stores its regions) */
+		bool                                   regions_stored() const;
+		void                                   set_regions_stored(bool stored);
 
 	private:
 		static String                          empty_string;

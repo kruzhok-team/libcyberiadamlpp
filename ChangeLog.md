@@ -7,6 +7,9 @@ Added:
   geometry - its bands, the order in a layer, the flow directions and the
   minimum sizes kept, the routes and the comments of the full layout
   (libcyberiadaml 1.1);
+- `DocumentMetainformation::regions_stored` / `set_regions_stored`: the meta
+  parameter `regionGeometry/ stored` of a producer that stores its regions
+  (libcyberiadaml 1.1, test 74);
 - the routing of the layout: `LayoutRouting` (`layoutRoutingPolyline`, as the
   one-argument calls, or `layoutRoutingOrthogonal`) in the two-argument
   `Document::reconstruct_geometry`, `update_geometry` and `arrange_geometry`
