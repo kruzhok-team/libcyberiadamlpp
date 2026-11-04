@@ -101,6 +101,11 @@ namespace Cyberiada {
 		geometryFormatQt,                           // Qt geometry: local centered coordinates, edges based on local border points
 	};
 
+	enum LayoutRouting {
+		layoutRoutingPolyline,                      // the straight segments through the bends of the layers
+		layoutRoutingOrthogonal,                    // the runs along and across the flow
+	};
+
 	class Document;
 	
 // -----------------------------------------------------------------------------
@@ -906,6 +911,10 @@ namespace Cyberiada {
 
 		DocumentGeometryDeclaration            get_geometry() const;
 		void                                   set_geometry(DocumentGeometryDeclaration g);
+		/* regionGeometry/ stored: the region rects are the frames of the
+		   nested elements as drawn (an editor that stores its regions) */
+		bool                                   regions_stored() const;
+		void                                   set_regions_stored(bool stored);
 
 	private:
 		static String                          empty_string;
@@ -1121,8 +1130,16 @@ namespace Cyberiada {
 		Rect                           get_bound_rect(const Document& d) const override;
 		bool                           check_geometry() const;
 		void                           convert_geometry(DocumentGeometryFormat geom_format);
+		/* the layouts with the polylines, or routed as `routing` says (the
+		   one-argument calls stay for the ABI) */
 		void                           reconstruct_geometry(bool reconstruct_sm);
+		void                           reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing);
 		void                           update_geometry(bool reconstruct_sm);
+		void                           update_geometry(bool reconstruct_sm, LayoutRouting routing);
+		/* the layout anew, seeded by the existing geometry: its bands, order,
+		   directions and minimum sizes */
+		void                           arrange_geometry(bool reconstruct_sm);
+		void                           arrange_geometry(bool reconstruct_sm, LayoutRouting routing);
 		void                           clean_geometry() override;
 		
 		Element*                       copy(Element* parent) const override;

@@ -3688,6 +3688,20 @@ void DocumentMetainformation::remove_string(const String& name)
 	}
 }
 
+bool DocumentMetainformation::regions_stored() const
+{
+	return get_string(CYBERIADA_META_REGION_GEOMETRY) == CYBERIADA_META_REGION_GEOMETRY_STORED;
+}
+
+void DocumentMetainformation::set_regions_stored(bool stored)
+{
+	if (stored) {
+		set_string(CYBERIADA_META_REGION_GEOMETRY, CYBERIADA_META_REGION_GEOMETRY_STORED);
+	} else {
+		remove_string(CYBERIADA_META_REGION_GEOMETRY);
+	}
+}
+
 DocumentGeometryDeclaration DocumentMetainformation::get_geometry() const
 {
 	const String& value = get_string(CYBERIADA_META_GEOMETRY);
@@ -4316,7 +4330,21 @@ void Document::convert_geometry(DocumentGeometryFormat geom_format)
 	cyberiada_cleanup_sm_document(&doc);
 }
 
+/* the layout options of the C library */
+static CyberiadaLayoutOptions layout_options(LayoutRouting routing)
+{
+	CyberiadaLayoutOptions options;
+	cyberiada_default_layout_options(&options);
+	options.routing = routing == layoutRoutingOrthogonal ? htRoutingOrthogonal : htRoutingPolyline;
+	return options;
+}
+
 void Document::reconstruct_geometry(bool reconstruct_sm)
+{
+	reconstruct_geometry(reconstruct_sm, layoutRoutingPolyline);
+}
+
+void Document::reconstruct_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the target format must be set before the export so the
 	   reconstructed geometry comes back in this format */
@@ -4328,7 +4356,8 @@ void Document::reconstruct_geometry(bool reconstruct_sm)
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_reconstruct_document_geometry(&doc, int(reconstruct_sm));
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_reconstruct_document_geometry_with(&doc, int(reconstruct_sm), &options);
 	CYB_CHECK_RESULT(res);
 
 	update_from_document(geometry_format, &doc);
@@ -4337,6 +4366,11 @@ void Document::reconstruct_geometry(bool reconstruct_sm)
 }
 
 void Document::update_geometry(bool reconstruct_sm)
+{
+	update_geometry(reconstruct_sm, layoutRoutingPolyline);
+}
+
+void Document::update_geometry(bool reconstruct_sm, LayoutRouting routing)
 {
 	/* the existing geometry is the seed and stays: only the geometry-less
 	   elements are laid out, in the document's format */
@@ -4348,7 +4382,34 @@ void Document::update_geometry(bool reconstruct_sm)
 	cyberiada_init_sm_document(&doc);
 	to_document(&doc);
 
-	int res = cyberiada_update_document_geometry(&doc, int(reconstruct_sm));
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_update_document_geometry_with(&doc, int(reconstruct_sm), &options);
+	CYB_CHECK_RESULT(res);
+
+	update_from_document(geometry_format, &doc);
+
+	cyberiada_cleanup_sm_document(&doc);
+}
+
+void Document::arrange_geometry(bool reconstruct_sm)
+{
+	arrange_geometry(reconstruct_sm, layoutRoutingPolyline);
+}
+
+void Document::arrange_geometry(bool reconstruct_sm, LayoutRouting routing)
+{
+	/* the existing geometry is the seed: the document is laid out anew in
+	   its format, arranged as the seed is */
+	if (geometry_format == geometryFormatNone) {
+		geometry_format = geometryFormatQt;
+	}
+
+	CyberiadaDocument doc;
+	cyberiada_init_sm_document(&doc);
+	to_document(&doc);
+
+	CyberiadaLayoutOptions options = layout_options(routing);
+	int res = cyberiada_arrange_document_geometry_with(&doc, int(reconstruct_sm), &options);
 	CYB_CHECK_RESULT(res);
 
 	update_from_document(geometry_format, &doc);
