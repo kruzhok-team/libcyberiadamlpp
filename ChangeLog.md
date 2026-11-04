@@ -1,31 +1,16 @@
 # libcyberiadamlpp project changelog
 
-## Version 1.1.0 (unreleased)
+## Version 1.1.0
 
 Added:
 - `Document::arrange_geometry`: the layout anew, seeded by the existing
-  geometry - its bands, the order in a layer, the flow directions and the
-  minimum sizes kept, the routes and the comments of the full layout
-  (libcyberiadaml 1.1);
-- `DocumentMetainformation::regions_stored` / `set_regions_stored`: the meta
-  parameter `regionGeometry/ stored` of a producer that stores its regions
-  (libcyberiadaml 1.1, test 74);
+  geometry;
+- `DocumentMetainformation::regions_stored` / `set_regions_stored`;
 - the routing of the layout: `LayoutRouting` (`layoutRoutingPolyline`, as the
-  one-argument calls, or `layoutRoutingOrthogonal`) in the two-argument
-  `Document::reconstruct_geometry`, `update_geometry` and `arrange_geometry`
-  (libcyberiadaml 1.1, test 73);
-- the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR` of a
-  finite automaton document (`type/ fa`) breaking the EXT-FA rules, on a strict
-  load (a lenient one takes the automaton as a draft); `Document::check_fa`
-  lists every violation (`FAFinding`: the requirement, the element, the
-  message, foreign or a draft fault); `Document::is_fa`, `get_input_alphabet` / `get_output_alphabet`
-  and their `has_` forms - the top-level `FA_INPUT[_RE]` / `FA_OUTPUT[_RE]`
-  comments; the packages require libcyberiadaml 1.1.
+  one-argument calls, or `layoutRoutingOrthogonal`);
+- the EXT-FA extension: `FAException` for the `CYBERIADA_FA_ERROR`;
 - `Comment::update_subject_geometry`, `Comment::update_subject` and
-  `Document::update_comment_subject`: a comment subject changed in place - its
-  geometry, its target, type and fragment (a new target gets a new id, a fragment
-  keeps no target point), the order of the subjects kept; the packages require
-  libcyberiadaml 1.0.9 and libhtreegeom 1.3.
+  `Document::update_comment_subject`.
 
 ## Version 1.0.8
 
