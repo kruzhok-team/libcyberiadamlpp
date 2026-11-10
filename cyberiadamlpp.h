@@ -827,6 +827,85 @@ namespace Cyberiada {
 	} SMIsomorphismFlags;
 	typedef unsigned int SMIsomorphismFlagsResult;
 
+	// the revision diff of two revisions of a document (cyberiadaml_diff.h):
+	// the elements paired by their verified ids, the ids of each pair
+	typedef enum {
+		diffAdded = CYBERIADA_DIFF_FLAG_ADDED,
+		diffRemoved = CYBERIADA_DIFF_FLAG_REMOVED,
+		diffType = CYBERIADA_DIFF_FLAG_TYPE,
+		diffTitle = CYBERIADA_DIFF_FLAG_TITLE,
+		diffActions = CYBERIADA_DIFF_FLAG_ACTIONS,
+		diffParent = CYBERIADA_DIFF_FLAG_PARENT,
+		diffLink = CYBERIADA_DIFF_FLAG_LINK,
+		diffComment = CYBERIADA_DIFF_FLAG_COMMENT,
+		diffColor = CYBERIADA_DIFF_FLAG_COLOR,
+		diffGeometry = CYBERIADA_DIFF_FLAG_GEOMETRY,
+		diffCollapsed = CYBERIADA_DIFF_FLAG_COLLAPSED,
+		diffSource = CYBERIADA_DIFF_FLAG_SOURCE,
+		diffTarget = CYBERIADA_DIFF_FLAG_TARGET,
+		diffTrigger = CYBERIADA_DIFF_FLAG_TRIGGER,
+		diffGuard = CYBERIADA_DIFF_FLAG_GUARD,
+		diffBehavior = CYBERIADA_DIFF_FLAG_BEHAVIOR,
+		diffPropagation = CYBERIADA_DIFF_FLAG_PROPAGATION,
+		diffSubject = CYBERIADA_DIFF_FLAG_SUBJECT,
+		diffMeta = CYBERIADA_DIFF_FLAG_META,
+		diffElements = CYBERIADA_DIFF_FLAG_ELEMENTS
+	} DiffFlag;
+	typedef unsigned int DiffFlags;
+
+	typedef enum {
+		diffKindNode = 0,                  // a state, a pseudostate, a region, a comment
+		diffKindTransition,
+		diffKindCommentLink                // the link of a comment to its subject
+	} DiffElementKind;
+
+	struct DiffOptions {
+		DiffOptions(): geometry(false), comments(true), tolerance(CYBERIADA_DIFF_GEOMETRY_TOLERANCE) {}
+		bool   geometry;                   // compare the geometry and the collapsed flag
+		bool   comments;                   // compare the comments and their links
+		double tolerance;                  // the largest coordinate difference counted as none
+	};
+
+	// a pair of elements, an added or a removed one: the ids of its sides,
+	// empty for the side it is missing from
+	struct ElementDiff {
+		DiffElementKind  kind;
+		ID               first;
+		ID               second;
+		ID               first_comment;    // a comment link: its comment
+		ID               second_comment;
+		DiffFlags        flags;            // 0 for an unchanged pair
+		ActionsDiffFlags actions;          // the node actions (adiff*)
+		bool             added() const { return (flags & diffAdded) != 0; }
+		bool             removed() const { return (flags & diffRemoved) != 0; }
+	};
+	typedef std::vector<ElementDiff> ElementDiffList;
+
+	// the nodes in the order of the second SM, the removed ones after them,
+	// then the edges likewise
+	struct StateMachineDiff {
+		ID               first;            // empty for an added SM
+		ID               second;           // empty for a removed SM
+		DiffFlags        flags;
+		ElementDiffList  elements;
+		bool             changed() const { return flags != 0; }
+	};
+
+	struct MetaDiff {
+		String           name;
+		String           first;
+		String           second;
+		bool             in_first;         // the first document has the parameter
+		bool             in_second;
+	};
+
+	struct DocumentDiff {
+		DiffFlags                      flags;   // 0: no differences
+		std::vector<MetaDiff>          meta;
+		std::vector<StateMachineDiff>  machines;
+		bool                           changed() const { return flags != 0; }
+	};
+
 	class StateMachine: public ElementCollection {
 	public:
 		StateMachine(Element* parent, const ID& id, const Name& name = "", const Rect& r = Rect());
@@ -852,6 +931,10 @@ namespace Cyberiada {
 																 std::vector<SMIsomorphismFlagsResult>* diff_edges_flags = NULL,
 																 std::vector<ID>* new_edges = NULL,
 																 std::vector<ID>* missing_edges = NULL) const;
+		// the revision diff from this SM to `sm`; the geometry compared needs the
+		// documents of the same geometry format
+		StateMachineDiff               diff(const StateMachine& sm) const;
+		StateMachineDiff               diff(const StateMachine& sm, const DiffOptions& options) const;
 
 		virtual Rect                   get_bound_rect(const Document& d) const;
 
@@ -1127,6 +1210,10 @@ namespace Cyberiada {
 		// every EXT-FA violation of a type/ fa document, whatever the strictness it was read
 		// with; empty for a compliant automaton and for another document
 		FAFindingList                  check_fa() const;
+		// the revision diff from this document to `d`; with the geometry option
+		// both are compared in the Cyberiada 1.0 coordinates (left-top)
+		DocumentDiff                   diff(const Document& d) const;
+		DocumentDiff                   diff(const Document& d, const DiffOptions& options) const;
 		DocumentGeometryFormat         get_geometry_format() const { return geometry_format; }
 		// declare the geometry format without converting coordinates: for a
 		// document that gains its first geometry (a border on a frameless one)

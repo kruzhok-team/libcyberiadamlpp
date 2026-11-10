@@ -2884,6 +2884,109 @@ SMIsomorphismResult StateMachine::check_isomorphism_details(const StateMachine& 
 }
 
 // -----------------------------------------------------------------------------
+// The revision diff
+// -----------------------------------------------------------------------------
+
+static void diff_c_options(const DiffOptions& options, CyberiadaDiffOptions* c_options)
+{
+	cyberiada_default_diff_options(c_options);
+	if (options.geometry) {
+		c_options->flags |= CYBERIADA_DIFF_OPTION_GEOMETRY;
+	}
+	if (!options.comments) {
+		c_options->flags |= CYBERIADA_DIFF_OPTION_IGNORE_COMMENTS;
+	}
+	c_options->geometry_tolerance = options.tolerance;
+}
+
+static ID diff_id(const char* id)
+{
+	return id ? ID(id) : ID();
+}
+
+static ID diff_link_comment(const CyberiadaEdge* edge)
+{
+	return (edge && edge->type == cybEdgeComment && edge->source) ? diff_id(edge->source->id) : ID();
+}
+
+static StateMachineDiff diff_from_c(const CyberiadaSMDiff* d)
+{
+	StateMachineDiff result;
+	result.first = (d->sm1 && d->sm1->nodes) ? diff_id(d->sm1->nodes->id) : ID();
+	result.second = (d->sm2 && d->sm2->nodes) ? diff_id(d->sm2->nodes->id) : ID();
+	result.flags = d->flags;
+	for (size_t i = 0; i < d->nodes_size; i++) {
+		const CyberiadaNodeDiff* n = d->nodes + i;
+		ElementDiff e;
+		e.kind = diffKindNode;
+		e.first = n->n1 ? diff_id(n->n1->id) : ID();
+		e.second = n->n2 ? diff_id(n->n2->id) : ID();
+		e.flags = n->flags;
+		e.actions = n->action_flags;
+		result.elements.push_back(e);
+	}
+	for (size_t i = 0; i < d->edges_size; i++) {
+		const CyberiadaEdgeDiff* ed = d->edges + i;
+		const CyberiadaEdge* edge = ed->e1 ? ed->e1 : ed->e2;
+		ElementDiff e;
+		e.kind = (edge && edge->type == cybEdgeComment) ? diffKindCommentLink : diffKindTransition;
+		e.first = ed->e1 ? diff_id(ed->e1->id) : ID();
+		e.second = ed->e2 ? diff_id(ed->e2->id) : ID();
+		e.first_comment = diff_link_comment(ed->e1);
+		e.second_comment = diff_link_comment(ed->e2);
+		e.flags = ed->flags;
+		e.actions = 0;
+		result.elements.push_back(e);
+	}
+	return result;
+}
+
+static const Document* diff_document_of(const Element* element)
+{
+	while (element && element->get_parent()) {
+		element = element->get_parent();
+	}
+	return dynamic_cast<const Document*>(element);
+}
+
+StateMachineDiff StateMachine::diff(const StateMachine& sm) const
+{
+	return diff(sm, DiffOptions());
+}
+
+StateMachineDiff StateMachine::diff(const StateMachine& sm, const DiffOptions& options) const
+{
+	if (options.geometry) {
+		const Document* d1 = diff_document_of(this);
+		const Document* d2 = diff_document_of(&sm);
+		if (d1 && d2 && d1->has_geometry() && d2->has_geometry() &&
+			d1->get_geometry_format() != d2->get_geometry_format()) {
+			throw ParametersException("The geometry of the state machines of different geometry formats compared");
+		}
+	}
+
+	CyberiadaDiffOptions c_options;
+	diff_c_options(options, &c_options);
+	CyberiadaSM* sm1 = to_sm();
+	CyberiadaSM* sm2 = sm.to_sm();
+	CyberiadaSMDiff d;
+	StateMachineDiff result;
+
+	int res = cyberiada_diff_sms(sm1, sm2, &c_options, &d);
+	if (res == CYBERIADA_NO_ERROR) {
+		result = diff_from_c(&d);
+		cyberiada_cleanup_sm_diff(&d);
+	}
+
+	cyberiada_destroy_sm(sm1);
+	cyberiada_destroy_sm(sm2);
+
+	CYB_CHECK_RESULT(res);
+
+	return result;
+}
+
+// -----------------------------------------------------------------------------
 // Cyberiada-GraphML Document
 // -----------------------------------------------------------------------------
 Document::Document(DocumentGeometryFormat format):
@@ -3682,6 +3785,77 @@ FAFindingList Document::check_fa() const
 		result.push_back(finding);
 	}
 	cyberiada_destroy_fa_findings(findings);
+	return result;
+}
+
+DocumentDiff Document::diff(const Document& d) const
+{
+	return diff(d, DiffOptions());
+}
+
+DocumentDiff Document::diff(const Document& d, const DiffOptions& options) const
+{
+	const Document* sides[] = {this, &d};
+	Document* copies[] = {NULL, NULL};
+	CyberiadaDocument docs[sizeof(sides) / sizeof(*sides)];
+	size_t sides_count = sizeof(sides) / sizeof(*sides);
+	DocumentDiff result;
+
+	for (size_t i = 0; i < sides_count; i++) {
+		cyberiada_init_sm_document(docs + i);
+	}
+	try {
+		for (size_t i = 0; i < sides_count; i++) {
+			const Document* side = sides[i];
+			// the left-top basis: a composite moved or resized moves nothing inside it
+			if (options.geometry && side->has_geometry() &&
+				side->get_geometry_format() != geometryFormatCyberiada10) {
+				copies[i] = new Document(*side);
+				copies[i]->convert_geometry(geometryFormatCyberiada10);
+				side = copies[i];
+			}
+			// a document without a state machine is an empty side of the diff
+			if (!side->get_state_machines().empty()) {
+				side->to_document(docs + i);
+			}
+		}
+	} catch (const Exception&) {
+		for (size_t i = 0; i < sides_count; i++) {
+			cyberiada_cleanup_sm_document(docs + i);
+			delete copies[i];
+		}
+		throw;
+	}
+
+	CyberiadaDiffOptions c_options;
+	diff_c_options(options, &c_options);
+	CyberiadaDocumentDiff c_diff;
+	int res = cyberiada_diff_documents(docs, docs + 1, &c_options, &c_diff);
+	if (res == CYBERIADA_NO_ERROR) {
+		result.flags = c_diff.flags;
+		for (size_t i = 0; i < c_diff.meta_size; i++) {
+			const CyberiadaMetaDiff* m = c_diff.meta + i;
+			MetaDiff meta;
+			meta.name = m->name ? m->name : "";
+			meta.first = m->value1 ? m->value1 : "";
+			meta.second = m->value2 ? m->value2 : "";
+			meta.in_first = m->value1 != NULL;
+			meta.in_second = m->value2 != NULL;
+			result.meta.push_back(meta);
+		}
+		for (size_t i = 0; i < c_diff.sms_size; i++) {
+			result.machines.push_back(diff_from_c(c_diff.sms + i));
+		}
+		cyberiada_cleanup_document_diff(&c_diff);
+	}
+
+	for (size_t i = 0; i < sides_count; i++) {
+		cyberiada_cleanup_sm_document(docs + i);
+		delete copies[i];
+	}
+
+	CYB_CHECK_RESULT(res);
+
 	return result;
 }
 

@@ -1,0 +1,48 @@
+== the edited revision
+document: meta elements
+ meta platform: ArduinoUno -> ArduinoNano
+ sm G G: elements
+  node n1 n1: color
+  node - n3: added
+  node n2 n2: parent
+  node c1 c1: comment
+  node n3 -: removed
+  transition n1-n2 n1-n2: behavior
+  transition - n2-n1: added
+  transition n1-n5 n1-n5: target
+  transition n5-n1 n5-n1#2: trigger
+  transition n2-n3 -: removed
+  transition n3-n1 -: removed
+== with the geometry
+document: meta elements
+ meta platform: ArduinoUno -> ArduinoNano
+ sm G G: elements
+  node n1 n1: color geometry
+  node - n3: added
+  node n2 n2: parent geometry
+  node c1 c1: comment
+  node n3 -: removed
+  transition n1-n2 n1-n2: behavior
+  transition - n2-n1: added
+  transition n1-n5 n1-n5: target
+  transition n5-n1 n5-n1#2: trigger
+  transition n2-n3 -: removed
+  transition n3-n1 -: removed
+== without the comments
+document: meta elements
+ meta platform: ArduinoUno -> ArduinoNano
+ sm G G: elements
+  node n1 n1: color
+  node - n3: added
+  node n2 n2: parent
+  node n3 -: removed
+  transition n1-n2 n1-n2: behavior
+  transition - n2-n1: added
+  transition n1-n5 n1-n5: target
+  transition n5-n1 n5-n1#2: trigger
+  transition n2-n3 -: removed
+  transition n3-n1 -: removed
+== a new document
+elements added: 14
+== the state machines
+sm G G: elements

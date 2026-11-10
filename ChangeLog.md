@@ -1,5 +1,15 @@
 # libcyberiadamlpp project changelog
 
+## Version 1.2.0 (unreleased)
+
+Added:
+- the revision diff of two revisions of a document (libcyberiadaml 1.2):
+  `Document::diff` and `StateMachine::diff`, `DiffOptions` (the geometry, the
+  comments, the tolerance) and the results `DocumentDiff`, `StateMachineDiff`,
+  `ElementDiff`, `MetaDiff` with the `diff*` flags, the elements by their ids;
+  the geometry compared in the Cyberiada 1.0 coordinates; a document without a
+  state machine compares as an empty one.
+
 ## Version 1.1.0
 
 Added:
