@@ -55,9 +55,9 @@ int main(int, char** argv)
 		CYB_ASSERT(diff_nodes_second.size() == 6);
 		CYB_ASSERT(diff_nodes_second[2] == "node-0-0-0");
 		CYB_ASSERT(diff_nodes_flags.size() == 6);
-		CYB_ASSERT(diff_nodes_flags[3] | smiNodeDiffFlagTitle);
+		CYB_ASSERT(diff_nodes_flags[3] & smiNodeDiffFlagTitle);
 		for (size_t i = 0; i < diff_nodes_flags.size(); i++) {
-			CYB_ASSERT(diff_nodes_flags[i] | smiNodeDiffFlagID);
+			CYB_ASSERT(diff_nodes_flags[i] & smiNodeDiffFlagID);
 		}
 	} catch (const Cyberiada::Exception& e) {
 		cerr << e.str() << endl;
