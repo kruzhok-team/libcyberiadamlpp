@@ -114,6 +114,7 @@ int main(int, char** argv)
 		// the removal flips the state back to simple
 		s1->remove_element("sub1");
 		CYB_ASSERT(s1->is_simple_state());
+		CYB_ASSERT(!s1->has_region_geometry());
 
 		// the first element insertion
 		InitialPseudostate* init0 = new InitialPseudostate(sm, "init0", Point(0, 0));

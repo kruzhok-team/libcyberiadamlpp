@@ -2129,6 +2129,8 @@ void State::update_state_type()
 		this->set_type(elementCompositeState);
 	} else {
 		this->set_type(elementSimpleState);
+		/* the writer emits a region for the children only */
+		region_rect = Rect();
 	}
 }
 

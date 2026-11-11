@@ -666,6 +666,7 @@ namespace Cyberiada {
 
 		bool                       has_region_geometry() const { return region_rect.valid; }
 		const Rect&                get_region_geometry_rect() const { return region_rect; }
+		/* the region is dropped when the last child leaves */
 		void                       update_region_geometry_rect(const Rect& r) { region_rect = r; }
 
 		bool                       is_collapsed() const { return collapsed; }
